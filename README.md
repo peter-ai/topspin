@@ -1,2 +1,2 @@
-# 550proj-g14
-Private Repo for CIS550 Final Projects - Tennis and Winning Odds
+# 550-topspin
+Private Repo for CIS550 Final Projects - Top Spin
