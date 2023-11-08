@@ -1,6 +1,6 @@
 # 550-topspin
 ### Description
-Top Spin is a web application that allows both tennis fanatics and casual fans to gain insight into the most infamous question in any given sport - who is the greatest of all time (GOAT). It aggregates data about athletes, rankings, and matches dating back to 1968, and match odds from 2000 to 2019. The web app will display various dynamic summary views and more in-depth pages about historical tennis players and matches. Aligned with this, it will provide users the functionality to create matches with players from different eras of tennis, and show the user who was more likely to win given the user defined parameters about the match.
+Top Spin is a web application that allows both tennis fanatics and casual fans to gain insight into the most infamous question in any given sport - who is the greatest of all time (GOAT). It aggregates data about athletes, rankings, and matches dating back to late 1800s, and match odds from 2000 to 2019. The web app displays various dynamic summary views and more in-depth pages about tennis players and matches based on historical data. Aligned with this, it provides users the functionality to create matches with players from different eras of tennis, and shows the user who was more likely to win given user defined parameters about the match.
 
 ### Dependencies
 The project is built in full-stack JS with python for machine learning. Below is a high level list of depenencies, a comprehensive list will be included and pointed to elsewhere:
