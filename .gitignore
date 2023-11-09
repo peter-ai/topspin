@@ -173,8 +173,5 @@ cython_debug/
 # testing
 /coverage
 
-# production
-**/build
-
 # user defined
 .DS_Store
