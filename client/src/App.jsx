@@ -1,11 +1,20 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 
-function App() {
+import HomePage from "./pages/HomePage";
+import TestPage from "./pages/TestPage";
+import NotFound from "./pages/NotFoundPage";
+
+export default function App() {
   return (
     <>
-      <h1>TopSpin</h1>
+      <BrowserRouter>
+        <Routes>
+          <Route exact path="/" element={<HomePage />} />
+          <Route exact path="/test" element={<TestPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
     </>
   );
-}
-
-export default App;
+};
