@@ -15,8 +15,11 @@ app.use(morgan("tiny")); // logger
 
 // routes
 app.get("/", routes.home);
+app.get("/test", routes.test);
 
 // listen for requests
-app.listen(() => {
+app.listen(`${SERVER_PORT}`, () => {
   console.log(`Topspin server listening on port ${SERVER_PORT}`);
 });
+
+module.exports = app;
