@@ -22,7 +22,9 @@ const home = async (req, res) => {
 const player = async (req, res) => {
   connection.query(
     `
-    SELECT id, name, ioc, league FROM player;
+    SELECT id, name, ioc, league 
+    FROM player
+    ORDER BY name;
     `, (err, data) => {
       if (err || data.length === 0) {
         // If there is an error for some reason, or if the query is empty (this should not be possible)
@@ -39,7 +41,35 @@ const player = async (req, res) => {
   });
 }
 
+// route that retrieves a specific player's data
+const player_info = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+  
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json({});
+  } else {
+    connection.query(
+      `
+      SELECT * 
+      FROM player
+      WHERE id=?;
+      `,
+      [player_id],
+      (err, data) => {
+        if (err || data.length === 0) {
+          console.log(err);
+          res.json({});
+        } else {
+          res.json(data);
+        }
+      }
+    );
+  }
+}
+
 module.exports = { 
   home,
   player, 
+  player_info,
 };
