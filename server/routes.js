@@ -17,11 +17,11 @@ const home = async (req, res) => {
   res.send("Server homepage");
 };
 
-// test route to display data
-const test = async (req, res) => {
+// route that retrieves all player data
+const player = async (req, res) => {
   connection.query(
     `
-    SELECT * FROM player;
+    SELECT id, name, ioc, league FROM player;
     `, (err, data) => {
       if (err || data.length === 0) {
         // If there is an error for some reason, or if the query is empty (this should not be possible)
@@ -30,7 +30,7 @@ const test = async (req, res) => {
 
         // Be cognizant of the fact we return an empty object {}. For future routes, depending on the
         // return type you may need to return an empty array [] instead.
-        res.json({});
+        res.json([]);
       } else {
         // Here, we return results of the query as an object
           res.json(data);
@@ -40,5 +40,5 @@ const test = async (req, res) => {
 
 module.exports = { 
   home,
-  test, 
+  player, 
 };
