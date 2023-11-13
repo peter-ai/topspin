@@ -29,27 +29,19 @@ export default function PlayerPage() {
         setSearchInput(e.target.value); // set variable to the current value of search bar
     };
       
-    // function to output players based on matching search results for player names
+    // function to output players based on matching search results for player names and specified league
     const searchPlayers = () => {
-        // if length of search input is > 0 filter results
-        if (searchInput.length > 0) {
-            return players.filter((player) => {
-                // filter based on player name
-                return player.name.toLowerCase().includes(searchInput.toLowerCase())
-            }).map((player) => (
-                // construct list of players to display
-                <li key={player.id}>
-                    <a href={'/player/'+player.id}>{player.name}</a>: {player.ioc} | {player.league}
-                </li>
-            ));
-        } else {
-            // display all players
-            return players.map((player) => (
-                <li key={player.id}>
-                    <a href={'/player/'+player.id}>{player.name}</a>: {player.ioc} | {player.league}
-                </li>
-            ));
-        }
+        return players.filter((player) => {
+            return (
+                (leagueInput === 'Both' || player.league === leagueInput.toLowerCase()) && // if league is Both or player league matches input league
+                player.name.toLowerCase().includes(searchInput.toLowerCase()) // if player name includes the search string, empty str matches true for all
+            )
+        }).map((player) => (
+            // construct list of players to display
+            <li key={player.id}>
+                <a href={'/player/'+player.id}>{player.name}</a>: {player.ioc} | {player.league}
+            </li>
+        ));
     };
 
     return (
