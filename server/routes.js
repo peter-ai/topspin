@@ -18,6 +18,7 @@ const home = async (req, res) => {
 };
 
 // route that retrieves all player data
+// TODO: Cache this query
 const player = async (req, res) => {
   connection.query(
     `
