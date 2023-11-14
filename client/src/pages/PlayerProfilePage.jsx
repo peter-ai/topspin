@@ -9,6 +9,7 @@ export default function PlayerProfilePage() {
     const { id } = useParams();
 
     const [playerInfo, setPlayerInfo] = useState({}); // variable for player info
+    const [playerSurfaces, setPlayerSurfaces] = useState([]); // variable for player's best and worst match surfaces historically
     const [playerStats, setPlayerStats] = useState({}); // variable for player stats
     const [playerMatches, setPlayerMatches] = useState([]); // track changes to matches
 
@@ -17,22 +18,23 @@ export default function PlayerProfilePage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}`) // send get request to /player/:id route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
-            console.log(resJson)
+            console.log("Player info:", resJson) // TODO: Delete
             setPlayerInfo(resJson)
-        }) // set player
+        }) // set player info
         .catch(err => console.log(err)); // catch and log errors
 
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/surface`) // send get request to /player/:id/surface route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
-            console.log(resJson)
+            console.log("Surface preferences:", resJson) // TODO: Delete
+
         }) // set player surface preferences
         .catch(err => console.log(err)); // catch and log errors
 
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/stats`) // send get request to /player/:id/stats route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
-            console.log(resJson)
+            console.log("Player stats:", resJson) // TODO: Delete
             setPlayerStats(resJson)
         }) // set player historical match stats
         .catch(err => console.log(err)); // catch and log errors
@@ -40,7 +42,7 @@ export default function PlayerProfilePage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/matches`) // send get request to /player/:id/matches route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
-            console.log(resJson)
+            console.log("Player matches:", resJson) // TODO: Delete
             setPlayerMatches(resJson)
         }) // set player matches
         .catch(err => console.log(err)); // catch and log errors

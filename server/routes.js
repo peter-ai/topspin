@@ -109,9 +109,10 @@ const player_surface = async (req, res) => {
       SELECT *
       FROM surface_perf
       WHERE win_percentage=(SELECT MAX(win_percentage) FROM surface_perf)
-        OR loss_percentage=(SELECT MAX(loss_percentage) FROM surface_perf);
+        OR loss_percentage=(SELECT MAX(loss_percentage) FROM surface_perf)
+      ORDER BY win_percentage DESC;
       `,
-      [player_id],
+      [player_id, player_id],
       (err, data) => {
         // if error or no data was returned (id out of range), send empty json
         if (err || data.length === 0) {
@@ -210,23 +211,3 @@ module.exports = {
   player_stats,
   player_matches,
 };
-// WITH win_surface AS (
-//   SELECT surface, COUNT(G.winner_id) AS wins
-//   FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-//   WHERE G.winner_id=106
-//   GROUP BY surface
-// ),
-// loss_surface AS (
-//   SELECT surface, COUNT(G.loser_id) AS losses
-//   FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-//   WHERE G.loser_id=106
-//   GROUP BY surface
-// )
-// SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
-// IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
-// IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
-// FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
-// FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
-// UNION
-// (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
-// FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL;
