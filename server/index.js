@@ -18,6 +18,7 @@ app.get("/", routes.home);
 app.get("/player", routes.player);
 app.get("/player/:id", routes.player_info);
 app.get("/player/:id/stats", routes.player_stats);
+app.get("/player/:id/surface", routes.player_surface);
 app.get("/player/:id/matches", routes.player_matches);
 
 

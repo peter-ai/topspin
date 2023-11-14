@@ -72,9 +72,63 @@ const player_info = async (req, res) => {
   }
 }
 
+// route that retrieves a specific player's best and worst match surface
+const player_surface = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json([]);
+
+  // otherwise try execute query
+  } else {
+    res.send("Surface route working");
+    // connection.query(
+    //   `
+    //   WITH surface_perf AS (
+    //       WITH win_surface AS (
+    //                         SELECT surface, COUNT(G.winner_id) AS wins
+    //                         FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+    //                         WHERE G.winner_id=?
+    //                         GROUP BY surface
+    //       ),
+    //       loss_surface AS (
+    //                         SELECT surface, COUNT(G.loser_id) AS losses
+    //                         FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+    //                         WHERE G.loser_id=?
+    //                         GROUP BY surface
+    //       )
+    //       SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
+    //             IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
+    //             IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
+    //       FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+    //             FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
+    //             UNION
+    //             (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+    //             FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL
+    //   )
+    //   SELECT *
+    //   FROM surface_perf
+    //   WHERE win_percentage=(SELECT MAX(win_percentage) FROM surface_perf)
+    //     OR loss_percentage=(SELECT MAX(loss_percentage) FROM surface_perf);
+    //   `,
+    //   [player_id],
+    //   (err, data) => {
+    //     // if error or no data was returned (id out of range), send empty json
+    //     if (err || data.length === 0) {
+    //       console.log(err);
+    //       res.json([]);
+        
+    //     // if query successful
+    //     } else {
+    //       res.json(data);
+    //     }
+    //   }
+    // );
+  }
+}
+
 // route that retrieves a specific player's historical match stats
-// TODO: Decide on stats to include in view and implement view
-// TODO: Implement stats route
 const player_stats = async (req, res) => {
   const player_id = parseInt(req.params.id);
 
@@ -84,33 +138,29 @@ const player_stats = async (req, res) => {
 
   // otherwise try execute query
   } else {
-    res.json({message:'Player Stats route successfully connected.'});
-
-    // SELECT * FROM player_stats_view WHERE id=?;
-    // connection.query(
-    //   `
-    //   SELECT * 
-    //   FROM player
-    //   WHERE id=?;
-    //   `,
-    //   [player_id],
-    //   (err, data) => {
-    //     // if error or no data was returned (id out of range), send empty json
-    //     if (err || data.length === 0) {
-    //       console.log(err);
-    //       res.json({});
+    connection.query(
+      `
+      SELECT * 
+      FROM player_stats
+      WHERE player_id=?;
+      `,
+      [player_id],
+      (err, data) => {
+        // if error or no data was returned (id out of range), send empty json
+        if (err || data.length === 0) {
+          console.log(err);
+          res.json({});
         
-    //     // if query successful
-    //     } else {
-    //       res.json(data[0]);
-    //     }
-    //   }
-    // );
+        // if query successful
+        } else {
+          res.json(data[0]);
+        }
+      }
+    );
   }
 }
 
 // route that retrieves a specific player's historical match information
-// TODO: Implement matches route
 const player_matches = async (req, res) => {
   const player_id = parseInt(req.params.id);
 
@@ -157,6 +207,27 @@ module.exports = {
   home,
   player, 
   player_info,
+  player_surface,
   player_stats,
   player_matches,
 };
+// WITH win_surface AS (
+//   SELECT surface, COUNT(G.winner_id) AS wins
+//   FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+//   WHERE G.winner_id=106
+//   GROUP BY surface
+// ),
+// loss_surface AS (
+//   SELECT surface, COUNT(G.loser_id) AS losses
+//   FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+//   WHERE G.loser_id=106
+//   GROUP BY surface
+// )
+// SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
+// IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
+// IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
+// FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+// FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
+// UNION
+// (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+// FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL;
