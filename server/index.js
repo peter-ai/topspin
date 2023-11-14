@@ -15,7 +15,12 @@ app.use(morgan("tiny")); // logger
 
 // routes
 app.get("/", routes.home);
-app.get("/test", routes.test);
+app.get("/player", routes.player);
+app.get("/player/:id", routes.player_info);
+app.get("/player/:id/stats", routes.player_stats);
+app.get("/player/:id/surface", routes.player_surface);
+app.get("/player/:id/matches", routes.player_matches);
+
 
 // listen for requests
 app.listen(`${SERVER_PORT}`, () => {
