@@ -20,7 +20,7 @@ app.get("/player/:id", routes.player_info);
 app.get("/player/:id/stats", routes.player_stats);
 app.get("/player/:id/surface", routes.player_surface);
 app.get("/player/:id/matches", routes.player_matches);
-
+app.get("/tournament/:tourney_id/:match_num", routes.single_match);
 
 // listen for requests
 app.listen(`${SERVER_PORT}`, () => {
