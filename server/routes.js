@@ -1,5 +1,6 @@
 const mysql = require("mysql2");
 const config = require("./config");
+const { isValidTournament, handleResponse } = require("./utils");
 
 // Creates MySQL connection using database credential provided in config.json
 const connection = mysql.createConnection({
@@ -207,8 +208,6 @@ const single_match = async (req, res) => {
   const tourney_id = req.params.tourney_id;
   const match_num = parseInt(req.params.match_num);
 
-  // TODO add parsing for tourney id too
-
   // invalid tournament id or match number
   if (!isValidTournament(tourney_id) || isNaN(match_num)) {
     res.json([]);
@@ -227,23 +226,7 @@ const single_match = async (req, res) => {
       WHERE G.tourney_id=? AND G.match_num=?
       `,
       [tourney_id, match_num],
-      (err, data) => {
-        // empty json if error or no data found (should not occur)
-        if (err || data.length === 0) {
-          if (err) {
-            console.log(err);
-          }
-          if (data.length == 0) {
-            console.log(
-              "/tournament/:tourney_id/:match_num route returned empty data"
-            );
-          }
-          res.json([]);
-          // successful query
-        } else {
-          res.json(data);
-        }
-      }
+      (err, data) => handleResponse(err, data, req.path, res)
     );
   }
 };
