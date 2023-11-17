@@ -161,6 +161,7 @@ FROM tournament T INNER JOIN (
       ON T.id=M.tourney_id
 ORDER BY start_date DESC;
 
+
 [Query 6: Simple]
 [Description: Retrieve a single match played in a tournament, to be displayed in a match overview page]
 SELECT G.tourney_id, G.match_num,
@@ -173,3 +174,19 @@ FROM game G
     JOIN player W ON G.winner_id = W.id
     JOIN player L ON G.loser_id = L.id
 WHERE G.tourney_id=? AND G.match_num=?
+
+
+[Query 7: ...]
+[Description: ...]
+
+
+[Query 8: ...]
+[Description: ...]
+
+
+[Query 9: ...]
+[Description: ...]
+
+
+[Query 10: ...]
+[Description: ...]

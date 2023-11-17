@@ -7,10 +7,9 @@ const handleResponse = (err, data, path, res) => {
   // empty json if error or no data found (should not occur)
   if (err || data.length === 0) {
     if (err) {
-      console.log(err);
-    }
-    if (data.length == 0) {
-      console.log(`${path} returned empty data`);
+      console.error(err);
+    } else if (data.length == 0) {
+      console.log(`${path} returned no data`);
     }
     res.json([]);
     // successful query
