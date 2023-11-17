@@ -177,7 +177,7 @@ WHERE G.tourney_id=? AND G.match_num=?
 
 
 [Query 7: Simple]
-[Description: Retreives stats for two players by joining player stats on player data, to be displayed in the head-to-head player compare page]
+[Description: Retrieves stats for two players by joining player stats on player data, to be displayed in the player compare page]
 SELECT P.name, P.league, P.hand, P.height, S.*
 FROM player_stats S
     JOIN player P ON S.player_id = P.id
