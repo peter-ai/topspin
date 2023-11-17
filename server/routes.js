@@ -234,6 +234,30 @@ const single_match = async (req, res) => {
   }
 };
 
+const compare = async (req, res) => {
+  const player1 = parseInt(req.params.player1);
+  const player2 = parseInt(req.params.player2);
+
+  // player ids or comparison between same player ids
+  // TODO ideally, same player ids should be controlled at client level
+  if (isNaN(player1) || isNaN(player2) || player1 === player2) {
+    console.log("Invalid req params");
+    res.json([]);
+    // execute query
+  } else {
+    connection.query(
+      `
+      SELECT P.name, P.league, P.hand, P.height, S.*
+      FROM player_stats S
+          JOIN player P ON S.player_id = P.id
+      WHERE S.player_id IN (?, ?)
+      `,
+      [player1, player2],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
 module.exports = {
   home,
   player,
@@ -242,4 +266,5 @@ module.exports = {
   player_stats,
   player_matches,
   single_match,
+  compare,
 };
