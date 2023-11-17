@@ -6,6 +6,7 @@ import PlayerPage from "./pages/PlayerPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
 import NotFound from "./pages/NotFoundPage";
 import MatchPage from "./pages/MatchPage";
+import ComparePage from "./pages/ComparePage";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
             path="/tournament/:tourney_id/:match_num"
             element={<MatchPage />}
           />
+          <Route exact path="/compare" element={<ComparePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
