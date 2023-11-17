@@ -1,3 +1,8 @@
+const isValidTournament = (tourney_id) => {
+  const tourney_year = parseInt(tourney_id.substring(0, 4));
+  return tourney_year >= 1877 && tourney_year <= 2023;
+};
+
 const handleResponse = (err, data, path, res) => {
   // empty json if error or no data found (should not occur)
   if (err || data.length === 0) {

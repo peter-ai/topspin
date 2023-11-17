@@ -210,6 +210,7 @@ const single_match = async (req, res) => {
 
   // invalid tournament id or match number
   if (!isValidTournament(tourney_id) || isNaN(match_num)) {
+    console.log("Invalid req params");
     res.json([]);
     // execute query
   } else {
