@@ -161,7 +161,6 @@ FROM tournament T INNER JOIN (
       ON T.id=M.tourney_id
 ORDER BY start_date DESC;
 
-
 [Query 6: Simple]
 [Description: Retrieve a single match played in a tournament by joining a match with the tournament it was played in and the participating players, to be displayed in a match overview page]
 SELECT G.tourney_id, G.match_num,
@@ -183,14 +182,141 @@ FROM player_stats S
     JOIN player P ON S.player_id = P.id
 WHERE S.player_id IN (?, ?)
 
+[Query 8: Complex]
+[Description: Accumulates the total statistics of a player's performance in all matches played within a given year, and inserts into a table with a primary key of (id, year)]
+CREATE TABLE player_stats_yearly (PRIMARY KEY (id, year)) AS (
+    WITH winner AS (
+        SELECT DISTINCT
+            player.id,
+            game.tourney_id
+        FROM player
+        JOIN game on player.id = game.winner_id
+    ), # players who have won a match in a tournament
+    loser AS (
+        SELECT DISTINCT
+            player.id,
+            game.tourney_id
+        FROM player
+        JOIN game on player.id = game.loser_id
+    ), # players who have lost a match in a tournament
+    player_yearly AS (
+        SELECT DISTINCT
+            WL.id,
+            YEAR(T.start_date) as year
+        FROM (SELECT * FROM winner UNION SELECT * FROM loser) as WL
+        JOIN tournament as T ON WL.tourney_id = T.id
+    ), # all players who have played in a match in a given year
+    winning_stats AS (
+        SELECT
+            player_yearly.id,
+            player_yearly.year,
+            winner_age as age, # age of the player
+            minutes,  # minutes played
+            w_ace as ace, # aces
+            w_df as df, # doubles faults
+            w_svpt as svpt, # serve points
+            w_1stIn as 1stIn, # first serves made
+            w_1stWon as 1stWon, # first serve points won
+            w_2ndWon as 2ndWon, # second-serve points won
+            w_SvGms as SvGms, # serve games
+            w_bpSaved as bpSaved, # break points saved
+            w_bpFaced as bpFaced # break points faced
+        FROM player_yearly
+        JOIN tournament ON YEAR(tournament.start_date) = player_yearly.year # all tournaments the player played in this year
+        JOIN game ON tournament.id = game.tourney_id AND game.winner_id = player_yearly.id # all matches the player won in this year
+    ), # stats from all matches where the player won
+    losing_stats AS (
+        SELECT
+            player_yearly.id,
+            player_yearly.year,
+            loser_age as age, # age of the player
+            minutes,  # minutes played
+            l_ace as ace, # aces
+            l_df as df, # doubles faults
+            l_svpt as svpt, # serve points
+            l_1stIn as 1stIn, # first serves made
+            l_1stWon as 1stWon, # first serve points won
+            l_2ndWon as 2ndWon, # second-serve points won
+            l_SvGms as SvGms, # serve games
+            l_bpSaved as bpSaved, # break points saved
+            l_bpFaced as bpFaced # break points faced
+        FROM player_yearly
+        JOIN tournament ON YEAR(tournament.start_date) = player_yearly.year # all tournaments the player played in this year
+        JOIN game ON tournament.id = game.tourney_id AND game.loser_id = player_yearly.id # all matches the player won in this year
+    ) # stats from all matches where the player lost
+    SELECT
+        id,
+        year,
+	COUNT(*) as matches,
+        MAX(age) as age,
+        SUM(minutes) as minutes,
+        SUM(ace) as ace,
+        SUM(df) as df,
+        SUM(svpt) as svpt,
+        SUM(1stIn) as 1stIn,
+        SUM(1stWon) as 1stWon,
+        SUM(2ndWon) as 2ndWon,
+        SUM(SvGms) as SvGms,
+        SUM(bpSaved) as bpSaved,
+        SUM(bpFaced) as bpFaced
+    FROM (SELECT * FROM winning_stats UNION SELECT * FROM losing_stats) AS player_game_stats
+    GROUP BY id, year
+);
 
-[Query 8: ...]
-[Description: ...]
+[Query 9: Simple]
+[Description: Calculates the return on investment when betting on only the favorites for every match in a given year]
+WITH odds_year AS (
+    SELECT AvgW, AvgL
+    FROM odds
+    JOIN tournament ON odds.tourney_id = tournament.id
+    WHERE YEAR(tournament.start_date) = 2015 # user input -- year to simulate over
+) # betting odds of all matches in a given year
+SELECT
+    SUM(AvgW)/(SELECT COUNT(*) FROM odds_year) as ROI,
+    1*(SELECT COUNT(*) FROM odds_year) as MONEY_BET, # user input -- $ per bet
+    SUM(1*AvgW) as MONEY_WON # user input -- $ per bet
+FROM odds_year
+WHERE AvgW < AvgL; # matches where the favorite won
 
 
-[Query 9: ...]
-[Description: ...]
+[Query 10: Complex]
+[Description: Calculates the return on investment when deploying a betting strategy which compares the statistics between the 2 players in a match when deciding who to bet on.]
+WITH historical_player_stats AS (
+    SELECT
+        id,
+        SUM(minutes)/SUM(nmatches) as avg_minutes,
+        SUM(ace)/SUM(nmatches) as avg_ace,
+        SUM(df)/SUM(nmatches) as avg_df,
+        SUM(svpt)/SUM(nmatches) as avg_svpt,
+        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+    FROM player_stats_yearly as player
+    WHERE player.year < 2013 # user input -- year to simulate over
+    GROUP BY player.id
+),
+odds_year AS (
+    SELECT
+        AvgW,
+        AvgL,
+        winner_id,
+        loser_id
+    FROM odds
+    JOIN game on odds.tourney_id = game.tourney_id and odds.match_num = game.match_num
+    JOIN tournament ON game.tourney_id = tournament.id
+    WHERE YEAR(tournament.start_date) = 2013 # user input -- year to simulate over
+) # betting odds of all matches in a given year
 
-
-[Query 10: ...]
-[Description: ...]
+SELECT
+    COUNT(*) as NumCorrect,
+    (SELECT COUNT(*) FROM odds_year) as NumMatches,
+    SUM(AvgW)/(SELECT COUNT(*) FROM odds_year) as ROI,
+    1*(SELECT COUNT(*) FROM odds_year) as MONEY_BET, # user input -- $ per bet
+    SUM(1*AvgW) as MONEY_WON # user input -- $ per bet
+FROM odds_year
+JOIN historical_player_stats AS W ON odds_year.winner_id = W.id
+JOIN historical_player_stats AS L ON odds_year.loser_id = L.id
+WHERE W.avg_ace > L.avg_ace; # deploy the betting strategy, bet whichever player averages more aces
