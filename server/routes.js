@@ -1,6 +1,6 @@
-const mysql = require('mysql2');
-const config = require('./config');
-
+const mysql = require("mysql2");
+const config = require("./config");
+const { isValidTournament, handleResponse } = require("./utils");
 
 // Creates MySQL connection using database credential provided in config.json
 const connection = mysql.createConnection({
@@ -8,10 +8,9 @@ const connection = mysql.createConnection({
   user: config.USERNAME,
   password: config.PASSWORD,
   port: config.PORT,
-  database: config.DATABASE
+  database: config.DATABASE,
 });
 connection.connect((err) => err && console.log(err));
-
 
 const home = async (req, res) => {
   res.send("Server homepage");
@@ -24,7 +23,8 @@ const player = async (req, res) => {
     `
     SELECT id, name, ioc, league 
     FROM player;
-    `, (err, data) => {
+    `,
+    (err, data) => {
       if (err || data.length === 0) {
         // If there is an error for some reason, or if the query is empty (this should not be possible)
         // print the error message and return an empty object instead
@@ -35,20 +35,21 @@ const player = async (req, res) => {
         res.json([]);
       } else {
         // Here, we return results of the query as an object
-          res.json(data);
+        res.json(data);
       }
-  });
-}
+    }
+  );
+};
 
 // route that retrieves a specific player's demographic
 const player_info = async (req, res) => {
   const player_id = parseInt(req.params.id);
-  
+
   // if player_id is not an integer, send empty json
   if (isNaN(player_id)) {
     res.json({});
 
-  // otherwise try execute query
+    // otherwise try execute query
   } else {
     connection.query(
       `
@@ -62,15 +63,15 @@ const player_info = async (req, res) => {
         if (err || data.length === 0) {
           console.log(err);
           res.json({});
-        
-        // if query successful
+
+          // if query successful
         } else {
           res.json(data[0]);
         }
       }
     );
   }
-}
+};
 
 // route that retrieves a specific player's best and worst match surface
 const player_surface = async (req, res) => {
@@ -80,7 +81,7 @@ const player_surface = async (req, res) => {
   if (isNaN(player_id)) {
     res.json([]);
 
-  // otherwise try execute query
+    // otherwise try execute query
   } else {
     connection.query(
       `
@@ -118,15 +119,15 @@ const player_surface = async (req, res) => {
         if (err || data.length === 0) {
           console.log(err);
           res.json([]);
-        
-        // if query successful
+
+          // if query successful
         } else {
           res.json(data);
         }
       }
     );
   }
-}
+};
 
 // route that retrieves a specific player's historical match stats
 const player_stats = async (req, res) => {
@@ -136,7 +137,7 @@ const player_stats = async (req, res) => {
   if (isNaN(player_id)) {
     res.json({});
 
-  // otherwise try execute query
+    // otherwise try execute query
   } else {
     connection.query(
       `
@@ -150,15 +151,15 @@ const player_stats = async (req, res) => {
         if (err || data.length === 0) {
           console.log(err);
           res.json({});
-        
-        // if query successful
+
+          // if query successful
         } else {
           res.json(data[0]);
         }
       }
     );
   }
-}
+};
 
 // route that retrieves a specific player's historical match information
 const player_matches = async (req, res) => {
@@ -168,7 +169,7 @@ const player_matches = async (req, res) => {
   if (isNaN(player_id)) {
     res.json([]);
 
-  // otherwise try execute query
+    // otherwise try execute query
   } else {
     connection.query(
       `
@@ -193,21 +194,77 @@ const player_matches = async (req, res) => {
         if (err || data.length === 0) {
           console.log(err);
           res.json([]);
-        
-        // if query successful
+
+          // if query successful
         } else {
           res.json(data);
         }
       }
     );
   }
-}
+};
 
-module.exports = { 
+const single_match = async (req, res) => {
+  const tourney_id = req.params.tourney_id;
+  const match_num = parseInt(req.params.match_num);
+
+  // invalid tournament id or match number
+  if (!isValidTournament(tourney_id) || isNaN(match_num)) {
+    console.log("Invalid req params");
+    res.json([]);
+    // execute query
+  } else {
+    // TODO how are we handling null country values? Might be client-side
+    connection.query(
+      `
+      SELECT G.tourney_id, G.match_num,
+          T.name, T.surface,
+          G.round, G.minutes, G.score,
+          W.name AS winner_name, W.ioc AS winner_country,
+          L.name AS loser_name, L.ioc AS loser_country
+      FROM game G 
+          JOIN tournament T ON G.tourney_id=T.id
+          JOIN player W ON G.winner_id = W.id
+          JOIN player L ON G.loser_id = L.id
+      WHERE G.tourney_id=? AND G.match_num=?
+      `,
+      [tourney_id, match_num],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
+const compare = async (req, res) => {
+  const player1 = parseInt(req.params.player1);
+  const player2 = parseInt(req.params.player2);
+
+  // player ids or comparison between same player ids
+  // TODO ideally, same player ids should be controlled at client level
+  if (isNaN(player1) || isNaN(player2) || player1 === player2) {
+    console.log("Invalid req params");
+    res.json([]);
+    // execute query
+  } else {
+    connection.query(
+      `
+      SELECT P.name, P.league, P.hand, P.height, S.*
+      FROM player_stats S
+          JOIN player P ON S.player_id = P.id
+      WHERE S.player_id IN (?, ?)
+      `,
+      [player1, player2],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
+module.exports = {
   home,
-  player, 
+  player,
   player_info,
   player_surface,
   player_stats,
   player_matches,
+  single_match,
+  compare,
 };
