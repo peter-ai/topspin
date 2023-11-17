@@ -203,27 +203,48 @@ const player_matches = async (req, res) => {
   }
 };
 
-// route that retrieves a specific player's historical match information
 const single_match = async (req, res) => {
-  const tourney_id = parseInt(req.params.tourney_id);
+  const tourney_id = req.params.tourney_id;
   const match_num = parseInt(req.params.match_num);
 
-  // respond with empty json for un-parseable tourney_id or match_num
-  if (isNaN(tourney_id) || isNaN(match_num)) {
+  // TODO add parsing for tourney id too
+
+  // invalid tournament id or match number
+  if (!isValidTournament(tourney_id) || isNaN(match_num)) {
     res.json([]);
     // execute query
   } else {
-    connection.query(``, [player_id, player_id], (err, data) => {
-      // error or valid query but query returned empty data
-      if (err || data.length === 0) {
-        console.log(err);
-        res.json([]);
+    connection.query(
+      `
+      SELECT G.tourney_id, G.match_num,
+              T.name, T.surface,
+              G.round, G.minutes, G.score,
+              W.name AS winner_name, W.ioc AS winner_country,
+              L.name as loser_name, L.ioc as loser_country
+      FROM game G JOIN tournament T ON G.tourney_id=T.id
+                  JOIN player W on G.winner_id = W.id
+                  JOIN player L on G.loser_id = L.id
+      WHERE G.tourney_id=? AND G.match_num=?
+      `,
+      [tourney_id, match_num],
+      (err, data) => {
+        // empty json if error or no data found (should not occur)
+        if (err || data.length === 0) {
+          if (err) {
+            console.log(err);
+          }
+          if (data.length == 0) {
+            console.log(
+              "/tournament/:tourney_id/:match_num route returned empty data"
+            );
+          }
+          res.json([]);
+          // successful query
+        } else {
+          res.json(data);
+        }
       }
-      // successful query
-      else {
-        res.json(data);
-      }
-    });
+    );
   }
 };
 
