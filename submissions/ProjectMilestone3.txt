@@ -163,7 +163,7 @@ ORDER BY start_date DESC;
 
 
 [Query 6: Simple]
-[Description: Retrieve a single match played in a tournament, to be displayed in a match overview page]
+[Description: Retrieve a single match played in a tournament by joining a match with the tournament it was played in and the participating players, to be displayed in a match overview page]
 SELECT G.tourney_id, G.match_num,
     T.name, T.surface,
     G.round, G.minutes, G.score,
@@ -176,8 +176,12 @@ FROM game G
 WHERE G.tourney_id=? AND G.match_num=?
 
 
-[Query 7: ...]
-[Description: ...]
+[Query 7: Simple]
+[Description: Retreives stats for two players by joining player stats on player data, to be displayed in the head-to-head player compare page]
+SELECT P.name, P.league, P.hand, P.height, S.*
+FROM player_stats S
+    JOIN player P ON S.player_id = P.id
+WHERE S.player_id IN (?, ?)
 
 
 [Query 8: ...]
