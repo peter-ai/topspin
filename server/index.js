@@ -14,6 +14,7 @@ app.use(cors()); // allow client requests
 app.use(morgan("tiny")); // logger
 
 // routes
+// TODO prepend all routes with api to distinguish client/server routes
 app.get("/", routes.home);
 app.get("/player", routes.player);
 app.get("/player/:id", routes.player_info);

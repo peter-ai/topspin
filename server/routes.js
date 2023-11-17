@@ -214,16 +214,18 @@ const single_match = async (req, res) => {
     res.json([]);
     // execute query
   } else {
+    // TODO how are we handling null country values? Might be client-side
     connection.query(
       `
       SELECT G.tourney_id, G.match_num,
-              T.name, T.surface,
-              G.round, G.minutes, G.score,
-              W.name AS winner_name, W.ioc AS winner_country,
-              L.name as loser_name, L.ioc as loser_country
-      FROM game G JOIN tournament T ON G.tourney_id=T.id
-                  JOIN player W on G.winner_id = W.id
-                  JOIN player L on G.loser_id = L.id
+          T.name, T.surface,
+          G.round, G.minutes, G.score,
+          W.name AS winner_name, W.ioc AS winner_country,
+          L.name AS loser_name, L.ioc AS loser_country
+      FROM game G 
+          JOIN tournament T ON G.tourney_id=T.id
+          JOIN player W ON G.winner_id = W.id
+          JOIN player L ON G.loser_id = L.id
       WHERE G.tourney_id=? AND G.match_num=?
       `,
       [tourney_id, match_num],
