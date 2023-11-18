@@ -13,7 +13,7 @@ export default function ComparePage() {
 
   // GET request to /player
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player`)
       .then((res) => res.json())
       .then((res) => setPlayers(res.slice(0, 10)))
       .catch((err) => console.log(err));

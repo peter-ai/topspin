@@ -19,11 +19,11 @@ app.use(morgan("tiny")); // logger
  * TODO routes so as not to break any existing frontend components that call the server)
  */
 app.get("/", routes.home);
-app.get("/player", routes.player);
-app.get("/player/:id", routes.player_info);
-app.get("/player/:id/stats", routes.player_stats);
-app.get("/player/:id/surface", routes.player_surface);
-app.get("/player/:id/matches", routes.player_matches);
+app.get("/api/player", routes.player);
+app.get("/api/player/:id", routes.player_info);
+app.get("/api/player/:id/stats", routes.player_stats);
+app.get("/api/player/:id/surface", routes.player_surface);
+app.get("/api/player/:id/matches", routes.player_matches);
 app.get("/api/tournament/:tourney_id/:match_num", routes.single_match);
 app.get("/api/compare/:player1/:player2", routes.compare);
 

@@ -15,7 +15,7 @@ export default function PlayerProfilePage() {
 
     // use effect
     useEffect(() => {
-        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}`) // send get request to /player/:id route on server
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}`) // send get request to /player/:id route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
             console.log("Player info:", resJson) // TODO: Delete
@@ -23,7 +23,7 @@ export default function PlayerProfilePage() {
         }) // set player info
         .catch(err => console.log(err)); // catch and log errors
 
-        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/surface`) // send get request to /player/:id/surface route on server
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/surface`) // send get request to /player/:id/surface route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
             console.log("Surface preferences:", resJson) // TODO: Delete
@@ -31,7 +31,7 @@ export default function PlayerProfilePage() {
         }) // set player surface preferences
         .catch(err => console.log(err)); // catch and log errors
 
-        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/stats`) // send get request to /player/:id/stats route on server
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/stats`) // send get request to /player/:id/stats route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
             console.log("Player stats:", resJson) // TODO: Delete
@@ -39,7 +39,7 @@ export default function PlayerProfilePage() {
         }) // set player historical match stats
         .catch(err => console.log(err)); // catch and log errors
 
-        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player/${id}/matches`) // send get request to /player/:id/matches route on server
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/matches`) // send get request to /player/:id/matches route on server
         .then(res => res.json()) // convert response to json
         .then(resJson => {
             console.log("Player matches:", resJson) // TODO: Delete

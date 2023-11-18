@@ -11,7 +11,7 @@ export default function PlayerPage() {
     
     // use effect
     useEffect(() => {
-        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/player`) // send get request to /player route on server
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player`) // send get request to /player route on server
         .then((res) => res.json()) // convert response to json
         .then((resJson) => setPlayers(resJson)) // set players 
         .catch((err) => console.log(err)); // catch and log errors
