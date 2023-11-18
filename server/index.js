@@ -26,10 +26,17 @@ app.get("/api/player/:id/surface", routes.player_surface);
 app.get("/api/player/:id/matches", routes.player_matches);
 app.get("/api/tournament/:tourney_id/:match_num", routes.single_match);
 app.get("/api/compare/:player1/:player2", routes.compare);
+app.get("/api/tournament", routes.tournament_home);
+app.get("/api/tournament/:id", routes.tournament_select);
+app.get("/api/alltime/tournament/:name", routes.tournament_alltime);
 
 // listen for requests
-app.listen(`${SERVER_PORT}`, () => {
+const server = app.listen(`${SERVER_PORT}`, () => {
   console.log(`Topspin server listening on port ${SERVER_PORT}`);
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error.message);
 });
 
 module.exports = app;
