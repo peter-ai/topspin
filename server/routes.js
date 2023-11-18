@@ -24,20 +24,7 @@ const player = async (req, res) => {
     SELECT id, name, ioc, league 
     FROM player;
     `,
-    (err, data) => {
-      if (err || data.length === 0) {
-        // If there is an error for some reason, or if the query is empty (this should not be possible)
-        // print the error message and return an empty object instead
-        console.log(err);
-
-        // Be cognizant of the fact we return an empty object {}. For future routes, depending on the
-        // return type you may need to return an empty array [] instead.
-        res.json([]);
-      } else {
-        // Here, we return results of the query as an object
-        res.json(data);
-      }
-    }
+    (err, data) => handleResponse(err, data, req.path, res)
   );
 };
 
@@ -58,17 +45,7 @@ const player_info = async (req, res) => {
       WHERE id=?;
       `,
       [player_id],
-      (err, data) => {
-        // if error or no data was returned (id out of range), send empty json
-        if (err || data.length === 0) {
-          console.log(err);
-          res.json({});
-
-          // if query successful
-        } else {
-          res.json(data[0]);
-        }
-      }
+      (err, data) => handleResponse(err, data[0], req.path, res)
     );
   }
 };
@@ -114,17 +91,7 @@ const player_surface = async (req, res) => {
       ORDER BY win_percentage DESC;
       `,
       [player_id, player_id],
-      (err, data) => {
-        // if error or no data was returned (id out of range), send empty json
-        if (err || data.length === 0) {
-          console.log(err);
-          res.json([]);
-
-          // if query successful
-        } else {
-          res.json(data);
-        }
-      }
+      (err, data) => handleResponse(err, data, req.path, res)
     );
   }
 };
@@ -146,17 +113,7 @@ const player_stats = async (req, res) => {
       WHERE player_id=?;
       `,
       [player_id],
-      (err, data) => {
-        // if error or no data was returned (id out of range), send empty json
-        if (err || data.length === 0) {
-          console.log(err);
-          res.json({});
-
-          // if query successful
-        } else {
-          res.json(data[0]);
-        }
-      }
+      (err, data) => handleResponse(err, data[0], req.path, res)
     );
   }
 };
@@ -189,17 +146,7 @@ const player_matches = async (req, res) => {
       ORDER BY start_date DESC;
       `,
       [player_id, player_id],
-      (err, data) => {
-        // if error or no data was returned (id out of range), send empty json
-        if (err || data.length === 0) {
-          console.log(err);
-          res.json([]);
-
-          // if query successful
-        } else {
-          res.json(data);
-        }
-      }
+      (err, data) => handleResponse(err, data, req.path, res)
     );
   }
 };
