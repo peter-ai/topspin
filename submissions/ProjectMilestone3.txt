@@ -326,3 +326,18 @@ FROM odds_year
 JOIN historical_player_stats AS W ON odds_year.winner_id = W.id
 JOIN historical_player_stats AS L ON odds_year.loser_id = L.id
 WHERE W.avg_ace > L.avg_ace; # deploy the betting strategy, bet whichever player averages more aces
+
+
+
+[Query 11: Simple]
+[Description: Shows all matches for a given tournament]
+SELECT * 
+FROM tournament t INNER JOIN game g ON t.id=g.tourney_id
+WHERE tourney_id=?
+ORDER BY g.match_num ASC;
+
+[Query 12: Simple]
+[Description: Shows all tournaments]
+SELECT name, league, start_date, surface, id
+FROM tournament
+ORDER BY name ASC;

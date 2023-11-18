@@ -205,6 +205,71 @@ const compare = async (req, res) => {
   }
 };
 
+// route that retrieves all tournament data
+// TODO: current query format doesn't work. Need to do it as players
+// functionality needed is a group by, with a list of all ids that fall under a given name
+const tournament_home = async (req, res) => {
+  connection.query(
+    `
+    SELECT name, league, start_date, surface, id
+    FROM tournament
+    ORDER BY name ASC;
+    `,
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+};
+
+// route that retrieves all matches in a specific tournament
+const tournament_select = async (req, res) => {
+  const tournament_id = req.params.id;
+
+  // if tournament_id is not provided or not a string
+  if (!tournament_id) {
+    res.json([]);
+    // otherwise try execute query
+  } else {
+    connection.query(
+      `
+      SELECT * 
+      FROM tournament t INNER JOIN game g ON t.id=g.tourney_id
+      WHERE tourney_id=?
+      ORDER BY g.match_num ASC;
+      `,
+      [tournament_id],
+      (err, match_data) => handleResponse(err, match_data, req.path, res)
+    );
+  }
+};
+
+//TODO: combine both tournament-specific queries into one route
+// promise.all? or nesting queries? Discuss best practice! -- AA
+//temp route for all-time-tournament
+const tournament_alltime = async (req, res) => {
+  const tournament_name = req.params.name;
+  console.log('Tournament name:', tournament_name);
+
+  // if tournament_id is not provided or not a string
+  if (!tournament_name) {
+    res.json([]);
+    // otherwise try execute query
+  } else {
+    connection.query(
+      `
+      SELECT g.winner_id, p.name as Record Holder, COUNT(*) as Victories
+      FROM tournament t INNER JOIN game g ON t.id = g.tourney_id INNER JOIN player p1 ON g.winner_id = p1.id
+      WHERE t.name=? AND g.round = 'F'
+      GROUP BY g.winner_id, p1.name
+      ORDER BY Victories DESC
+      LIMIT 1
+      `,
+      [tournament_name],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
+
+
 module.exports = {
   home,
   player,
@@ -214,4 +279,7 @@ module.exports = {
   player_matches,
   single_match,
   compare,
+  tournament_home,
+  tournament_select,
+  tournament_alltime,
 };
