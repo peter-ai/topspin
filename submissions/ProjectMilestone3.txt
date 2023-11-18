@@ -1,4 +1,10 @@
 NOTE: The `?` in relevant queries is used as a placeholder for user input that is provided as a parameter to the query.
+DATABASE CONNECTION DETAILS (TEAM, ONLY ADD TO OFFLINE VERSION!):
+- [HOST]
+- [PORT]
+- [USERNAME]
+- [PASSWORD]
+- [DATABASE]
 
 [Query 1: Simple]
 [Description: Retrieve all players to display on a player overview page.]
