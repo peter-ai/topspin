@@ -243,29 +243,77 @@ const tournament_select = async (req, res) => {
 
 //TODO: combine both tournament-specific queries into one route
 // promise.all? or nesting queries? Discuss best practice! -- AA
-//temp route for all-time-tournament
+//temp route for decade.. need to build out optional decade param. ? in route not working.
 const tournament_alltime = async (req, res) => {
+  console.log('Params:', req.params);
   const tournament_name = req.params.name;
+  const decade_start = req.params.decade ? parseInt(req.params.decade) : null;
+  const decade_end = decade_start ? decade_start + 9 : null;
   console.log('Tournament name:', tournament_name);
+  console.log('Decade start:', decade_start);
+  let query;
+  let params;
 
-  // if tournament_id is not provided or not a string
   if (!tournament_name) {
     res.json([]);
-    // otherwise try execute query
   } else {
-    connection.query(
+    // if we get a decade, filter those stats
+    if(decade_start !== null){
+      
+      query = `
+      (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
+      FROM tournament t
+      INNER JOIN game g ON t.id = g.tourney_id
+      INNER JOIN player p1 ON g.winner_id = p1.id
+      WHERE t.name=? AND g.round = 'F' AND YEAR(t.start_date) BETWEEN ? AND ?
+      GROUP BY g.winner_id, p1.name
+      ORDER BY Victories DESC
+      LIMIT 1)
+      
+      UNION 
+      
+      (SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+      FROM tournament t2
+      INNER JOIN game g ON t2.id = g.tourney_id
+      INNER JOIN player p2 ON g.loser_id = p2.id
+      WHERE t2.name=? AND g.round = 'F' AND YEAR(t2.start_date) BETWEEN ? AND ?
+      GROUP BY g.loser_id, p2.name
+      ORDER BY Losses DESC
+      LIMIT 1)
       `
-      SELECT g.winner_id, p.name as Record Holder, COUNT(*) as Victories
-      FROM tournament t INNER JOIN game g ON t.id = g.tourney_id INNER JOIN player p1 ON g.winner_id = p1.id
+      params = [tournament_name, decade_start, decade_end, tournament_name, decade_start, decade_end]
+    } else { 
+      // else all time stats
+      query = `
+      (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
+      FROM tournament t
+      INNER JOIN game g ON t.id = g.tourney_id
+      INNER JOIN player p1 ON g.winner_id = p1.id
       WHERE t.name=? AND g.round = 'F'
       GROUP BY g.winner_id, p1.name
       ORDER BY Victories DESC
-      LIMIT 1
-      `,
-      [tournament_name],
-      (err, data) => handleResponse(err, data, req.path, res)
-    );
+      LIMIT 1)
+      
+      UNION 
+      
+      (SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+      FROM tournament t2
+      INNER JOIN game g ON t2.id = g.tourney_id
+      INNER JOIN player p2 ON g.loser_id = p2.id
+      WHERE t2.name=? AND g.round = 'F'
+      GROUP BY g.loser_id, p2.name
+      ORDER BY Losses DESC
+      LIMIT 1)
+      `
+      params = [tournament_name, tournament_name]
+    }
   }
+  connection.query(
+    query,
+    params,
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+
 };
 
 
