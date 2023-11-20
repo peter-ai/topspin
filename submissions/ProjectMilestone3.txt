@@ -355,7 +355,7 @@ LIMIT 1)
 
 UNION 
 
-(SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+(SELECT 'Most Losses at Final' as `role`, g.loser_id as `Player ID`, p2.name as `Record Holder`, COUNT(*) as Losses
 FROM tournament t2
 INNER JOIN game g ON t2.id = g.tourney_id
 INNER JOIN player p2 ON g.loser_id = p2.id
