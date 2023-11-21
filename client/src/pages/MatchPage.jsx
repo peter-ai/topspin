@@ -18,7 +18,7 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 const minToDuration = (minutes) => {
   const minAsNum = parseInt(minutes);
-  const numHours = minAsNum / 60;
+  const numHours = Math.floor(minAsNum / 60);
   const numMinutes = minAsNum % 60;
   if (numMinutes < 10) {
     numMinutes = "0" + numMinutes;
@@ -79,9 +79,12 @@ export default function MatchPage() {
               justifyContent: "center",
             }}
           >
-            <Chip label="1:15" sx={{ marginX: 1 }} />
-            <Chip label="QF" sx={{ marginX: 1 }} />
-            <Chip label="Clay" sx={{ marginX: 1 }} />
+            <Chip
+              label={minToDuration(matchData.minutes)}
+              sx={{ marginX: 1 }}
+            />
+            <Chip label={matchData.round} sx={{ marginX: 1 }} />
+            <Chip label={matchData.surface} sx={{ marginX: 1 }} />
           </CardContent>
 
           <CardContent>
@@ -89,12 +92,12 @@ export default function MatchPage() {
               {/* player 1 results */}
               <Grid item xs={2}>
                 <Typography textAlign="center" variant="body2">
-                  SER
+                  {matchData.winner_country}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography textAlign="left" variant="h5">
-                  Novak Djokovic
+                  {matchData.winner_name}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
@@ -107,12 +110,12 @@ export default function MatchPage() {
               {/* player 2 results */}
               <Grid item xs={2}>
                 <Typography textAlign="center" variant="body2">
-                  SER
+                  {matchData.loser_country}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography textAlign="left" variant="h5">
-                  Novak Djokovic
+                  {matchData.loser_name}
                 </Typography>
               </Grid>
               <Grid item xs={3}>
