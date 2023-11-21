@@ -18,7 +18,7 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 const minToDuration = (minutes) => {
   const numHours = Math.floor(minutes / 60);
-  const numMinutes = minutes % 60;
+  let numMinutes = minutes % 60;
   if (numMinutes < 10) {
     numMinutes = "0" + numMinutes;
   }
@@ -38,6 +38,10 @@ const setMatchSurfacePath = (surface) => {
     default:
       return "/src/assets/imgs/carpet-tennis-court.png";
   }
+};
+
+const parseScores = (score) => {
+  return score.split(" ");
 };
 
 const defineRound = (round) => {
@@ -157,6 +161,21 @@ export default function MatchPage() {
             )}
           </CardContent>
 
+          {/* displays match score if available */}
+          <CardContent
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {matchData.score !== null ? (
+              <Chip label={matchData.score} sx={{ marginX: 1 }} />
+            ) : (
+              <></>
+            )}
+          </CardContent>
+
           <CardContent>
             <Grid container alignItems="center" spacing={2}>
               {/* player 1 results */}
@@ -199,102 +218,3 @@ export default function MatchPage() {
     </>
   );
 }
-
-// <>
-//       <Box
-//         height="100vh"
-//         display="flex"
-//         flexDirection="column"
-//         justifyContent="center"
-//         alignItems="center"
-//       >
-//         <Typography
-//           sx={{ marginBottom: "20px" }}
-//           textAlign="center"
-//           variant="h2"
-//         >
-//           Match
-//         </Typography>
-//         <Card sx={{ maxWidth: "sm" }}>
-//           <CardMedia
-//             component="img"
-//             sx={{
-//               maxWidth: 350,
-//               borderRadius: "8px",
-//               margin: "auto",
-//               marginY: "20px",
-//             }}
-//             image="/src/assets/imgs/clay-tennis-court.png"
-//             title="court surface"
-//           />
-
-//           <CardContent
-//             sx={{
-//               display: "flex",
-//               alignItems: "center",
-//               justifyContent: "center",
-//             }}
-//           >
-//             <Chip
-//               label={minToDuration(matchData.minutes)}
-//               sx={{ marginX: 1 }}
-//             />
-//             <Chip label={matchData.round} sx={{ marginX: 1 }} />
-//             <Chip label={matchData.surface} sx={{ marginX: 1 }} />
-//           </CardContent>
-
-//           <CardContent>
-//             <Grid container alignItems="center" spacing={2}>
-//               {/* player 1 results */}
-//               <Grid item xs={2}>
-//                 <Typography textAlign="center" variant="body2">
-//                   {matchData.winner_country}
-//                 </Typography>
-//               </Grid>
-//               <Grid item xs={6}>
-//                 <Typography textAlign="left" variant="h5">
-//                   {matchData.winner_name}
-//                 </Typography>
-//               </Grid>
-//               <Grid item xs={3}>
-//                 <Typography variant="body1">{matchData.score}</Typography>
-//               </Grid>
-//               <Grid item xs={1}>
-//                 <ArrowLeftRoundedIcon fontSize="large" htmlColor="green" />
-//               </Grid>
-
-//               {/* player 2 results */}
-//               <Grid item xs={2}>
-//                 <Typography textAlign="center" variant="body2">
-//                   {matchData.loser_country}
-//                 </Typography>
-//               </Grid>
-//               <Grid item xs={6}>
-//                 <Typography textAlign="left" variant="h5">
-//                   {matchData.loser_name}
-//                 </Typography>
-//               </Grid>
-//               <Grid item xs={3}>
-//                 <Typography variant="body1">4 6 6</Typography>
-//               </Grid>
-//               <Grid item xs={1}></Grid>
-//             </Grid>
-//           </CardContent>
-//         </Card>
-//       </Box>
-//     </>
-
-// {matchData ? (
-//   <div>
-//     <h2>{matchData.name}</h2>
-//     <h2>{matchData.score}</h2>
-//     <p>
-//       W: {matchData.winner_name} from {matchData.winner_country}
-//     </p>
-//     <p>
-//       L: {matchData.loser_name} from {matchData.loser_country}
-//     </p>
-//   </div>
-// ) : (
-//   <p>No data found for this match.</p>
-// )}
