@@ -26,6 +26,22 @@ const minToDuration = (minutes) => {
   return numHours + ":" + numMinutes;
 };
 
+const setMatchSurfacePath = (surface) => {
+  console.log(surface);
+  switch (surface) {
+    case "Grass":
+      return "/src/assets/imgs/grass-tennis-court.png";
+    case "Clay":
+      return "/src/assets/imgs/clay-tennis-court.png";
+    case "Hard":
+      return "/src/assets/imgs/hard-tennis-court.png";
+    case "Carpet":
+      return "/src/assets/imgs/carpet-tennis-court.png";
+    default:
+      return "/src/assets/imgs/clay-tennis-court.png";
+  }
+};
+
 export default function MatchPage() {
   const { tourney_id, match_num } = useParams();
   const [matchData, setMatchData] = useState({}); // state var to store and update match data
@@ -68,7 +84,7 @@ export default function MatchPage() {
               margin: "auto",
               marginY: "20px",
             }}
-            image="/src/assets/imgs/clay-tennis-court.png"
+            image={setMatchSurfacePath(matchData.surface)}
             title="court surface"
           />
 
@@ -101,7 +117,7 @@ export default function MatchPage() {
                 </Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography variant="body1">4 6 6</Typography>
+                <Typography variant="body1">{matchData.score}</Typography>
               </Grid>
               <Grid item xs={1}>
                 <ArrowLeftRoundedIcon fontSize="large" htmlColor="green" />
@@ -129,6 +145,90 @@ export default function MatchPage() {
     </>
   );
 }
+
+// <>
+//       <Box
+//         height="100vh"
+//         display="flex"
+//         flexDirection="column"
+//         justifyContent="center"
+//         alignItems="center"
+//       >
+//         <Typography
+//           sx={{ marginBottom: "20px" }}
+//           textAlign="center"
+//           variant="h2"
+//         >
+//           Match
+//         </Typography>
+//         <Card sx={{ maxWidth: "sm" }}>
+//           <CardMedia
+//             component="img"
+//             sx={{
+//               maxWidth: 350,
+//               borderRadius: "8px",
+//               margin: "auto",
+//               marginY: "20px",
+//             }}
+//             image="/src/assets/imgs/clay-tennis-court.png"
+//             title="court surface"
+//           />
+
+//           <CardContent
+//             sx={{
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//             }}
+//           >
+//             <Chip
+//               label={minToDuration(matchData.minutes)}
+//               sx={{ marginX: 1 }}
+//             />
+//             <Chip label={matchData.round} sx={{ marginX: 1 }} />
+//             <Chip label={matchData.surface} sx={{ marginX: 1 }} />
+//           </CardContent>
+
+//           <CardContent>
+//             <Grid container alignItems="center" spacing={2}>
+//               {/* player 1 results */}
+//               <Grid item xs={2}>
+//                 <Typography textAlign="center" variant="body2">
+//                   {matchData.winner_country}
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={6}>
+//                 <Typography textAlign="left" variant="h5">
+//                   {matchData.winner_name}
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={3}>
+//                 <Typography variant="body1">{matchData.score}</Typography>
+//               </Grid>
+//               <Grid item xs={1}>
+//                 <ArrowLeftRoundedIcon fontSize="large" htmlColor="green" />
+//               </Grid>
+
+//               {/* player 2 results */}
+//               <Grid item xs={2}>
+//                 <Typography textAlign="center" variant="body2">
+//                   {matchData.loser_country}
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={6}>
+//                 <Typography textAlign="left" variant="h5">
+//                   {matchData.loser_name}
+//                 </Typography>
+//               </Grid>
+//               <Grid item xs={3}>
+//                 <Typography variant="body1">4 6 6</Typography>
+//               </Grid>
+//               <Grid item xs={1}></Grid>
+//             </Grid>
+//           </CardContent>
+//         </Card>
+//       </Box>
+//     </>
 
 // {matchData ? (
 //   <div>
