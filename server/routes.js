@@ -161,11 +161,10 @@ const single_match = async (req, res) => {
     res.json([]);
     // execute query
   } else {
-    // TODO how are we handling null country values? Might be client-side
     connection.query(
       `
       SELECT G.tourney_id, G.match_num,
-          T.name, T.surface,
+          T.name, T.surface, T.league,
           G.round, G.minutes, G.score,
           W.name AS winner_name, W.ioc AS winner_country,
           L.name AS loser_name, L.ioc AS loser_country
@@ -245,12 +244,12 @@ const tournament_select = async (req, res) => {
 // promise.all? or nesting queries? Discuss best practice! -- AA
 //temp route for decade.. need to build out optional decade param. ? in route not working.
 const tournament_alltime = async (req, res) => {
-  console.log('Params:', req.params);
+  console.log("Params:", req.params);
   const tournament_name = req.params.name;
   const decade_start = req.params.decade ? parseInt(req.params.decade) : null;
   const decade_end = decade_start ? decade_start + 9 : null;
-  console.log('Tournament name:', tournament_name);
-  console.log('Decade start:', decade_start);
+  console.log("Tournament name:", tournament_name);
+  console.log("Decade start:", decade_start);
   let query;
   let params;
 
@@ -258,8 +257,7 @@ const tournament_alltime = async (req, res) => {
     res.json([]);
   } else {
     // if we get a decade, filter those stats
-    if(decade_start !== null){
-      
+    if (decade_start !== null) {
       query = `
       (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
       FROM tournament t
@@ -280,9 +278,16 @@ const tournament_alltime = async (req, res) => {
       GROUP BY g.loser_id, p2.name
       ORDER BY Losses DESC
       LIMIT 1)
-      `
-      params = [tournament_name, decade_start, decade_end, tournament_name, decade_start, decade_end]
-    } else { 
+      `;
+      params = [
+        tournament_name,
+        decade_start,
+        decade_end,
+        tournament_name,
+        decade_start,
+        decade_end,
+      ];
+    } else {
       // else all time stats
       query = `
       (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
@@ -304,19 +309,14 @@ const tournament_alltime = async (req, res) => {
       GROUP BY g.loser_id, p2.name
       ORDER BY Losses DESC
       LIMIT 1)
-      `
-      params = [tournament_name, tournament_name]
+      `;
+      params = [tournament_name, tournament_name];
     }
   }
-  connection.query(
-    query,
-    params,
-    (err, data) => handleResponse(err, data, req.path, res)
+  connection.query(query, params, (err, data) =>
+    handleResponse(err, data, req.path, res)
   );
-
 };
-
-
 
 module.exports = {
   home,
