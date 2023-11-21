@@ -17,9 +17,8 @@ const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 const minToDuration = (minutes) => {
-  const minAsNum = parseInt(minutes);
-  const numHours = Math.floor(minAsNum / 60);
-  const numMinutes = minAsNum % 60;
+  const numHours = Math.floor(minutes / 60);
+  const numMinutes = minutes % 60;
   if (numMinutes < 10) {
     numMinutes = "0" + numMinutes;
   }
@@ -27,7 +26,6 @@ const minToDuration = (minutes) => {
 };
 
 const setMatchSurfacePath = (surface) => {
-  console.log(surface);
   switch (surface) {
     case "Grass":
       return "/src/assets/imgs/grass-tennis-court.png";
@@ -38,7 +36,43 @@ const setMatchSurfacePath = (surface) => {
     case "Carpet":
       return "/src/assets/imgs/carpet-tennis-court.png";
     default:
-      return "/src/assets/imgs/clay-tennis-court.png";
+      return "/src/assets/imgs/carpet-tennis-court.png";
+  }
+};
+
+const defineRound = (round) => {
+  switch (round) {
+    case "R32":
+      return "Round of 32";
+    case "R16":
+      return "Round of 16";
+    case "QF":
+      return "Quarterfinals";
+    case "SF":
+      return "Semifinals";
+    case "F":
+      return "Finals";
+    case "R64":
+      return "Round of 64";
+    case "CR":
+      return "Consolation Round";
+    case "PR":
+      return "Play-off Round";
+    case "R128":
+      return "Round of 128";
+    case "RR":
+      return "Round Robin";
+    case "BR":
+      return "Bronze Medal Match";
+    case "ER":
+      return "Early Rounds";
+    case "Q1":
+    case "Q2":
+    case "Q3":
+    case "Q4":
+      return "Qualifying Rounds";
+    default:
+      return "Match";
   }
 };
 
@@ -68,26 +102,17 @@ export default function MatchPage() {
         justifyContent="center"
         alignItems="center"
       >
+        {/* displays tournament name */}
         <Typography
           sx={{ marginBottom: "20px" }}
           textAlign="center"
-          variant="h2"
+          variant="h4"
         >
-          Match
+          {matchData.name}
         </Typography>
-        <Card sx={{ maxWidth: "sm" }}>
-          <CardMedia
-            component="img"
-            sx={{
-              maxWidth: 350,
-              borderRadius: "8px",
-              margin: "auto",
-              marginY: "20px",
-            }}
-            image={setMatchSurfacePath(matchData.surface)}
-            title="court surface"
-          />
 
+        {/* displays tournament data */}
+        <Card sx={{ maxWidth: "sm" }}>
           <CardContent
             sx={{
               display: "flex",
@@ -95,12 +120,41 @@ export default function MatchPage() {
               justifyContent: "center",
             }}
           >
-            <Chip
-              label={minToDuration(matchData.minutes)}
-              sx={{ marginX: 1 }}
-            />
-            <Chip label={matchData.round} sx={{ marginX: 1 }} />
+            <Chip label={matchData.league.toUpperCase()} sx={{ marginX: 1 }} />
+            <Chip label={defineRound(matchData.round)} sx={{ marginX: 1 }} />
             <Chip label={matchData.surface} sx={{ marginX: 1 }} />
+          </CardContent>
+
+          {/* displays image of tournament surface */}
+          <CardMedia
+            component="img"
+            sx={{
+              maxWidth: 350,
+              borderRadius: "8px",
+              margin: "auto",
+              marginTop: "5px",
+              marginBottom: "20px",
+            }}
+            image={setMatchSurfacePath(matchData.surface)}
+            title="court surface"
+          />
+
+          {/* displays match duration if available */}
+          <CardContent
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {!isNaN(parseInt(matchData.minutes)) ? (
+              <Chip
+                label={minToDuration(parseInt(matchData.minutes))}
+                sx={{ marginX: 1 }}
+              />
+            ) : (
+              <></>
+            )}
           </CardContent>
 
           <CardContent>
