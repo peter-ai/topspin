@@ -48,9 +48,17 @@ export default function MatchPage() {
       <Box
         height="100vh"
         display="flex"
+        flexDirection="column"
         justifyContent="center"
         alignItems="center"
       >
+        <Typography
+          sx={{ marginBottom: "20px" }}
+          textAlign="center"
+          variant="h2"
+        >
+          Match
+        </Typography>
         <Card sx={{ maxWidth: "sm" }}>
           <CardMedia
             component="img"
