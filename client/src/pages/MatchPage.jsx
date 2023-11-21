@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Grid from "@mui/material/Grid";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -15,27 +16,25 @@ export default function MatchPage() {
       `http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${tourney_id}/${match_num}`
     )
       .then((res) => res.json())
-      .then((res) => setMatchData(res[0]))
+      .then((res) => {
+        console.log(res[0]);
+        setMatchData(res[0]);
+      })
       .catch((err) => console.log(err));
   }, []); // run on initial render
 
   return (
     <>
-      <h1>Match</h1>
-      {matchData ? (
-        <div>
-          <h2>{matchData.name}</h2>
-          <h2>{matchData.score}</h2>
-          <p>
-            W: {matchData.winner_name} from {matchData.winner_country}
-          </p>
-          <p>
-            L: {matchData.loser_name} from {matchData.loser_country}
-          </p>
-        </div>
-      ) : (
-        <p>No data found for this match.</p>
-      )}
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="center"
+        minHeight="100vh"
+      >
+        <Grid item>
+          <h1>Match</h1>
+        </Grid>
+      </Grid>
     </>
   );
 }
