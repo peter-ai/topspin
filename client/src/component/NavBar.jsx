@@ -72,25 +72,25 @@ export default function NavBar() {
                 </Button>
               </Grid>
               <Grid item xs='auto' style={{textAlign: "center"}}>
+                <Button color={useLocation().pathname === '/compare' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
+                  <NavText href='/compare' text='Compare Players' />
+                </Button>
+              </Grid>
+              <Grid item xs='auto' style={{textAlign: "center"}}>
                 <Button color={useLocation().pathname === '/tournament' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
                   <NavText href='/tournament' text='Tournaments' />
-                </Button>
-              </Grid>
-              <Grid item xs='auto' style={{textAlign: "center"}}>
-                <Button color={useLocation().pathname === '/compare' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
-                  <NavText href='/compare' text='Compare' />
-                </Button>
-              </Grid>
-              <Grid item xs='auto' style={{textAlign: "center"}}>
-                <Button color={useLocation().pathname === '/betting' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
-                  <NavText href='/betting' text='Betting Strategies' />
                 </Button>
               </Grid>
               <Grid item xs='auto' style={{textAlign: "center"}}>
                 <Button color={useLocation().pathname === '/simulate' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
                   <NavText href='/simulate' text='Tournament Simulation' />
                 </Button>
-              </Grid>              
+              </Grid>    
+              <Grid item xs='auto' style={{textAlign: "center"}}>
+                <Button color={useLocation().pathname === '/betting' ? 'success' : 'inherit'} style={{textTransform: 'none', textAlign: 'center'}}>
+                  <NavText href='/betting' text='Betting Strategies' />
+                </Button>
+              </Grid>          
             </Grid>
           </Grid>
         </Toolbar>
