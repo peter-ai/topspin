@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
+import NavBar from "./component/NavBar";
 import HomePage from "./pages/HomePage";
 import PlayerPage from "./pages/PlayerPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
@@ -22,6 +23,7 @@ export default function App() {
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
         <BrowserRouter>
+          <NavBar />
           <Routes>
             <Route exact path="/" element={<HomePage />} />
             <Route exact path="/player" element={<PlayerPage />} />
