@@ -54,7 +54,7 @@ function NavText({ href, text, isMain }) {
 // to assist in formatting the text.
 export default function NavBar() {
   return (
-    <AppBar position='static' title='TopSpin'>
+    <AppBar position='sticky'>
       <Container maxWidth='xl'>
         <Toolbar 
           disableGutters

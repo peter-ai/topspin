@@ -9,6 +9,7 @@ export default function SearchBar({placeholder, defaultValue, handleSearch }) {
   return (
     <>
       <TextField
+        fullWidth
         id='searchbar'
         label='Search'
         size='small'
@@ -22,7 +23,7 @@ export default function SearchBar({placeholder, defaultValue, handleSearch }) {
             <InputAdornment position='start'>
             <SearchIcon />
             </InputAdornment>
-          ),
+          )
         }}
         variant='outlined'
       />

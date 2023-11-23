@@ -23,7 +23,9 @@ export default function App() {
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
         <BrowserRouter>
-          <NavBar />
+          <div>
+            <NavBar />
+          </div>
           <Routes>
             <Route exact path="/" element={<HomePage />} />
             <Route exact path="/player" element={<PlayerPage />} />
