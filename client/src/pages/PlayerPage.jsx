@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { InputLabel, Select, MenuItem, FormControl, Grid, Container, Typography, Link, Pagination } from '@mui/material';
+import { InputLabel, Select, MenuItem, FormControl, Grid, Container, Typography, Link, Pagination, Box, Paper } from '@mui/material';
 import SearchBar from "../component/SearchBar";
 import { lookup } from "country-data";
 
@@ -44,12 +44,14 @@ export default function PlayerPage() {
   const handleSearch = (e) => {
     e.preventDefault();
     setSearchInput(e.target.value); // set variable to the current value of search bar
+    handlePage(null, 1);
   };
 
   // function handles change of league dropdown
   const handleLeagueFilter = (e) => {
     e.preventDefault();
     setLeagueInput(e.target.value);
+    handlePage(null, 1);
   };
 
   // function handles change of page size dropdown
@@ -96,7 +98,7 @@ export default function PlayerPage() {
   const getPlayers = () => {
     return players.map((player) => (
       // construct list of players to display
-      <Grid item key={player.id} xs={2} style={{textAlign:'center'}}>
+      <Grid item key={player.id} xs={2} sx={{textAlign:'center'}}>
         <Link href={'/player/'+player.id} variant={'body1'} underline={'hover'}>
           {player.name}
         </Link>
@@ -114,7 +116,7 @@ export default function PlayerPage() {
   return (
     <Container maxWidth='xl'>
       <Grid container direction={'row'} spacing={2} alignItems={'center'} sx={{marginTop: 0}}>
-        <Grid item xs={8}>
+        <Grid item xs={6}>
           <Typography
             variant='h3'
             sx={{
@@ -124,6 +126,18 @@ export default function PlayerPage() {
             gutterBottom
           >
             Athlete Directory
+          </Typography>
+        </Grid>
+        <Grid container item xs={2} justifyContent={'center'} alignItems={'center'} sx={{textAlign:'center'}}>
+          <Typography
+            variant='body1'
+            sx={{
+              fontWeight: 300,
+              letterSpacing: '.2rem',
+            }}
+            gutterBottom
+          >
+            {count.count ? count.count.toString() + ' Player' + (count.count > 1 ? 's' : '') : '0 Players'}
           </Typography>
         </Grid>
         <Grid item xs={2}>
@@ -151,7 +165,10 @@ export default function PlayerPage() {
           handleSearch={handleSearch} 
         />
         </Grid>
+
         {getPlayers()}
+        
+        <Box width="100%" mt={4}/>
 
         <Grid container item xs={12} justifyContent={'flex-end'} alignItems={'center'}>
           <FormControl sx={{minWidth: 90}}> 
@@ -173,7 +190,8 @@ export default function PlayerPage() {
               </Select>
           </FormControl>
           <Pagination
-            count={Math.ceil(count.count/pageSize)}
+            page={page}
+            count={count.count ? Math.ceil(count.count/pageSize) : 1}
             color='success'
             showFirstButton 
             showLastButton
