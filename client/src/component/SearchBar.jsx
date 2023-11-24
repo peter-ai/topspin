@@ -13,7 +13,7 @@ export default function SearchBar({placeholder, defaultValue, handleSearch }) {
         id='searchbar'
         label='Search'
         size='small'
-        type='search'
+        type='text'
         color='success'
         defaultValue={defaultValue} 
         placeholder= {placeholder ? placeholder : ''}

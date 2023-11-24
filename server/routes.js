@@ -17,15 +17,46 @@ const home = async (req, res) => {
 };
 
 // route that retrieves all player data
-// TODO: Cache this query
 const player = async (req, res) => {
-  connection.query(
-    `
-    SELECT id, name, ioc, league 
-    FROM player;
-    `,
-    (err, data) => handleResponse(err, data, req.path, res)
-  );
+  const getCount = req.query.count === 'true';
+  const name = '%' + req.query.search + '%';
+  const pageSize = parseInt(req.query.pageSize, 10) ? parseInt(req.query.pageSize, 10) : 30;
+  const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
+  let league;
+
+  // define the offset
+  const offset = pageSize * (page - 1);
+
+  // validate league param
+  if (req.query.league != 'wta' && req.query.league != 'atp') {
+    league = ['atp', 'wta'];
+  } else {
+    league = [req.query.league];
+  }
+
+  if (getCount) {
+    connection.query(
+      `
+      SELECT COUNT(id) AS count
+      FROM player
+      WHERE name LIKE ? AND league IN (?)
+      `,
+      [name, league],
+      (err, data) => handleResponse(err, data[0], req.path, res)
+    );
+  } else {
+    connection.query(
+      `
+      SELECT id, name, ioc, league 
+      FROM player
+      WHERE name LIKE ? AND league IN (?)
+      LIMIT ?
+      OFFSET ?
+      `,
+      [name, league, pageSize, offset],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
 };
 
 // route that retrieves a specific player's demographic
