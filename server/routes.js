@@ -48,10 +48,12 @@ const player = async (req, res) => {
     connection.query(
       `
       SELECT id, name, ioc, league 
-      FROM player
+      FROM player P INNER JOIN player_stats PS
+        ON P.id=PS.player_id
       WHERE name LIKE ? AND league IN (?)
+      ORDER BY wins DESC
       LIMIT ?
-      OFFSET ?
+      OFFSET ?;
       `,
       [name, league, pageSize, offset],
       (err, data) => handleResponse(err, data, req.path, res)

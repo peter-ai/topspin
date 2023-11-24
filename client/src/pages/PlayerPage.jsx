@@ -11,7 +11,7 @@ export default function PlayerPage() {
   const [players, setPlayers] = useState([]); // variable for list of players
   const [searchInput, setSearchInput] = useState(''); // variable tracking state of search bar
   const [leagueInput, setLeagueInput] = useState('both');
-  const [pageSize, setPageSize] = useState(30);
+  const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState([]);
   
@@ -98,14 +98,31 @@ export default function PlayerPage() {
   const getPlayers = () => {
     return players.map((player) => (
       // construct list of players to display
-      <Grid item key={player.id} xs={2} sx={{textAlign:'center'}}>
-        <Link href={'/player/'+player.id} variant={'body1'} underline={'hover'}>
-          {player.name}
-        </Link>
-        <br/>
-        {getFlag(player.ioc)}
-        <br/>
-        {player.league.toUpperCase()}
+      <Grid item key={player.id} xs={3} sx={{textAlign:'center'}}>
+        <Paper 
+          elevation={6}
+        >
+          <Box width="100%" p={2}>
+            <Link 
+            href={'/player/'+player.id} 
+            variant={'body1'} 
+            sx={{
+              fontWeight:700, 
+              ':hover': {
+                color: 'success.main',
+                transition: '250ms'
+              }
+            }} 
+            underline={'none'}
+            >
+              {player.name}
+            </Link>
+            <br/>
+            {getFlag(player.ioc)}
+            <br/>
+            {player.league.toUpperCase()}
+          </Box>
+        </Paper>
       </Grid>
     ));
   };
@@ -115,7 +132,7 @@ export default function PlayerPage() {
   // TODO: Find api for player images
   return (
     <Container maxWidth='xl'>
-      <Grid container direction={'row'} spacing={2} alignItems={'center'} sx={{marginTop: 0}}>
+      <Grid container direction={'row'} spacing={3} alignItems={'center'} sx={{marginTop: 0}}>
         <Grid item xs={6}>
           <Typography
             variant='h3'
@@ -182,11 +199,11 @@ export default function PlayerPage() {
                 onChange={handlePageSize}
                 color='success'
               >
-                <MenuItem value={30}>30</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={40}>40</MenuItem>
                 <MenuItem value={60}>60</MenuItem>
-                <MenuItem value={90}>90</MenuItem>
                 <MenuItem value={120}>120</MenuItem>
-                <MenuItem value={150}>150</MenuItem>
+                <MenuItem value={240}>240</MenuItem>
               </Select>
           </FormControl>
           <Pagination
