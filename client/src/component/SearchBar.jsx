@@ -21,9 +21,9 @@ export default function SearchBar({placeholder, defaultValue, handleSearch }) {
         InputProps={{
           startAdornment: (
             <InputAdornment position='start'>
-            <SearchIcon />
+              <SearchIcon />
             </InputAdornment>
-          )
+          ),
         }}
         variant='outlined'
       />

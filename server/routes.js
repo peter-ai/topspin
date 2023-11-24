@@ -47,7 +47,7 @@ const player = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT id, name, ioc, league 
+      SELECT id, name, ioc, league, wins 
       FROM player P INNER JOIN player_stats PS
         ON P.id=PS.player_id
       WHERE name LIKE ? AND league IN (?)
