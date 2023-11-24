@@ -108,7 +108,9 @@ export default function PlayerPage() {
     ));
   };
 
-  console.log(players);
+  // TODO: Fix search bug where search doesn't show results because page calculation is off (somehow need to reset to latest page)
+  // TODO: Add space below players and the pagination feature
+  // TODO: Find api for player images
   return (
     <Container maxWidth='xl'>
       <Grid container direction={'row'} spacing={2} alignItems={'center'} sx={{marginTop: 0}}>
@@ -178,8 +180,6 @@ export default function PlayerPage() {
             onChange={handlePage}
           />
         </Grid>
-
-
       </Grid>
     </Container>
   );
