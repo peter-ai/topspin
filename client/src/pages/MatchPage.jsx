@@ -9,8 +9,8 @@ import {
   Typography,
   Chip,
 } from "@mui/material";
-
 import ArrowLeftRoundedIcon from "@mui/icons-material/ArrowLeftRounded";
+import { setMatchSurfacePath, defineRound } from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -25,59 +25,8 @@ const minToDuration = (minutes) => {
   return numHours + ":" + numMinutes;
 };
 
-const setMatchSurfacePath = (surface) => {
-  switch (surface) {
-    case "Grass":
-      return "/src/assets/imgs/grass-tennis-court.png";
-    case "Clay":
-      return "/src/assets/imgs/clay-tennis-court.png";
-    case "Hard":
-      return "/src/assets/imgs/hard-tennis-court.png";
-    case "Carpet":
-      return "/src/assets/imgs/carpet-tennis-court.png";
-    default:
-      return "/src/assets/imgs/carpet-tennis-court.png";
-  }
-};
-
 const parseScores = (score) => {
   return score.split(" ");
-};
-
-const defineRound = (round) => {
-  switch (round) {
-    case "R32":
-      return "Round of 32";
-    case "R16":
-      return "Round of 16";
-    case "QF":
-      return "Quarterfinals";
-    case "SF":
-      return "Semifinals";
-    case "F":
-      return "Finals";
-    case "R64":
-      return "Round of 64";
-    case "CR":
-      return "Consolation Round";
-    case "PR":
-      return "Play-off Round";
-    case "R128":
-      return "Round of 128";
-    case "RR":
-      return "Round Robin";
-    case "BR":
-      return "Bronze Medal Match";
-    case "ER":
-      return "Early Rounds";
-    case "Q1":
-    case "Q2":
-    case "Q3":
-    case "Q4":
-      return "Qualifying Rounds";
-    default:
-      return "Match";
-  }
 };
 
 export default function MatchPage() {
