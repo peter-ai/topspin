@@ -32,33 +32,39 @@ export default function MatchPage() {
   const [matchData, setMatchData] = useState({}); // state var to store and update match data
   const [winnerResults, setWinnerResults] = useState([]);
   const [loserResults, setLoserResults] = useState([]);
-  const [isRetired, setIsRetired] = useState(false);
-  const [isWalkover, setIsWalkover] = useState(false);
 
   const parseScores = (score) => {
-    if (score.includes("W/O")) {
-      setIsWalkover(true);
-    } else {
-      if (score.includes("RET")) {
-        setIsRetired(true);
-      }
-      // parse game scores
-      // winner score on left, loser score on right
-      const setScores = score.split(" ");
-      const winnerSetScores = [];
-      const loserSetScores = [];
-
-      setScores.forEach((set) => {
-        if (set.includes("-")) {
-          const gameScore = set.split("-");
-          winnerSetScores.push(gameScore[0].trim());
-          loserSetScores.push(gameScore[1].trim());
-        }
-      });
-
-      setWinnerResults(winnerSetScores);
-      setLoserResults(loserSetScores);
+    if (score.includes("?") || score.includes("W/O") || score.includes("RET")) {
+      return;
     }
+
+    // parse game scores
+    // winner score on left, loser score on right
+    const setScores = score.split(" ");
+    const winnerSetScores = [];
+    const loserSetScores = [];
+
+    setScores.forEach((set) => {
+      if (set.includes("-")) {
+        const gameScore = set.split("-");
+
+        const winner = truncateScore(gameScore[0].trim());
+        winnerSetScores.push(winner);
+
+        const loser = truncateScore(gameScore[1].trim());
+        loserSetScores.push(loser);
+      }
+    });
+
+    setWinnerResults(winnerSetScores);
+    setLoserResults(loserSetScores);
+  };
+
+  const truncateScore = (score) => {
+    const indexOfParenthesis = score.indexOf("(");
+    return indexOfParenthesis !== -1
+      ? score.substring(0, indexOfParenthesis)
+      : score;
   };
 
   // GET req to /tournament/:tourney_id/:match_num for match data
@@ -161,7 +167,15 @@ export default function MatchPage() {
                 >
                   {winnerResults.map((element, index) => (
                     <Grid item>
-                      <Typography display="inline" key={index} variant="h6">
+                      <Typography
+                        display="inline"
+                        key={index}
+                        variant="h6"
+                        sx={{
+                          color:
+                            element > loserResults[index] ? "white" : "grey",
+                        }}
+                      >
                         {element}
                       </Typography>
                     </Grid>
@@ -191,7 +205,15 @@ export default function MatchPage() {
                 >
                   {loserResults.map((element, index) => (
                     <Grid item>
-                      <Typography display="inline" key={index} variant="h6">
+                      <Typography
+                        display="inline"
+                        key={index}
+                        variant="h6"
+                        sx={{
+                          color:
+                            element > winnerResults[index] ? "white" : "grey",
+                        }}
+                      >
                         {element}
                       </Typography>
                     </Grid>
@@ -216,23 +238,3 @@ export default function MatchPage() {
     </>
   );
 }
-
-{
-  /* displays match duration if available */
-}
-// <CardContent
-//   sx={{
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   }}
-// >
-//   {!isNaN(parseInt(matchData.minutes)) ? (
-//     <Chip
-//       label={minToDuration(parseInt(matchData.minutes))}
-//       sx={{ marginX: 1 }}
-//     />
-//   ) : (
-//     <></>
-//   )}
-// </CardContent>
