@@ -165,13 +165,13 @@ const single_match = async (req, res) => {
       `
       SELECT G.tourney_id, G.match_num,
           T.name, T.surface, T.league,
-          G.round, G.minutes, G.score,
+          G.round, G.score,
           W.name AS winner_name, W.ioc AS winner_country,
           L.name AS loser_name, L.ioc AS loser_country
-      FROM game G 
+      FROM game G
           JOIN tournament T ON G.tourney_id=T.id
           JOIN player W ON G.winner_id = W.id
-          JOIN player L ON G.loser_id = L.id
+          JOIN player L ON G.loser_id = L.id;
       WHERE G.tourney_id=? AND G.match_num=?
       `,
       [tourney_id, match_num],
