@@ -34,7 +34,7 @@ export default function MatchPage() {
   const [loserResults, setLoserResults] = useState([]);
 
   const parseScores = (score) => {
-    if (score.includes("?") || score.includes("W/O") || score.includes("RET")) {
+    if (score.includes("?") || score.includes("W/O")) {
       return;
     }
 
