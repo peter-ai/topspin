@@ -20,11 +20,11 @@ export const defineRound = (round) => {
     case "R16":
       return "Round of 16";
     case "QF":
-      return "Quarterfinals";
+      return "Quarter-final";
     case "SF":
-      return "Semifinals";
+      return "Semi-final";
     case "F":
-      return "Finals";
+      return "Final";
     case "R64":
       return "Round of 64";
     case "CR":
@@ -43,7 +43,7 @@ export const defineRound = (round) => {
     case "Q2":
     case "Q3":
     case "Q4":
-      return "Qualifying Rounds";
+      return "Qualifying Round";
     default:
       return "Match";
   }

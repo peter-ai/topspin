@@ -8,8 +8,9 @@ import {
   CardContent,
   Typography,
   Chip,
+  Button,
 } from "@mui/material";
-import ArrowLeftRoundedIcon from "@mui/icons-material/ArrowLeftRounded";
+import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import { setMatchSurfacePath, defineRound } from "../utils";
 
 // declare server port and host for requests
@@ -25,15 +26,40 @@ const minToDuration = (minutes) => {
   return numHours + ":" + numMinutes;
 };
 
-// TODO check this function
-const parseScores = (score) => {
-  return score.split(" ");
-};
-
 export default function MatchPage() {
   const { tourney_id, match_num } = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [matchData, setMatchData] = useState({}); // state var to store and update match data
+  const [winnerResults, setWinnerResults] = useState([]);
+  const [loserResults, setLoserResults] = useState([]);
+  const [isRetired, setIsRetired] = useState(false);
+  const [isWalkover, setIsWalkover] = useState(false);
+
+  const parseScores = (score) => {
+    if (score.includes("W/O")) {
+      setIsWalkover(true);
+    } else {
+      if (score.includes("RET")) {
+        setIsRetired(true);
+      }
+      // parse game scores
+      // winner score on left, loser score on right
+      const setScores = score.split(" ");
+      const winnerSetScores = [];
+      const loserSetScores = [];
+
+      setScores.forEach((set) => {
+        if (set.includes("-")) {
+          const gameScore = set.split("-");
+          winnerSetScores.push(gameScore[0].trim());
+          loserSetScores.push(gameScore[1].trim());
+        }
+      });
+
+      setWinnerResults(winnerSetScores);
+      setLoserResults(loserSetScores);
+    }
+  };
 
   // GET req to /tournament/:tourney_id/:match_num for match data
   useEffect(() => {
@@ -49,8 +75,14 @@ export default function MatchPage() {
       .catch((err) => console.log(err));
   }, []); // run on initial render
 
+  // parses scores to populate score table
+  useEffect(() => {
+    matchData.score ? parseScores(matchData.score) : "";
+  }, [matchData]); // run when matchData changes
+
   return (
     <>
+      {/* // TODO create loading component */}
       {isLoading ? (
         <Typography textAlign="center" variant="body2">
           LOADING
@@ -72,13 +104,18 @@ export default function MatchPage() {
             {matchData.name}
           </Typography>
 
-          {/* displays tournament data */}
-          <Card sx={{ maxWidth: "sm" }}>
+          <Card
+            sx={{
+              maxWidth: "lg",
+            }}
+          >
+            {/* displays tournament data (league, round, surface) */}
             <CardContent
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                marginY: "10px",
               }}
             >
               <Chip
@@ -96,49 +133,15 @@ export default function MatchPage() {
                 maxWidth: 350,
                 borderRadius: "8px",
                 margin: "auto",
-                marginTop: "5px",
                 marginBottom: "20px",
               }}
               image={setMatchSurfacePath(matchData.surface)}
               title="court surface"
             />
 
-            {/* displays match duration if available */}
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {!isNaN(parseInt(matchData.minutes)) ? (
-                <Chip
-                  label={minToDuration(parseInt(matchData.minutes))}
-                  sx={{ marginX: 1 }}
-                />
-              ) : (
-                <></>
-              )}
-            </CardContent>
-
-            {/* displays match score if available */}
-            <CardContent
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {matchData.score !== null ? (
-                <Chip label={matchData.score} sx={{ marginX: 1 }} />
-              ) : (
-                <></>
-              )}
-            </CardContent>
-
             <CardContent>
               <Grid container alignItems="center" spacing={2}>
-                {/* player 1 results */}
+                {/* player 1 (winner) results */}
                 <Grid item xs={2}>
                   <Typography textAlign="center" variant="body2">
                     {matchData.winner_country}
@@ -149,14 +152,26 @@ export default function MatchPage() {
                     {matchData.winner_name}
                   </Typography>
                 </Grid>
-                <Grid item xs={3}>
-                  <Typography variant="body1">{matchData.score}</Typography>
-                </Grid>
-                <Grid item xs={1}>
-                  <ArrowLeftRoundedIcon fontSize="large" htmlColor="green" />
+                <Grid
+                  container
+                  spacing={3}
+                  sx={{ justifyContent: "right", alignItems: "right" }}
+                  item
+                  xs={3}
+                >
+                  {winnerResults.map((element, index) => (
+                    <Grid item>
+                      <Typography display="inline" key={index} variant="h6">
+                        {element}
+                      </Typography>
+                    </Grid>
+                  ))}
+                  <Grid item xs={1}>
+                    <ArrowLeftSharpIcon fontSize="large" />
+                  </Grid>
                 </Grid>
 
-                {/* player 2 results */}
+                {/* player 2 (loser) results */}
                 <Grid item xs={2}>
                   <Typography textAlign="center" variant="body2">
                     {matchData.loser_country}
@@ -167,11 +182,33 @@ export default function MatchPage() {
                     {matchData.loser_name}
                   </Typography>
                 </Grid>
-                <Grid item xs={3}>
-                  <Typography variant="body1">4 6 6</Typography>
+                <Grid
+                  container
+                  spacing={3}
+                  sx={{ justifyContent: "right", alignItems: "right" }}
+                  item
+                  xs={3}
+                >
+                  {loserResults.map((element, index) => (
+                    <Grid item>
+                      <Typography display="inline" key={index} variant="h6">
+                        {element}
+                      </Typography>
+                    </Grid>
+                  ))}
+                  <Grid item xs={1}></Grid>
                 </Grid>
-                <Grid item xs={1}></Grid>
               </Grid>
+            </CardContent>
+
+            <CardContent
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Button>Compare Players</Button>
             </CardContent>
           </Card>
         </Box>
@@ -179,3 +216,23 @@ export default function MatchPage() {
     </>
   );
 }
+
+{
+  /* displays match duration if available */
+}
+// <CardContent
+//   sx={{
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//   }}
+// >
+//   {!isNaN(parseInt(matchData.minutes)) ? (
+//     <Chip
+//       label={minToDuration(parseInt(matchData.minutes))}
+//       sx={{ marginX: 1 }}
+//     />
+//   ) : (
+//     <></>
+//   )}
+// </CardContent>
