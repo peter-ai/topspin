@@ -1,4 +1,4 @@
-const setMatchSurfacePath = (surface) => {
+export const setMatchSurfacePath = (surface) => {
   switch (surface) {
     case "Grass":
       return "/src/assets/imgs/grass-tennis-court.png";
@@ -13,7 +13,7 @@ const setMatchSurfacePath = (surface) => {
   }
 };
 
-const defineRound = (round) => {
+export const defineRound = (round) => {
   switch (round) {
     case "R32":
       return "Round of 32";
@@ -47,9 +47,4 @@ const defineRound = (round) => {
     default:
       return "Match";
   }
-};
-
-module.exports = {
-  setMatchSurfacePath,
-  defineRound,
 };
