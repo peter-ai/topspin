@@ -11,24 +11,28 @@ import {
   Pagination, 
   Box, 
   Paper,
-  Skeleton 
+  Skeleton, 
+  debounce
 } from '@mui/material';
-import SearchBar from "../component/SearchBar";
-import { lookup } from "country-data";
+import SearchBar from '../component/SearchBar';
+import { lookup } from 'country-data';
+import atp_logo_1 from '../public/atp-silhouette-1.png';
+import atp_logo_2 from '../public/atp-silhouette-2.png';
+import wta_logo_1 from '../public/wta-silhouette-1.png';
+import wta_logo_2 from '../public/wta-silhouette-2.png';
+
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
-const API_KEY = import.meta.env.VITE_BINGSEARCH_KEY;
 
 export default function PlayerPage() {
   const [players, setPlayers] = useState([]); // variable for list of players
-  const [playerImages, setPlayerImages] = useState([]);
   const [searchInput, setSearchInput] = useState(''); // variable tracking state of search bar
-  const [leagueInput, setLeagueInput] = useState('both');
-  const [pageSize, setPageSize] = useState(20);
-  const [page, setPage] = useState(1);
-  const [count, setCount] = useState([]);
+  const [leagueInput, setLeagueInput] = useState('both'); // variable tracking the league selected
+  const [pageSize, setPageSize] = useState(20); // variable tracking pageSize selection
+  const [page, setPage] = useState(1); // variable tracking the page number selected
+  const [count, setCount] = useState([]); // variable for number of players
   
   // use effect
   useEffect(() => {
@@ -51,75 +55,46 @@ export default function PlayerPage() {
       `count=true`
     ) // send get request to /player route on server
     .then((res) => res.json()) // convert response to json
-    .then((resJson) => setCount(resJson)) // set players 
+    .then((resJson) => setCount(resJson)) // set count of players
     .catch((err) => console.log(err)); // catch and log errors
-  }, [searchInput, leagueInput, pageSize, page]); // [] empty listener, so only run effect on load of page
-    
-  useEffect(() => {
-    getPlayerImages();
-  }, [players])
-
-  // async function to perform Bing image searches
-  async function bingImage(player_name) {
-    let player_res = await fetch(`https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURI(player_name)}&mkt=en-us&safeSearch=moderate&count=1&offset=0`, {
-      method: 'GET',
-      headers: {
-        'Ocp-Apim-Subscription-Key' : API_KEY
-      }
-    });
-    let player_json = await player_res.json();
-    let player_val = await player_json.value[0];
-    let player_url = await player_val.thumbnailUrl;
-    
-    return player_url;
-  }
-
-  // function to aggregate results form async Bing image search
-  const getPlayerImages = () => {
-    const promises = [];
-    players.forEach((player) => {
-      promises.push(bingImage(player.name + ' tennis'));
-    });
-    Promise.all(promises).then((v) => setPlayerImages(v));
-  }
+  }, [searchInput, leagueInput, pageSize, page]); 
 
   // function to set state of search bar
   const handleSearch = (e) => {
-    setPlayerImages([]);
-    if (e) {
-      e.preventDefault();
-      setSearchInput(e.target.value); // set variable to the current value of search bar
-    } else {
-      setSearchInput(''); // clear search bar
-    }
-    handlePage(null, 1);
+    e.preventDefault();
+    setSearchInput(e.target.value); // set variable to the current value of search bar
+    handlePage(null, 1); // reset page number to the first when search occurs
   };
+
+  // define function for debounced search to delay registration of keystrokes 
+  // and querying every letter added to search
+  const debounceSearch = debounce(handleSearch, 300);
 
   // function handles change of league dropdown
   const handleLeagueFilter = (e) => {
     e.preventDefault();
-    setPlayerImages([]);
-    setLeagueInput(e.target.value);
-    handlePage(null, 1);
+    setLeagueInput(e.target.value); // set variable to current value of league selected
+    handlePage(null, 1); // reset page number to the first when new league selection occurs
   };
 
   // function handles change of page size dropdown
   const handlePageSize = (e) => {
     e.preventDefault();
-    setPlayerImages([]);
-    setPageSize(e.target.value);
+    setPageSize(e.target.value); // change page size
   };
 
+  // function handles change of page number
   const handlePage = (e, value) => {
-    setPlayerImages([]);
-    setPage(value);
+    setPage(value); // change the current page number
   };
 
 
   // function that handles getting the country and flag of players
   const getFlag = (player_ioc) => {
+    // if ioc is UNK or null return N/A
     if (!player_ioc || player_ioc==='UNK') {return 'N/A'}
 
+    // define list of unmatched country codes
     const unmatched = {
       AHO: 'Netherlands Antilles',
       CAR: 'Carribean/West Indies',
@@ -128,24 +103,31 @@ export default function PlayerPage() {
       GDR: 'East Germany',
       TCH: 'Czechoslovakia',
     };
+
+    // check if ioc country code is list of unmatched
     if (unmatched[player_ioc]) {return unmatched[player_ioc]}
 
+    // attempt lookup of ioc country code
     let country = lookup.countries({ioc: player_ioc})
     if (!country.length) {
+      // if unsuccessful attempt lookup of alpha-3 ISO code
       country = lookup.countries({alpha3: player_ioc});
       if (!country.length) {
+        // if unsuccessful return N/A
         return 'N/A';
       } 
     }
 
     if (country[0]['emoji']) {
+      // if country has emoji return emoji with country name
       return country[0]['emoji'] + ' ' + country[0]['name'].split(', ')[0];
     } else {
+      // otherwise return country name
       return country[0]['name'].split(', ')[0];
     }
   };
-  
-  
+
+
   // function to output players based on matching search results for player names and specified league
   const getPlayers = () => {
     return players.map((player, index) => (
@@ -156,7 +138,6 @@ export default function PlayerPage() {
         >
           <Box width="100%" p={2}>
             { 
-              playerImages[index] ?
               (<Link
               href={'/player/'+player.id} 
               sx={{
@@ -174,15 +155,15 @@ export default function PlayerPage() {
                     borderRadius: '50%',
                     border: 3
                   }}
-                  alt={'Image of ' + player.name}
-                  src={playerImages[index]}
+                  alt={player.league.toUpperCase() + ' tennis player silhouette'}
+                  src={player.league==='atp' ? (index % 2 ? atp_logo_1 : atp_logo_2) : (index % 2 ? wta_logo_1 : wta_logo_2)}
                 />
-              </Link>) :
+              </Link>) 
+              ??
               (<Grid container justifyContent={'center'}>
                 <Skeleton variant="circular" width={200} height={200}/>
               </Grid>)
             }
-            
             <br/>
             <Link 
             href={'/player/'+player.id} 
@@ -208,8 +189,6 @@ export default function PlayerPage() {
     ));
   };
 
-  // TODO: Fix bug for search parameter (delay in loading of images)
-  // TODO: Implement display of images or placeholder image for above/below win threshold
   return (
     <Container maxWidth='xl'>
       <Grid container direction={'row'} spacing={3} justifyContent={'center'} alignItems={'center'} sx={{marginTop: 0}}>
@@ -259,7 +238,7 @@ export default function PlayerPage() {
           <SearchBar 
           defaultValue={searchInput} 
           placeholder='Name' 
-          handleSearch={handleSearch} 
+          handleSearch={debounceSearch} 
         />
         </Grid>
 
