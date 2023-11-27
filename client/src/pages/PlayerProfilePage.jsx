@@ -13,8 +13,16 @@ import {
   Box, 
   Paper,
   Skeleton, 
-  debounce
+  debounce,
+  Stack,
+  Divider,
+  Tab,
+  Tabs
 } from '@mui/material';
+import { lookup } from 'country-data';
+import atp_logo_1 from '../public/atp-silhouette-1.png';
+import wta_logo_1 from '../public/wta-silhouette-1.png';
+import { getPlayerFlag, getDate, getPlayerHand } from '../component/utils';
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -23,6 +31,8 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function PlayerProfilePage() {
   const { id } = useParams();
+  const [tab, setTab] = useState(0);
+
 
   // const [playerImages, setPlayerImages] = useState([]);
   const [playerInfo, setPlayerInfo] = useState({}); // variable for player info
@@ -34,16 +44,14 @@ export default function PlayerProfilePage() {
   useEffect(() => {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}`) // send get request to /player/:id route on server
     .then(res => res.json()) // convert response to json
-    .then(resJson => {
-      console.log("Player info:", resJson) // TODO: Delete
-      setPlayerInfo(resJson)
-    }) // set player info
+    .then(resJson => setPlayerInfo(resJson)) // set player info
     .catch(err => console.log(err)); // catch and log errors
 
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/surface`) // send get request to /player/:id/surface route on server
     .then(res => res.json()) // convert response to json
     .then(resJson => {
       console.log("Surface preferences:", resJson) // TODO: Delete
+      setPlayerSurfaces(resJson)
     }) // set player surface preferences
     .catch(err => console.log(err)); // catch and log errors
 
@@ -64,6 +72,10 @@ export default function PlayerProfilePage() {
     .catch(err => console.log(err)); // catch and log errors
   }, []) // [] empty listener, so only run effect on load of page
 
+  // function facilitate the change of tabs
+  const changeTab = (e, new_tab) => {
+    setTab(new_tab);
+  }
   // useEffect(() => {
   //   getPlayerImages();
   // }, [players])
@@ -126,8 +138,136 @@ export default function PlayerProfilePage() {
           <Skeleton variant="circular" width={200} height={200}/>
         </Grid>)
       } */}
-      <h1>{playerInfo.name}</h1>
-      <h5>See console to check success of requests to other routes</h5>
+      <Grid container direction={'row'} spacing={3} alignItems={'flex-start'} sx={{marginTop: 0}}> {/*justifyContent={'center'}*/}
+        <Grid item xs={3} sx={{textAlign:'center'}} justifyContent={'center'} alignItems={'center'}>
+          {(
+            playerInfo.constructor != Array
+            ?
+            <Box
+              component="img"
+              sx={{
+                height: 250,
+                width: 250,
+                borderRadius: '50%',
+                border: 3,
+                borderColor: 'primary.main',
+              }}
+              alt={' tennis player silhouette'}
+              src={playerInfo.league==='atp' ? atp_logo_1 : wta_logo_1}
+            />
+            :
+            <Skeleton variant="circular" width={250} height={250} sx={{margin: 'auto'}}/>
+          )}
+          <Typography variant='h4'>{playerInfo.name ? playerInfo.name : <Skeleton />}</Typography>
+          <Stack alignItems={'center'} divider={<Divider orientation="horizontal" sx={{width: '100%', borderColor: 'primary.main'}} />} spacing={2} mt={1}>
+            <Typography variant='body1'>
+              {
+                playerInfo.league
+                ?
+                <>
+                  <b>League:</b> {playerInfo.league.toUpperCase()}
+                </>
+                :
+                <Skeleton />
+              }
+              {
+                playerInfo.height
+                ?
+                <>
+                  <br/>
+                  <b>Height:</b> {playerInfo.height ? playerInfo.height + ' cm' : 'N/A'}
+                </>
+                :
+                <Skeleton />
+              }
+              {
+                playerInfo.ioc
+                ?
+                <>
+                  <br/>
+                  <b>IOC:</b> {getPlayerFlag(playerInfo.ioc)}
+                </>
+                :
+                <Skeleton />
+              }
+              {
+                playerInfo.hand
+                ?
+                <>
+                  <br/>
+                  <b>Dominant Hand:</b> {getPlayerHand(playerInfo.hand)}
+                </>
+                :
+                <Skeleton />
+              }
+              {
+                playerInfo.dob
+                ?
+                <>
+                  <br/>
+                  <b>DOB:</b> {getDate(playerInfo.dob, 'player')}
+                </>
+                :
+                <Skeleton />
+              }
+            </Typography>
+            <Grid container justifyContent={'center'}>
+              <Grid item xs={6}>
+                {
+                  (playerStats.constructor != Array && playerSurfaces.length > 0)
+                  ?
+                  <Stack spacing={1} sx={{':hover': {color:'success.light', transition: '250ms'}}}>
+                    <Typography variant='body1'>
+                      <b>{playerStats.wins} wins</b>
+                    </Typography>
+                    <Typography variant='body1'>
+                      Best on {playerSurfaces[0].surface.toLowerCase()}
+                    </Typography>
+                    <Typography variant='body1'>
+                      {playerSurfaces[0].surface} win % is {Math.round(playerSurfaces[0].win_percentage*100)}%
+                    </Typography>
+                  </Stack>
+                  :
+                  <Skeleton variant='rounded' height={100}/>
+                }
+              </Grid>
+              <Grid item xs={6}>
+                {
+                  (playerStats.constructor != Array && playerSurfaces.length > 0)
+                  ?
+                  <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
+                    <Typography variant='body1'>
+                      <b>{playerStats.losses} losses</b>
+                    </Typography>
+                    <Typography variant='body1'>
+                      Worst on {playerSurfaces[1].surface.toLowerCase()}
+                    </Typography>
+                    <Typography variant='body1'>
+                      {playerSurfaces[1].surface} win % is {Math.round(playerSurfaces[1].win_percentage*100)}%
+                    </Typography>
+                  </Stack>
+                  :
+                  <Skeleton variant='rounded' height={100}/>
+                }
+              </Grid>
+            </Grid>
+          </Stack>
+        </Grid>
+        <Grid item xs={9}>
+          <Tabs
+            value={tab}
+            onChange={changeTab}
+
+            indicatorColor='primary'
+            textColor='primary'
+            variant='fullWidth'
+          >
+            <Tab label='Charts' value={0}></Tab>
+            <Tab label='Analytics' value={1}></Tab>
+            <Tab label='Matches' value={2}></Tab>
+          </Tabs>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

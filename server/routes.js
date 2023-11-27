@@ -42,7 +42,7 @@ const player = async (req, res) => {
       WHERE name LIKE ? AND league IN (?)
       `,
       [name, league],
-      (err, data) => handleResponse(err, (data[0] ?? data), req.path, res)
+      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
     );
   } else {
     connection.query(
@@ -78,7 +78,7 @@ const player_info = async (req, res) => {
       WHERE id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, data[0], req.path, res)
+      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
     );
   }
 };
@@ -99,22 +99,24 @@ const player_surface = async (req, res) => {
           WITH win_surface AS (
                             SELECT surface, COUNT(G.winner_id) AS wins
                             FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-                            WHERE G.winner_id=?
+                            WHERE G.winner_id=? AND surface IS NOT NULL
                             GROUP BY surface
           ),
           loss_surface AS (
                             SELECT surface, COUNT(G.loser_id) AS losses
                             FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-                            WHERE G.loser_id=?
+                            WHERE G.loser_id=? AND surface IS NOT NULL
                             GROUP BY surface
           )
-          SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
+          SELECT IFNULL(w_surface, l_surface) AS surface, 
+                IFNULL(wins, 0) AS wins, 
+                IFNULL(losses, 0) AS losses,
                 IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
                 IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
-          FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+          FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS l_surface
                 FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
                 UNION
-                (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+                (SELECT W.surface AS w_surface, wins, losses, L.surface AS l_surface
                 FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL
       )
       SELECT *
@@ -146,7 +148,7 @@ const player_stats = async (req, res) => {
       WHERE player_id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, data[0], req.path, res)
+      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
     );
   }
 };

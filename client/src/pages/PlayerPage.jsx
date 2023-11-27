@@ -15,7 +15,7 @@ import {
   debounce
 } from '@mui/material';
 import SearchBar from '../component/SearchBar';
-import { lookup } from 'country-data';
+import { getPlayerFlag } from '../component/utils';
 import atp_logo_1 from '../public/atp-silhouette-1.png';
 import atp_logo_2 from '../public/atp-silhouette-2.png';
 import wta_logo_1 from '../public/wta-silhouette-1.png';
@@ -88,46 +88,6 @@ export default function PlayerPage() {
     setPage(value); // change the current page number
   };
 
-
-  // function that handles getting the country and flag of players
-  const getFlag = (player_ioc) => {
-    // if ioc is UNK or null return N/A
-    if (!player_ioc || player_ioc==='UNK') {return 'N/A'}
-
-    // define list of unmatched country codes
-    const unmatched = {
-      AHO: 'Netherlands Antilles',
-      CAR: 'Carribean/West Indies',
-      URS: 'Soviet Union (USSR)',
-      FRG: 'West Germany',
-      GDR: 'East Germany',
-      TCH: 'Czechoslovakia',
-    };
-
-    // check if ioc country code is list of unmatched
-    if (unmatched[player_ioc]) {return unmatched[player_ioc]}
-
-    // attempt lookup of ioc country code
-    let country = lookup.countries({ioc: player_ioc})
-    if (!country.length) {
-      // if unsuccessful attempt lookup of alpha-3 ISO code
-      country = lookup.countries({alpha3: player_ioc});
-      if (!country.length) {
-        // if unsuccessful return N/A
-        return 'N/A';
-      } 
-    }
-
-    if (country[0]['emoji']) {
-      // if country has emoji return emoji with country name
-      return country[0]['emoji'] + ' ' + country[0]['name'].split(', ')[0];
-    } else {
-      // otherwise return country name
-      return country[0]['name'].split(', ')[0];
-    }
-  };
-
-
   // function to output players based on matching search results for player names and specified league
   const getPlayers = () => {
     return players.map((player, index) => (
@@ -180,7 +140,7 @@ export default function PlayerPage() {
               {player.name}
             </Link>
             <br/>
-            {getFlag(player.ioc)}
+            {getPlayerFlag(player.ioc)}
             <br/>
             {player.league.toUpperCase()}
           </Box>
