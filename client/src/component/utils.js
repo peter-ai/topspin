@@ -39,10 +39,10 @@ export function getPlayerFlag(player_ioc) {
 };
 
 // utility function to assist in formatting dates in UTC
-export function getDate(dateStr, type) {
+export function getDate(dateStr, date_type) {
   if (dateStr) {
     const utc_date = new Date(new Date(dateStr).toUTCString());
-    if (type === 'player') {
+    if (date_type === 'player') {
       return utc_date.toLocaleString(
         'en-US', 
         {

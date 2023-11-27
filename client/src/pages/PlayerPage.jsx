@@ -80,6 +80,12 @@ export default function PlayerPage() {
   // function handles change of page size dropdown
   const handlePageSize = (e) => {
     e.preventDefault();
+
+    // if current page is outside bounds given new page size
+    // change current page to last possible page
+    if (Math.ceil(count.count/e.target.value) < page) {
+      handlePage(null, Math.ceil(count.count/e.target.value));
+    }
     setPageSize(e.target.value); // change page size
   };
 

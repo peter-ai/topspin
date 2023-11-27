@@ -9,6 +9,8 @@ const connection = mysql.createConnection({
   password: config.PASSWORD,
   port: config.PORT,
   database: config.DATABASE,
+  keepAliveInitialDelay: 10000,
+  enableKeepAlive: true
 });
 connection.connect((err) => err && console.log(err));
 
@@ -42,7 +44,7 @@ const player = async (req, res) => {
       WHERE name LIKE ? AND league IN (?)
       `,
       [name, league],
-      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   } else {
     connection.query(
@@ -78,7 +80,7 @@ const player_info = async (req, res) => {
       WHERE id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
 };
@@ -131,6 +133,31 @@ const player_surface = async (req, res) => {
   }
 };
 
+const player_winloss = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json([]);
+
+    // otherwise try execute query
+  } else {
+    connection.query(
+      `
+      SELECT YEAR(start_date) as year,
+            CAST(SUM(IF(winner_id = ?, 1, 0)) AS UNSIGNED) AS wins,
+            CAST(SUM(IF(loser_id = ?, 1, 0)) AS UNSIGNED) AS losses
+      FROM game INNER JOIN tournament ON game.tourney_id = tournament.id
+      WHERE winner_id=? OR loser_id=?
+      GROUP BY year
+      ORDER BY year;
+      `,
+      [player_id, player_id, player_id, player_id],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
 // route that retrieves a specific player's historical match stats
 const player_stats = async (req, res) => {
   const player_id = parseInt(req.params.id);
@@ -148,7 +175,7 @@ const player_stats = async (req, res) => {
       WHERE player_id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, (data.length ? data[0] : data), req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
 };
@@ -358,6 +385,7 @@ module.exports = {
   player,
   player_info,
   player_surface,
+  player_winloss,
   player_stats,
   player_matches,
   single_match,
