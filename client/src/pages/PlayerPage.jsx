@@ -122,7 +122,7 @@ export default function PlayerPage() {
                     border: 3
                   }}
                   alt={player.league.toUpperCase() + ' tennis player silhouette'}
-                  src={player.league==='atp' ? (index % 2 ? atp_logo_1 : atp_logo_2) : (index % 2 ? wta_logo_1 : wta_logo_2)}
+                  src={player.league==='atp' ? (player.id % 2 ? atp_logo_1 : atp_logo_2) : (player.id % 2 ? wta_logo_1 : wta_logo_2)}
                 />
               </Link>) 
               ??
@@ -210,7 +210,7 @@ export default function PlayerPage() {
 
         {getPlayers()}
         
-        <Box width="100%" mt={4}/>
+        <Box width="100%" mt={1}/>
 
         <Grid container item xs={12} justifyContent={'flex-end'} alignItems={'center'}>
           <FormControl sx={{minWidth: 90}}> 

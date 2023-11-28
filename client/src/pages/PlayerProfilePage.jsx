@@ -10,7 +10,8 @@ import {
   Stack,
   Divider,
   Tab,
-  Tabs
+  Tabs,
+  Paper
 } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from '@mui/x-charts/BarChart';
@@ -19,7 +20,9 @@ import SportsTennisTwoToneIcon from '@mui/icons-material/SportsTennisTwoTone';
 import QueryStatsTwoToneIcon from '@mui/icons-material/QueryStatsTwoTone';
 import PercentTwoToneIcon from '@mui/icons-material/PercentTwoTone';
 import atp_logo_1 from '../public/atp-silhouette-1.png';
+import atp_logo_2 from '../public/atp-silhouette-2.png';
 import wta_logo_1 from '../public/wta-silhouette-1.png';
+import wta_logo_2 from '../public/wta-silhouette-2.png';
 import { getPlayerFlag, getDate, getPlayerHand } from '../component/utils';
 
 // declare server port and host for requests
@@ -30,6 +33,9 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 export default function PlayerProfilePage() {
   const { id } = useParams(); // get player id parameter from url
   const [tab, setTab] = useState(0); // track state of tab selection by user
+  const [winElevation, setWinElevation] = useState(3);
+  const [lossElevation, setLossElevation] = useState(3);
+
 
   // const [playerImages, setPlayerImages] = useState([]);
   const [playerInfo, setPlayerInfo] = useState({}); // variable for player info
@@ -301,6 +307,178 @@ export default function PlayerProfilePage() {
     }
   };
 
+  //
+  const formatNumber = (num) => {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  const zoomPaper = () => {
+    let i = 1;
+    while (i <= 16) {
+      setTimeout(() => console.log(i), 1000);
+      i++;
+    }
+  };
+
+  //
+  const getSportAnalytics = () => {
+    if (playerStats && Object.keys(playerStats).length) {
+      return (
+        <Grid container spacing={4} justifyContent={'center'}>
+          <Grid item xs={6} justifyContent={'center'}>
+            <Paper
+              elevation={winElevation}
+              sx={{
+                transition: "transform 0.225s ease-in-out",
+                ':hover': { transform: "scale3d(1.015, 1.015, 1.0)" }
+              }}
+              onMouseOver={() => setWinElevation(9)}
+              onMouseOut={() => setWinElevation(3)}
+            >
+              <Stack spacing={2} width={'100%'} p={4} textAlign={'center'} justifyContent={'center'}>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='h5'>Winning Matches</Typography>
+                </Box>
+                <Divider orientation="horizontal" sx={{width: '80%', borderColor: 'primary.main', alignSelf:'center'}} />
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='h6' display={'inline'}>{playerStats.win_percentage !== null ? Math.round(playerStats.win_percentage*100)+'%' : 'Winning % not available'}</Typography>
+                  {playerStats.win_percentage !== null ? <Typography variant='overline' display={'inline'}> career winning percentage</Typography> : ''}
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Avg Duration: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_minutes !== null ? Math.round(playerStats.avg_w_minutes) : 'N/A'}</Typography>
+                  {playerStats.avg_w_minutes !== null ? <Typography variant='overline' display={'inline'}> mins</Typography> : ' '}
+                  
+                  <Divider orientation="vertical" flexItem sx={{width: '80%', borderColor: 'primary.main', alignSelf:'center', display: 'inline', mr: 1, ml: 1}} /> 
+
+                  <Typography variant='overline' display={'inline'}>Avg Age: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_age !== null ? Math.round(playerStats.avg_w_age) : 'N/A'}</Typography>
+                  {playerStats.avg_w_age !== null ? <Typography variant='overline' display={'inline'}> years old</Typography> : ''}
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Aces: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_ace !== null ? formatNumber(playerStats.avg_w_ace) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Double Faults: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_df !== null ? formatNumber(playerStats.avg_w_df) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Serve Points: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_svpt !== null ? formatNumber(playerStats.avg_w_svpt) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average First Serves Made: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_1stIn !== null ? formatNumber(playerStats.avg_w_1stIn) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average First-Serve Points Won: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_1stWon !== null ? formatNumber(playerStats.avg_w_1stWon) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Second-Serve Points Won: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_2ndWon !== null ? formatNumber(playerStats.avg_w_2ndWon) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Serve Games: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_SvGms !== null ? formatNumber(playerStats.avg_w_SvGms) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Break Points Saved: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_bpSaved !== null ? formatNumber(playerStats.avg_w_bpSaved) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Break Points Faced: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_w_bpFaced !== null ? formatNumber(playerStats.avg_w_bpFaced) : 'N/A'}</Typography>
+                </Box>
+              </Stack>
+            </Paper>
+          </Grid>
+          <Grid item xs={6} justifyContent={'center'}>
+            <Paper
+              elevation={lossElevation}
+              sx={{
+                transition: "transform 0.225s ease-in-out",
+                ':hover': { transform: "scale3d(1.015, 1.015, 1.0)" }
+              }}
+              onMouseOver={() => setLossElevation(9)}
+              onMouseOut={() => setLossElevation(3)}
+            >
+              <Stack spacing={2} width={'100%'} p={4} textAlign={'center'} justifyContent={'center'}>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='h5'>Losing Matches</Typography>
+                </Box>
+                <Divider orientation="horizontal" sx={{width: '80%', borderColor: 'primary.main', alignSelf:'center'}} />
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='h6' display={'inline'}>{playerStats.loss_percentage !== null ? Math.round(playerStats.loss_percentage*100)+'%' : 'Losing % not available'}</Typography>
+                  {playerStats.loss_percentage !== null ? <Typography variant='overline' display={'inline'}> career losing percentage</Typography> : ''}
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Avg Duration: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_minutes !== null ? Math.round(playerStats.avg_l_minutes) : 'N/A'}</Typography>
+                  {playerStats.avg_l_minutes !== null ? <Typography variant='overline' display={'inline'}> mins</Typography> : ' '}
+                  
+                  <Divider orientation="vertical" flexItem sx={{width: '80%', borderColor: 'primary.main', alignSelf:'center', display: 'inline', mr: 1, ml: 1}} /> 
+
+                  <Typography variant='overline' display={'inline'}>Avg Age: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_age !== null ? Math.round(playerStats.avg_l_age) : 'N/A'}</Typography>
+                  {playerStats.avg_l_age !== null ? <Typography variant='overline' display={'inline'}> years old</Typography> : ''}
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Aces: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_ace !== null ? formatNumber(playerStats.avg_l_ace) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Double Faults: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_df !== null ? formatNumber(playerStats.avg_l_df) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Serve Points: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_svpt !== null ? formatNumber(playerStats.avg_l_svpt) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average First Serves Made: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_1stIn !== null ? formatNumber(playerStats.avg_l_1stIn) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average First-Serve Points Won: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_1stWon !== null ? formatNumber(playerStats.avg_l_1stWon) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Second-Serve Points Won: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_2ndWon !== null ? formatNumber(playerStats.avg_l_2ndWon) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Serve Games: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_SvGms !== null ? formatNumber(playerStats.avg_l_SvGms) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Break Points Saved: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_bpSaved !== null ? formatNumber(playerStats.avg_l_bpSaved) : 'N/A'}</Typography>
+                </Box>
+                <Box width={'100%'} textAlign={'center'}>
+                  <Typography variant='overline' display={'inline'}>Average Break Points Faced: </Typography>
+                  <Typography variant='h6' display={'inline'}>{playerStats.avg_l_bpFaced !== null ? formatNumber(playerStats.avg_l_bpFaced) : 'N/A'}</Typography>
+                </Box>
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
+      );
+    } else {
+      return (
+        <Grid container spacing={4} justifyContent={'center'}>
+          <Grid item xs={6} justifyContent={'center'}>
+            <Skeleton variant='rounded' width={'100%'} height={525}/>
+          </Grid>
+          <Grid item xs={6} justifyContent={'center'}>
+            <Skeleton variant='rounded' width={'100%'} height={525}/>
+          </Grid>
+        </Grid>
+      );
+    }
+  };
+
   // function to format player text as hyperlink for match table
   const generatePlayerLink = (params, athlete) => {
     const name = params.value;
@@ -395,7 +573,7 @@ export default function PlayerProfilePage() {
   // function to render the content for each tab
   const renderTabContent = (tab_num) => {
     if (tab_num === 0) {return getHistoricalPerformance()}
-    if (tab_num === 1) {return 'PERFORMANCE PLACEHOLDER'}
+    if (tab_num === 1) {return getSportAnalytics()}
     if (tab_num === 2) {return getMatches()}
   };
   
@@ -472,8 +650,8 @@ export default function PlayerProfilePage() {
                 border: 3,
                 borderColor: 'primary.main',
               }}
-              alt={' tennis player silhouette'}
-              src={playerInfo.league==='atp' ? atp_logo_1 : wta_logo_1}
+              alt={playerInfo.name && playerInfo.league ? playerInfo.name + ' ' + playerInfo.league + ' tennis player silhouette': ''}
+              src={playerInfo.league==='atp' ? (id % 2 ? atp_logo_1 : atp_logo_2) : (id % 2 ? wta_logo_1 : wta_logo_2)}
             />
             :
             <Skeleton variant="circular" width={250} height={250} sx={{margin: 'auto'}}/>
@@ -502,7 +680,7 @@ export default function PlayerProfilePage() {
             <Tab icon={<PercentTwoToneIcon/>} label='Sport Analytics' value={1} />
             <Tab icon={<SportsTennisTwoToneIcon/>} label='Matches' value={2} />
           </Tabs>
-          <Box width={'97%'} height={tab === 0 ? 525 : '100%'} m={2}>
+          <Box width={'97%'} height={tab === 0 ? 530 : '100%'} m={2}>
             {renderTabContent(tab)}
           </Box>
         </Grid>
