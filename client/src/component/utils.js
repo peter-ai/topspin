@@ -52,14 +52,15 @@ export function getDate(dateStr, date_type) {
           day: "numeric"
         });
     } else {
-      return utc_date.toLocaleString(
-        'en-US', 
-        {
-          timeZone: 'UTC', 
-          year: "numeric", 
-          month: "numeric", 
-          day: "numeric"
-        });
+      return utc_date
+      // return utc_date.toLocaleString(
+      //   'en-US', 
+      //   {
+      //     timeZone: 'UTC', 
+      //     year: "numeric", 
+      //     month: "numeric", 
+      //     day: "numeric"
+      //   });
     }
   } else {
     return 'N/A';

@@ -192,13 +192,13 @@ const player_matches = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT tourney_id, name AS tourney_name, start_date,
-            surface, draw_size, tourney_level, winner_name,
-            loser_name, score, max_sets
+      SELECT ROW_NUMBER() OVER(ORDER BY start_date DESC) AS id, name AS tourney_name, 
+            start_date, surface, winner_name, winner_id,
+            loser_name, loser_id, max_sets, score, tourney_id
       FROM tournament T
           INNER JOIN (
-                      SELECT tourney_id, P1.name AS winner_name, 
-                              P2.name AS loser_name, score, max_sets
+                      SELECT tourney_id, P1.name AS winner_name, G.winner_id,
+                              P2.name AS loser_name, G.loser_id, score, max_sets
                       FROM game G INNER JOIN
                           player P1 ON G.winner_id=P1.id INNER JOIN
                           player P2 ON G.loser_id=P2.id

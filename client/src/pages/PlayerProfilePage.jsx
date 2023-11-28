@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
-  InputLabel,
-  Select, 
-  MenuItem, 
-  FormControl, 
   Grid, 
   Container, 
   Typography, 
   Link, 
-  Pagination, 
   Box, 
-  Paper,
   Skeleton, 
-  debounce,
   Stack,
   Divider,
   Tab,
@@ -21,9 +14,9 @@ import {
 } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from '@mui/x-charts/BarChart';
+import { DataGrid } from '@mui/x-data-grid';
 import SportsTennisTwoToneIcon from '@mui/icons-material/SportsTennisTwoTone';
 import QueryStatsTwoToneIcon from '@mui/icons-material/QueryStatsTwoTone';
-import HourglassBottomTwoToneIcon from '@mui/icons-material/HourglassBottomTwoTone';
 import PercentTwoToneIcon from '@mui/icons-material/PercentTwoTone';
 import atp_logo_1 from '../public/atp-silhouette-1.png';
 import wta_logo_1 from '../public/wta-silhouette-1.png';
@@ -37,7 +30,6 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 export default function PlayerProfilePage() {
   const { id } = useParams(); // get player id parameter from url
   const [tab, setTab] = useState(0); // track state of tab selection by user
-
 
   // const [playerImages, setPlayerImages] = useState([]);
   const [playerInfo, setPlayerInfo] = useState({}); // variable for player info
@@ -56,6 +48,7 @@ export default function PlayerProfilePage() {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/winloss`) // send get request to /player/:id/surface route on server
     .then(res => res.json()) // convert response to json
     .then(resJson => {
+      // if player has more than 3 years of matches fill in gaps in years with null
       if (resJson.length > 3) {
         const data = Array();
         let curr_year;
@@ -73,7 +66,6 @@ export default function PlayerProfilePage() {
         setPlayerWinLoss(resJson);
       }
     })
-    // .then(resJson => setPlayerWinLoss(resJson)) // set player surface preferences
     .catch(err => console.log(err)); // catch and log errors
 
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/surface`) // send get request to /player/:id/surface route on server
@@ -91,10 +83,7 @@ export default function PlayerProfilePage() {
 
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/matches`) // send get request to /player/:id/matches route on server
     .then(res => res.json()) // convert response to json
-    .then(resJson => {
-      console.log("Player matches:", resJson) // TODO: Delete
-      setPlayerMatches(resJson)
-    }) // set player matches
+    .then(resJson => setPlayerMatches(resJson)) // set player matches
     .catch(err => console.log(err)); // catch and log errors
   }, []) // [] empty listener, so only run effect on load of page
 
@@ -103,7 +92,7 @@ export default function PlayerProfilePage() {
     setTab(new_tab);
   }
 
-  //
+  // function to process and format player info card
   const showPlayerInfo = () => {
     if (playerInfo && Object.keys(playerInfo).length) {
       return (
@@ -126,7 +115,7 @@ export default function PlayerProfilePage() {
     }
   };
 
-  //
+  // function to process player court surface preferances based on response
   const showSurfaceStats = () => {
     if (playerSurfaces && playerSurfaces.length >= 0) {
       if (playerSurfaces.length === 2) {
@@ -149,7 +138,6 @@ export default function PlayerProfilePage() {
                 </Typography>
               </Stack>
             </Grid>
-
             <Grid item xs={6}>
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
@@ -247,13 +235,6 @@ export default function PlayerProfilePage() {
     }
   };
 
-  // function to render the content for each tab
-  const renderTabContent = (tab_num) => {
-    if (tab_num === 0) {return getHistoricalPerformance()}
-    if (tab_num === 1) {return 'PERFORMANCE PLACEHOLDER'}
-    if (tab_num === 2) {return 'MATCHES PLACEHOLDER'}
-  };
-
   // function that defines analytics and visualizations
   const getHistoricalPerformance = () => {
     if (playerWinLoss && playerWinLoss.length !== 0) {
@@ -284,8 +265,6 @@ export default function PlayerProfilePage() {
                 color: '#e57373' 
               }
             ]}
-            // width={900}
-            // height={510}
           />
         )
       } else {
@@ -322,6 +301,104 @@ export default function PlayerProfilePage() {
     }
   };
 
+  // function to format player text as hyperlink for match table
+  const generatePlayerLink = (params, athlete) => {
+    const name = params.value;
+
+    if (name !== playerInfo.name) {
+      const loc = params.id - 1;
+      const player_id = athlete === 'winner' ? playerMatches[loc].winner_id : playerMatches[loc].loser_id;
+      return (
+        <Link
+          href={'/player/'+player_id} 
+          underline='none'
+          target='_blank'
+          rel='noopener'
+          sx={{
+            ':hover': {
+              color: 'success.main',
+              transition: '250ms'
+            }
+          }}
+        >
+          {name}
+        </Link>
+      );
+    } else {
+      return (name);
+    }
+  };
+
+  // function to format tournament text as hyperlink for match table
+  const generateTournamentLink = (params) => {
+    const loc = params.id - 1;
+    return (
+      <Link
+        href={'/tournament/'+playerMatches[loc].tourney_id} 
+        underline='none'
+        target='_blank'
+        rel='noopener'
+        sx={{
+          ':hover': {
+            color: 'success.main',
+            transition: '250ms'
+          }
+        }}
+      >
+        {params.value}
+      </Link>
+    );
+  };
+
+  // function to format headers in match table
+  const generateHeader = (params) => {
+    return (
+      <strong>
+        {params.colDef.headerName}
+      </strong>
+    );
+  };
+
+  // function to format matches as a data table
+  const getMatches = () => {
+    if (playerMatches && playerMatches.length) {
+      const cols = [
+        {field: 'tourney_name', headerName: 'Tournament', flex:1.5, renderHeader: (params) => generateHeader(params), renderCell: (params) => generateTournamentLink(params), description: 'CH indicates Challenger circuit'},
+        {field: 'start_date', headerName: 'Start Date', flex: 1, type: 'date',  renderHeader: (params) => generateHeader(params), valueGetter: (params) => getDate(params.row.start_date, 'tournament')},
+        {field: 'surface', headerName: 'Surface', flex: 1, renderHeader: (params) => generateHeader(params)},
+        {field: 'winner_name', headerName: 'Winner', flex: 1.5, renderHeader: (params) => generateHeader(params), renderCell: (params) => generatePlayerLink(params, 'winner')},
+        {field: 'loser_name', headerName: 'Loser', flex: 1.5, renderHeader: (params) => generateHeader(params), renderCell: (params) => generatePlayerLink(params, 'loser')},
+        {field: 'max_sets', headerName: 'Sets', flex: 0.75, renderHeader: (params) => generateHeader(params), description: 'Maximum sets played'},
+        {field: 'score', headerName: 'Score', flex:2, renderHeader: (params) => generateHeader(params)},
+      ];
+
+      return (
+        <DataGrid
+          rows={playerMatches}
+          columns={cols}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 12 },
+            },
+          }}
+          pageSizeOptions={[12, 25, 50]}
+          density='compact'
+        />
+      );
+    } else {
+      return (
+        <Skeleton variant='rounded' height={525} width={'100%'}/>
+      );
+    }
+  };
+
+  // function to render the content for each tab
+  const renderTabContent = (tab_num) => {
+    if (tab_num === 0) {return getHistoricalPerformance()}
+    if (tab_num === 1) {return 'PERFORMANCE PLACEHOLDER'}
+    if (tab_num === 2) {return getMatches()}
+  };
+  
   // useEffect(() => {
   //   getPlayerImages();
   // }, [players])
@@ -351,11 +428,7 @@ export default function PlayerProfilePage() {
   // }
 
   
-  // TODO: Figure out player surfaces logic
-  // TODO: Figure out how to fill gaps in competition years
-
   // TODO: Player stats to the right split by wins/losses/overall (3/4 columns)
-  // TODO: Player matches in filterable table ordered by most recent match underneath stats or in swappable tab (3/4 columns)
   return (
     <Container maxWidth='xl'>
       {/* IMAGE */}
@@ -429,7 +502,7 @@ export default function PlayerProfilePage() {
             <Tab icon={<PercentTwoToneIcon/>} label='Sport Analytics' value={1} />
             <Tab icon={<SportsTennisTwoToneIcon/>} label='Matches' value={2} />
           </Tabs>
-          <Box width={tab === 0 ? '97%' : '100%'} height={tab === 0 ? 525 : '100%'} m={2}>
+          <Box width={'97%'} height={tab === 0 ? 525 : '100%'} m={2}>
             {renderTabContent(tab)}
           </Box>
         </Grid>

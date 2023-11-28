@@ -60,7 +60,7 @@ export default function NavBar() {
           disableGutters
         >
           <Grid container wrap='nowrap' direction={'row'} justifyContent={'space-between'} alignItems={'center'} spacing={2}>
-            <Grid item display="flex" justifyContent='center' alignItems='center' xs='auto'>
+            <Grid item display="flex" justifyContent={'flex-start'} alignItems='center' xs={3}>
               <SportsBaseballTwoToneIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} color="success" />
               <NavText href='/' text='TopSpin' isMain />
             </Grid>
