@@ -13,8 +13,10 @@ const handleResponse = (err, data, path, res, res_array=true) => {
     }
 
     if (res_array) {
+      // if res_array true, send array as JSON response
       res.json([]);
     } else {
+      // else send an object as JSON response
       res.json({});
     }
     // successful query

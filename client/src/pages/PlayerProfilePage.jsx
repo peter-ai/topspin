@@ -32,10 +32,10 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function PlayerProfilePage() {
   const { id } = useParams(); // get player id parameter from url
+  
   const [tab, setTab] = useState(0); // track state of tab selection by user
   const [winElevation, setWinElevation] = useState(3);
   const [lossElevation, setLossElevation] = useState(3);
-
 
   // const [playerImages, setPlayerImages] = useState([]);
   const [playerInfo, setPlayerInfo] = useState({}); // variable for player info
@@ -57,14 +57,20 @@ export default function PlayerProfilePage() {
       // if player has more than 3 years of matches fill in gaps in years with null
       if (resJson.length > 3) {
         const data = Array();
-        let curr_year;
-    
-        for (let i=0; i < (resJson.length - 1); i++) {
-          curr_year = resJson[i];
-          data.push(curr_year);
-    
-          if (curr_year.year + 1 !== resJson[i+1].year) {
-            data.push({year: curr_year.year + 1, wins: null, losses: null})
+        const n = resJson.length-1;
+
+        let idx = 0;
+        let curr_year = resJson[idx];
+        data.push(curr_year);
+
+        while (curr_year.year < resJson[n].year) {
+          if (curr_year.year + 1 !== resJson[idx+1].year) {
+            curr_year = {year: curr_year.year + 1, wins: null, losses: null}
+            data.push(curr_year);
+          } else {
+            idx++;
+            curr_year = resJson[idx];
+            data.push(curr_year);
           }
         }
         setPlayerWinLoss(data);
@@ -81,17 +87,14 @@ export default function PlayerProfilePage() {
 
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/stats`) // send get request to /player/:id/stats route on server
     .then(res => res.json()) // convert response to json
-    .then(resJson => {
-      console.log("Player stats:", resJson) // TODO: Delete
-      setPlayerStats(resJson)
-    }) // set player historical match stats
+    .then(resJson => setPlayerStats(resJson)) // set player historical match stats
     .catch(err => console.log(err)); // catch and log errors
 
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/matches`) // send get request to /player/:id/matches route on server
     .then(res => res.json()) // convert response to json
     .then(resJson => setPlayerMatches(resJson)) // set player matches
     .catch(err => console.log(err)); // catch and log errors
-  }, []) // [] empty listener, so only run effect on load of page
+  }, []) // [] empty listener
 
   // function facilitate the change of tabs
   const changeTab = (e, new_tab) => {
@@ -307,20 +310,12 @@ export default function PlayerProfilePage() {
     }
   };
 
-  //
+  // function to assist in the formatting of player statistics
   const formatNumber = (num) => {
     return Math.round((num + Number.EPSILON) * 100) / 100;
   }
 
-  const zoomPaper = () => {
-    let i = 1;
-    while (i <= 16) {
-      setTimeout(() => console.log(i), 1000);
-      i++;
-    }
-  };
-
-  //
+  // function to format sport analytics/statistics cards for a given player
   const getSportAnalytics = () => {
     if (playerStats && Object.keys(playerStats).length) {
       return (
@@ -605,11 +600,8 @@ export default function PlayerProfilePage() {
   //   Promise.all(promises).then((v) => setPlayerImages(v));
   // }
 
-  
-  // TODO: Player stats to the right split by wins/losses/overall (3/4 columns)
   return (
     <Container maxWidth='xl'>
-      {/* IMAGE */}
       {/* { 
         playerImages[index] ?
         (<Link
@@ -637,7 +629,7 @@ export default function PlayerProfilePage() {
           <Skeleton variant="circular" width={200} height={200}/>
         </Grid>)
       } */}
-      <Grid container direction={'row'} spacing={3} alignItems={'flex-start'} sx={{marginTop: 0}}> {/*justifyContent={'center'}*/}
+      <Grid container direction={'row'} spacing={3} alignItems={'flex-start'} sx={{marginTop: 0}}>
         <Grid item xs={3} sx={{textAlign:'center'}} justifyContent={'center'} alignItems={'center'}>
           {(
             playerInfo && Object.keys(playerInfo).length
