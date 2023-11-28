@@ -15,7 +15,7 @@ import {
   debounce
 } from '@mui/material';
 import SearchBar from '../component/SearchBar';
-import { lookup } from 'country-data';
+import { getPlayerFlag } from '../component/utils';
 import atp_logo_1 from '../public/atp-silhouette-1.png';
 import atp_logo_2 from '../public/atp-silhouette-2.png';
 import wta_logo_1 from '../public/wta-silhouette-1.png';
@@ -80,6 +80,12 @@ export default function PlayerPage() {
   // function handles change of page size dropdown
   const handlePageSize = (e) => {
     e.preventDefault();
+
+    // if current page is outside bounds given new page size
+    // change current page to last possible page
+    if (Math.ceil(count.count/e.target.value) < page) {
+      handlePage(null, Math.ceil(count.count/e.target.value));
+    }
     setPageSize(e.target.value); // change page size
   };
 
@@ -87,46 +93,6 @@ export default function PlayerPage() {
   const handlePage = (e, value) => {
     setPage(value); // change the current page number
   };
-
-
-  // function that handles getting the country and flag of players
-  const getFlag = (player_ioc) => {
-    // if ioc is UNK or null return N/A
-    if (!player_ioc || player_ioc==='UNK') {return 'N/A'}
-
-    // define list of unmatched country codes
-    const unmatched = {
-      AHO: 'Netherlands Antilles',
-      CAR: 'Carribean/West Indies',
-      URS: 'Soviet Union (USSR)',
-      FRG: 'West Germany',
-      GDR: 'East Germany',
-      TCH: 'Czechoslovakia',
-    };
-
-    // check if ioc country code is list of unmatched
-    if (unmatched[player_ioc]) {return unmatched[player_ioc]}
-
-    // attempt lookup of ioc country code
-    let country = lookup.countries({ioc: player_ioc})
-    if (!country.length) {
-      // if unsuccessful attempt lookup of alpha-3 ISO code
-      country = lookup.countries({alpha3: player_ioc});
-      if (!country.length) {
-        // if unsuccessful return N/A
-        return 'N/A';
-      } 
-    }
-
-    if (country[0]['emoji']) {
-      // if country has emoji return emoji with country name
-      return country[0]['emoji'] + ' ' + country[0]['name'].split(', ')[0];
-    } else {
-      // otherwise return country name
-      return country[0]['name'].split(', ')[0];
-    }
-  };
-
 
   // function to output players based on matching search results for player names and specified league
   const getPlayers = () => {
@@ -156,7 +122,7 @@ export default function PlayerPage() {
                     border: 3
                   }}
                   alt={player.league.toUpperCase() + ' tennis player silhouette'}
-                  src={player.league==='atp' ? (index % 2 ? atp_logo_1 : atp_logo_2) : (index % 2 ? wta_logo_1 : wta_logo_2)}
+                  src={player.league==='atp' ? (player.id % 2 ? atp_logo_1 : atp_logo_2) : (player.id % 2 ? wta_logo_1 : wta_logo_2)}
                 />
               </Link>) 
               ??
@@ -180,7 +146,7 @@ export default function PlayerPage() {
               {player.name}
             </Link>
             <br/>
-            {getFlag(player.ioc)}
+            {getPlayerFlag(player.ioc)}
             <br/>
             {player.league.toUpperCase()}
           </Box>
@@ -244,7 +210,7 @@ export default function PlayerPage() {
 
         {getPlayers()}
         
-        <Box width="100%" mt={4}/>
+        <Box width="100%" mt={1}/>
 
         <Grid container item xs={12} justifyContent={'flex-end'} alignItems={'center'}>
           <FormControl sx={{minWidth: 90}}> 
