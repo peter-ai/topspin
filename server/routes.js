@@ -170,7 +170,13 @@ const player_stats = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT * 
+      SELECT player_id, wins, win_percentage, losses, loss_percentage,
+            total_games, avg_l_1stIn, avg_l_1stWon, avg_l_2ndWon,
+            avg_l_ace, avg_l_age, avg_l_bpFaced, avg_l_bpSaved,
+            avg_l_df, avg_l_minutes, avg_l_SvGms, avg_l_svpt,
+            avg_w_1stIn, avg_w_1stWon, avg_w_2ndWon, avg_w_ace,
+            avg_w_age, avg_w_bpFaced, avg_w_bpSaved, avg_w_df, 
+            avg_w_minutes, avg_w_SvGms, avg_w_svpt
       FROM player_stats
       WHERE player_id=?;
       `,
