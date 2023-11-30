@@ -12,6 +12,7 @@ import MatchPage from "./pages/MatchPage";
 import ComparePage from "./pages/ComparePage";
 import TournamentHomePage from "./pages/TournamentHomePage";
 import TournamentSelectedPage from "./pages/TournamentSelectedPage";
+import BettingPage from "./pages/BettingPage";
 
 const darkTheme = createTheme({
   palette: {
@@ -38,6 +39,7 @@ export default function App() {
             <Route exact path="/compare" element={<ComparePage />} />
             <Route exact path="/tournament" element={<TournamentHomePage />} />
             <Route exact path="/tournament/:name/:league/:date" element={<TournamentSelectedPage />} />
+            <Route exact path="/betting" element={<BettingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           {/* TODO: CREATE FOOTER */}
