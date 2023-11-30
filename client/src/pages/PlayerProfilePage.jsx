@@ -119,7 +119,7 @@ export default function PlayerProfilePage() {
       );
     } else {
       return (
-        <Skeleton variant='rounded' height={250}/>
+        <Skeleton variant='rounded' width={'100%'} height={225}/>
       );
     }
   };
@@ -134,11 +134,11 @@ export default function PlayerProfilePage() {
               <Stack spacing={1} sx={{':hover': {color:'success.main', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.wins !== null
+                    (playerStats.wins !== null && typeof playerStats.wins !== 'undefined')
                     ?  
                     (<b>{playerStats.wins} career {playerStats.wins === 1 ? 'win': 'wins'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
                 <Typography variant='body1'>
@@ -151,11 +151,11 @@ export default function PlayerProfilePage() {
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.losses !== null
+                    (playerStats.losses !== null && typeof playerStats.losses !== 'undefined')
                     ?  
                     (<b>{playerStats.losses} career {playerStats.losses === 1 ? 'loss': 'losses'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
                 <Typography variant='body1'>
@@ -173,11 +173,11 @@ export default function PlayerProfilePage() {
               <Stack spacing={1} sx={{':hover': {color:'success.main', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.wins !== null
+                    (playerStats.wins !== null && typeof playerStats.wins !== 'undefined')
                     ?  
                     (<b>{playerStats.wins} career {playerStats.wins === 1 ? 'win': 'wins'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
               </Stack>
@@ -186,16 +186,16 @@ export default function PlayerProfilePage() {
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.losses !== null
+                    (playerStats.losses !== null && typeof playerStats.losses !== 'undefined')
                     ?  
                     (<b>{playerStats.losses} career {playerStats.losses === 1 ? 'loss': 'losses'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
               </Stack>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} pl={0} justifyContent={'center'}>
               <Typography variant='body1'>
                 <b>{Math.round(playerSurfaces[0].win_percentage*100)}% </b>
                 win rate on <b>{playerSurfaces[0].surface.toLowerCase()}</b> courts
@@ -206,28 +206,28 @@ export default function PlayerProfilePage() {
       } else {
         return (
           <>
-            <Grid item xs={6}>
+            <Grid item xs={6} sx={{paddingTop:'0!important', paddingLeft:'4px!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'success.main', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.wins !== null
+                    (playerStats.wins !== null && typeof playerStats.wins !== 'undefined')
                     ?  
                     (<b>{playerStats.wins} career {playerStats.wins === 1 ? 'win': 'wins'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
               </Stack>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6}  sx={{paddingTop:'0!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
-                    playerStats.losses !== null
+                    (playerStats.losses !== null && typeof playerStats.losses !== 'undefined')
                     ?  
                     (<b>{playerStats.losses} career {playerStats.losses === 1 ? 'loss': 'losses'}</b>)
                     :
-                    (<Skeleton />)
+                    (<Skeleton variant='rounded' height={100} />)
                   }
                 </Typography>
               </Stack>
@@ -651,11 +651,11 @@ export default function PlayerProfilePage() {
           <Typography variant='h4'>
             {playerInfo && Object.keys(playerInfo).length ? playerInfo.name : <Skeleton />}
           </Typography>
-          <Stack alignItems={'center'} divider={<Divider orientation="horizontal" sx={{width: '100%', borderColor: 'primary.main'}} />} spacing={2} mt={1}>
-            <Typography variant='body1'>
+          <Stack alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" sx={{width: '100%', borderColor: 'primary.main'}} />} spacing={2} mt={1}>
+            <Typography variant='body1' width={'100%'}>
               {showPlayerInfo()}
             </Typography>
-            <Grid container spacing={1} justifyContent={'center'}>
+            <Grid container spacing={1} justifyContent={'center'} alignItems={'center'} pb={2}>
               {showSurfaceStats()}
             </Grid>
           </Stack>
