@@ -130,7 +130,7 @@ export default function PlayerProfilePage() {
       if (playerSurfaces.length === 2) {
         return (
           <>
-            <Grid item xs={6}>
+            <Grid item xs={6} sx={{paddingTop:'0!important', paddingLeft:'4px!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'success.main', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
@@ -147,7 +147,7 @@ export default function PlayerProfilePage() {
                 </Typography>
               </Stack>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6} sx={{paddingTop:'0!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
@@ -169,7 +169,7 @@ export default function PlayerProfilePage() {
       } else if (playerSurfaces.length === 1) {
         return (
           <>
-            <Grid item xs={6}>
+            <Grid item xs={6} sx={{paddingTop:'0!important', paddingLeft:'4px!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'success.main', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
@@ -182,7 +182,7 @@ export default function PlayerProfilePage() {
                 </Typography>
               </Stack>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={6} sx={{paddingTop:'0!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
@@ -219,7 +219,7 @@ export default function PlayerProfilePage() {
                 </Typography>
               </Stack>
             </Grid>
-            <Grid item xs={6}  sx={{paddingTop:'0!important'}}>
+            <Grid item xs={6} sx={{paddingTop:'0!important'}}>
               <Stack spacing={1} sx={{':hover': {color:'error.light', transition: '250ms'}}}>
                 <Typography variant='body1'>
                   {
