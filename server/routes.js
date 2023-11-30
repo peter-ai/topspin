@@ -22,7 +22,7 @@ const home = async (req, res) => {
 const player = async (req, res) => {
   const getCount = req.query.count === 'true';
   const name = '%' + req.query.search + '%';
-  const pageSize = parseInt(req.query.pageSize, 10) ? parseInt(req.query.pageSize, 10) : 30;
+  const pageSize = parseInt(req.query.pageSize, 10) ? parseInt(req.query.pageSize, 10) : 20;
   const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
   let league;
 
