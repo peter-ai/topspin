@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.8",
     "@mui/icons-material": "^5.14.18",
-    "@mui/material": "^5.14.18",
+    "@mui/material": "^5.14.19",
     "@mui/x-charts": "^6.18.2",
     "@mui/x-data-grid": "^6.18.2",
     "country-data": "^0.0.31",
