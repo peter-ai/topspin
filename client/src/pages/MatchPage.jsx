@@ -9,43 +9,40 @@ import {
   Typography,
   Chip,
   Button,
+  Container,
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import { setMatchSurfacePath, defineRound } from "../utils";
+import { lookup } from "country-data";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
-const minToDuration = (minutes) => {
-  const numHours = Math.floor(minutes / 60);
-  let numMinutes = minutes % 60;
-  if (numMinutes < 10) {
-    numMinutes = "0" + numMinutes;
-  }
-  return numHours + ":" + numMinutes;
-};
-
 export default function MatchPage() {
-  const { tourney_id, match_num } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
-  const [matchData, setMatchData] = useState({}); // state var to store and update match data
-  const [winnerResults, setWinnerResults] = useState([]);
-  const [loserResults, setLoserResults] = useState([]);
+  const { tourney_id, match_num } = useParams(); // route parameters for tournament id and match number
+  const [isLoading, setIsLoading] = useState(true); // variable tracking page load state
+  const [matchData, setMatchData] = useState({}); // variable tracking match data for selected match
+  const [winnerResults, setWinnerResults] = useState([]); // variable tracking scores for winner's sets
+  const [loserResults, setLoserResults] = useState([]); // variable tracking scores for loser's sets
 
+  // function to parse
   const parseScores = (score) => {
+    // handles matches with no score available or walkover matches (match forfeit)
     if (score.includes("?") || score.includes("W/O")) {
       return;
     }
 
-    // parse game scores
-    // winner score on left, loser score on right
+    // split results by set
     const setScores = score.split(" ");
+    // local variables to append scores to (don't want to append to state variables since this will trigger re-render)
     const winnerSetScores = [];
     const loserSetScores = [];
 
+    // add each set score to corresponding array
     setScores.forEach((set) => {
       if (set.includes("-")) {
+        // in data, winner score is to the left of the hyphen, loser score to the right
         const gameScore = set.split("-");
 
         const winner = truncateScore(gameScore[0].trim());
@@ -56,10 +53,12 @@ export default function MatchPage() {
       }
     });
 
+    // update state variables
     setWinnerResults(winnerSetScores);
     setLoserResults(loserSetScores);
   };
 
+  // function removes all tiebreaker metrics from final score (not displayed on UI)
   const truncateScore = (score) => {
     const indexOfParenthesis = score.indexOf("(");
     return indexOfParenthesis !== -1
@@ -67,24 +66,65 @@ export default function MatchPage() {
       : score;
   };
 
-  // GET req to /tournament/:tourney_id/:match_num for match data
+  // function that handles getting the country and flag of players
+  const getFlag = (player_ioc) => {
+    // if ioc is UNK or null return N/A
+    if (!player_ioc || player_ioc === "UNK") {
+      return player_ioc;
+    }
+
+    // define list of unmatched country codes
+    const unmatched = {
+      AHO: "Netherlands Antilles",
+      CAR: "Carribean/West Indies",
+      URS: "Soviet Union (USSR)",
+      FRG: "West Germany",
+      GDR: "East Germany",
+      TCH: "Czechoslovakia",
+    };
+
+    // check if ioc country code is list of unmatched
+    if (unmatched[player_ioc]) {
+      return unmatched[player_ioc];
+    }
+
+    // attempt lookup of ioc country code
+    let country = lookup.countries({ ioc: player_ioc });
+    if (!country.length) {
+      // if unsuccessful attempt lookup of alpha-3 ISO code
+      country = lookup.countries({ alpha3: player_ioc });
+      if (!country.length) {
+        // if unsuccessful return N/A
+        return player_ioc;
+      }
+    }
+
+    if (country[0]["emoji"]) {
+      // if country has emoji return emoji with country name
+      return country[0]["emoji"];
+    } else {
+      // otherwise return country abbreviation
+      return player_ioc;
+    }
+  };
+
+  // use effect to send GET req to /tournament/:tourney_id/:match_num for match data
   useEffect(() => {
     fetch(
       `http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${tourney_id}/${match_num}`
     )
       .then((res) => res.json())
       .then((res) => {
-        console.log(res[0]);
         setMatchData(res[0]);
-        setIsLoading(false);
+        setIsLoading(false); // if match data is successfully retrieved, set loading state to false
       })
       .catch((err) => console.log(err));
   }, []); // run on initial render
 
-  // parses scores to populate score table
+  // use effect to populate score table by parsing match scores in match data
   useEffect(() => {
     matchData.score ? parseScores(matchData.score) : "";
-  }, [matchData]); // run when matchData changes
+  }, [matchData]); // triggered when matchData changes (should only occur after GET req on page load returns value)
 
   return (
     <>
@@ -94,27 +134,21 @@ export default function MatchPage() {
           LOADING
         </Typography>
       ) : (
-        <Box
-          height="100vh"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-          alignItems="center"
-        >
+        <Container maxWidth="md">
           {/* displays tournament name */}
           <Typography
-            sx={{ marginBottom: "20px" }}
+            sx={{
+              marginTop: "40px",
+              marginBottom: "20px",
+              letterSpacing: ".2rem",
+            }}
             textAlign="center"
-            variant="h4"
+            variant="h2"
           >
             {matchData.name}
           </Typography>
 
-          <Card
-            sx={{
-              maxWidth: "lg",
-            }}
-          >
+          <Card>
             {/* displays tournament data (league, round, surface) */}
             <CardContent
               sx={{
@@ -125,11 +159,20 @@ export default function MatchPage() {
               }}
             >
               <Chip
+                variant="outlined"
                 label={matchData.league.toUpperCase()}
-                sx={{ marginX: 1 }}
+                sx={{ marginX: 1, fontSize: "15px" }}
               />
-              <Chip label={defineRound(matchData.round)} sx={{ marginX: 1 }} />
-              <Chip label={matchData.surface} sx={{ marginX: 1 }} />
+              <Chip
+                variant="outlined"
+                label={defineRound(matchData.round)}
+                sx={{ marginX: 1, fontSize: "15px" }}
+              />
+              <Chip
+                variant="outlined"
+                label={matchData.surface}
+                sx={{ marginX: 1, fontSize: "15px" }}
+              />
             </CardContent>
 
             {/* displays image of tournament surface */}
@@ -149,12 +192,18 @@ export default function MatchPage() {
               <Grid container alignItems="center" spacing={2}>
                 {/* player 1 (winner) results */}
                 <Grid item xs={2}>
-                  <Typography textAlign="center" variant="body2">
-                    {matchData.winner_country}
+                  <Typography textAlign="center" variant="h4">
+                    {getFlag(matchData.winner_country)}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography textAlign="left" variant="h5">
+                  <Typography
+                    textAlign="left"
+                    variant="h5"
+                    sx={{
+                      letterSpacing: ".1rem",
+                    }}
+                  >
                     {matchData.winner_name}
                   </Typography>
                 </Grid>
@@ -187,12 +236,18 @@ export default function MatchPage() {
 
                 {/* player 2 (loser) results */}
                 <Grid item xs={2}>
-                  <Typography textAlign="center" variant="body2">
-                    {matchData.loser_country}
+                  <Typography textAlign="center" variant="h4">
+                    {getFlag(matchData.loser_country)}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography textAlign="left" variant="h5">
+                  <Typography
+                    textAlign="left"
+                    variant="h5"
+                    sx={{
+                      letterSpacing: ".1rem",
+                    }}
+                  >
                     {matchData.loser_name}
                   </Typography>
                 </Grid>
@@ -233,7 +288,7 @@ export default function MatchPage() {
               <Button>Compare Players</Button>
             </CardContent>
           </Card>
-        </Box>
+        </Container>
       )}
     </>
   );

@@ -10,7 +10,7 @@ const connection = mysql.createConnection({
   port: config.PORT,
   database: config.DATABASE,
   keepAliveInitialDelay: 10000,
-  enableKeepAlive: true
+  enableKeepAlive: true,
 });
 connection.connect((err) => err && console.log(err));
 
@@ -20,9 +20,11 @@ const home = async (req, res) => {
 
 // route that retrieves all player data
 const player = async (req, res) => {
-  const getCount = req.query.count === 'true';
-  const name = '%' + req.query.search + '%';
-  const pageSize = parseInt(req.query.pageSize, 10) ? parseInt(req.query.pageSize, 10) : 20;
+  const getCount = req.query.count === "true";
+  const name = "%" + req.query.search + "%";
+  const pageSize = parseInt(req.query.pageSize, 10)
+    ? parseInt(req.query.pageSize, 10)
+    : 20;
   const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
   let league;
 
@@ -30,8 +32,8 @@ const player = async (req, res) => {
   const offset = pageSize * (page - 1);
 
   // validate league param
-  if (req.query.league != 'wta' && req.query.league != 'atp') {
-    league = ['atp', 'wta'];
+  if (req.query.league != "wta" && req.query.league != "atp") {
+    league = ["atp", "wta"];
   } else {
     league = [req.query.league];
   }
@@ -44,7 +46,7 @@ const player = async (req, res) => {
       WHERE name LIKE ? AND league IN (?)
       `,
       [name, league],
-      (err, data) => handleResponse(err, data, req.path, res, false)
+      (err, data) => handleResponse(err, data[0] ?? data, req.path, res)
     );
   } else {
     connection.query(
@@ -239,8 +241,8 @@ const single_match = async (req, res) => {
       FROM game G
           JOIN tournament T ON G.tourney_id=T.id
           JOIN player W ON G.winner_id = W.id
-          JOIN player L ON G.loser_id = L.id;
-      WHERE G.tourney_id=? AND G.match_num=?
+          JOIN player L ON G.loser_id = L.id
+      WHERE G.tourney_id=? AND G.match_num=?;
       `,
       [tourney_id, match_num],
       (err, data) => handleResponse(err, data, req.path, res)
