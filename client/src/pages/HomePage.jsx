@@ -23,7 +23,17 @@ export default function HomePage() {
         width="100%"
         marginX="auto"
       >
-        <Grid item xs={6} textAlign="center"></Grid>
+        <Grid item xs={6} textAlign="center">
+          <Typography
+            variant="h1"
+            fontWeight="bold"
+            color="success.main"
+            marginBottom="20px"
+          >
+            TopSpin
+          </Typography>
+          <Typography variant="h3">advanced tennis analytics</Typography>
+        </Grid>
         <Grid item xs={6}>
           <Box
             component="img"
