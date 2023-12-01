@@ -19,7 +19,12 @@ import {
   Paper,
 } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import { setMatchSurfacePath, defineRound } from "../utils";
+import {
+  setMatchSurfacePath,
+  defineRound,
+  getPlayerFlag,
+  getDate,
+} from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -47,7 +52,9 @@ export default function TournamentPage() {
       })
       .catch((err) => console.log(err));
 
-    /*  fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`)
+    fetch(
+      `http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`
+    )
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentDecadeStats(resJson);
@@ -87,7 +94,7 @@ export default function TournamentPage() {
           <img
             src={setMatchSurfacePath(tournament_surface)}
             alt={`Surface: ${tournament_surface}`}
-            style={{ maxWidth: "20%", borderRadius: '10px' }}
+            style={{ maxWidth: "20%", borderRadius: "10px" }}
           />
         </div>
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -101,7 +108,33 @@ export default function TournamentPage() {
             Stats
           </Typography>
         </div>
-        
+        <div
+          style={{
+            width: "150px",
+            margin: "auto",
+          }}
+        >
+          <Card
+            style={{
+              backgroundColor: "rgba(160, 160, 160, 0.8)",
+              textAlign: "center",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              maxHeight: "20%",
+            }}
+          >
+            <EmojiEventsIcon
+              style={{
+                fontSize: "50px",
+                color: "#ffd700", // Customize the color if needed
+                marginBottom: "1px",
+              }}
+            />
+            <CardContent>
+              <Typography variant="h6">{tournament[0].year} Winner</Typography>
+              <Typography variant="body1">{tournament_winner}</Typography>
+            </CardContent>
+          </Card>
+        </div>
         <div style={{ textAlign: "center" }}>
           <Typography
             variant="h5"
