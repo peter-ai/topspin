@@ -9,6 +9,8 @@ const connection = mysql.createConnection({
   password: config.PASSWORD,
   port: config.PORT,
   database: config.DATABASE,
+  keepAliveInitialDelay: 10000,
+  enableKeepAlive: true,
 });
 connection.connect((err) => err && console.log(err));
 
@@ -22,7 +24,7 @@ const player = async (req, res) => {
   const name = "%" + req.query.search + "%";
   const pageSize = parseInt(req.query.pageSize, 10)
     ? parseInt(req.query.pageSize, 10)
-    : 30;
+    : 20;
   const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
   let league;
 
@@ -80,7 +82,7 @@ const player_info = async (req, res) => {
       WHERE id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, data[0], req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
 };
@@ -101,22 +103,24 @@ const player_surface = async (req, res) => {
           WITH win_surface AS (
                             SELECT surface, COUNT(G.winner_id) AS wins
                             FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-                            WHERE G.winner_id=?
+                            WHERE G.winner_id=? AND surface IS NOT NULL
                             GROUP BY surface
           ),
           loss_surface AS (
                             SELECT surface, COUNT(G.loser_id) AS losses
                             FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
-                            WHERE G.loser_id=?
+                            WHERE G.loser_id=? AND surface IS NOT NULL
                             GROUP BY surface
           )
-          SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
+          SELECT IFNULL(w_surface, l_surface) AS surface, 
+                IFNULL(wins, 0) AS wins, 
+                IFNULL(losses, 0) AS losses,
                 IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
                 IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
-          FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+          FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS l_surface
                 FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
                 UNION
-                (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+                (SELECT W.surface AS w_surface, wins, losses, L.surface AS l_surface
                 FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL
       )
       SELECT *
@@ -126,6 +130,31 @@ const player_surface = async (req, res) => {
       ORDER BY win_percentage DESC;
       `,
       [player_id, player_id],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
+const player_winloss = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json([]);
+
+    // otherwise try execute query
+  } else {
+    connection.query(
+      `
+      SELECT YEAR(start_date) as year,
+            CAST(SUM(IF(winner_id = ?, 1, 0)) AS UNSIGNED) AS wins,
+            CAST(SUM(IF(loser_id = ?, 1, 0)) AS UNSIGNED) AS losses
+      FROM game INNER JOIN tournament ON game.tourney_id = tournament.id
+      WHERE winner_id=? OR loser_id=?
+      GROUP BY year
+      ORDER BY year;
+      `,
+      [player_id, player_id, player_id, player_id],
       (err, data) => handleResponse(err, data, req.path, res)
     );
   }
@@ -143,12 +172,18 @@ const player_stats = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT * 
+      SELECT player_id, wins, win_percentage, losses, loss_percentage,
+            total_games, avg_l_1stIn, avg_l_1stWon, avg_l_2ndWon,
+            avg_l_ace, avg_l_age, avg_l_bpFaced, avg_l_bpSaved,
+            avg_l_df, avg_l_minutes, avg_l_SvGms, avg_l_svpt,
+            avg_w_1stIn, avg_w_1stWon, avg_w_2ndWon, avg_w_ace,
+            avg_w_age, avg_w_bpFaced, avg_w_bpSaved, avg_w_df, 
+            avg_w_minutes, avg_w_SvGms, avg_w_svpt
       FROM player_stats
       WHERE player_id=?;
       `,
       [player_id],
-      (err, data) => handleResponse(err, data[0], req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
 };
@@ -165,13 +200,13 @@ const player_matches = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT tourney_id, name AS tourney_name, start_date,
-            surface, draw_size, tourney_level, winner_name,
-            loser_name, score, max_sets
+      SELECT ROW_NUMBER() OVER(ORDER BY start_date DESC) AS id, name AS tourney_name, 
+            start_date, surface, winner_name, winner_id,
+            loser_name, loser_id, max_sets, score, tourney_id
       FROM tournament T
           INNER JOIN (
-                      SELECT tourney_id, P1.name AS winner_name, 
-                              P2.name AS loser_name, score, max_sets
+                      SELECT tourney_id, P1.name AS winner_name, G.winner_id,
+                              P2.name AS loser_name, G.loser_id, score, max_sets
                       FROM game G INNER JOIN
                           player P1 ON G.winner_id=P1.id INNER JOIN
                           player P2 ON G.loser_id=P2.id
@@ -358,6 +393,7 @@ module.exports = {
   player,
   player_info,
   player_surface,
+  player_winloss,
   player_stats,
   player_matches,
   single_match,

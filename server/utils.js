@@ -3,7 +3,7 @@ const isValidTournament = (tourney_id) => {
   return tourney_year >= 1877 && tourney_year <= 2023;
 };
 
-const handleResponse = (err, data, path, res) => {
+const handleResponse = (err, data, path, res, res_array=true) => {
   // empty json if error or no data found (should not occur)
   if (err || data.length === 0) {
     if (err) {
@@ -11,10 +11,21 @@ const handleResponse = (err, data, path, res) => {
     } else if (data.length == 0) {
       console.log(`${path} returned no data`);
     }
-    res.json([]);
+
+    if (res_array) {
+      // if res_array true, send array as JSON response
+      res.json([]);
+    } else {
+      // else send an object as JSON response
+      res.json({});
+    }
     // successful query
   } else {
-    res.json(data);
+    if (res_array) {
+      res.json(data);
+    } else {
+      res.json(data[0]);
+    }
   }
 };
 

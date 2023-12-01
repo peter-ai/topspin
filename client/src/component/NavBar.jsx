@@ -64,9 +64,9 @@ export default function NavBar() {
             <Grid
               item
               display="flex"
-              justifyContent="center"
+              justifyContent={"flex-start"}
               alignItems="center"
-              xs="auto"
+              xs={3}
             >
               <SportsBaseballTwoToneIcon
                 sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}

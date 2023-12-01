@@ -23,9 +23,7 @@ export default function App() {
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
         <BrowserRouter>
-          <div>
-            <NavBar />
-          </div>
+          <NavBar />
           <Routes>
             <Route exact path="/" element={<HomePage />} />
             <Route exact path="/player" element={<PlayerPage />} />
@@ -38,6 +36,7 @@ export default function App() {
             <Route exact path="/compare" element={<ComparePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          {/* TODO: CREATE FOOTER */}
         </BrowserRouter>
       </ThemeProvider>
     </>

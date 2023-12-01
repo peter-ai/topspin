@@ -21,6 +21,7 @@ app.use(morgan("tiny")); // logger
 app.get("/", routes.home);
 app.get("/api/player", routes.player);
 app.get("/api/player/:id", routes.player_info);
+app.get("/api/player/:id/winloss", routes.player_winloss);
 app.get("/api/player/:id/stats", routes.player_stats);
 app.get("/api/player/:id/surface", routes.player_surface);
 app.get("/api/player/:id/matches", routes.player_matches);
