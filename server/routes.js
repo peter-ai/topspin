@@ -388,6 +388,24 @@ const tournament_alltime = async (req, res) => {
   );
 };
 
+// route that retrieves all distinct tournament names and leagues
+const tournament_names = async (req, res) => {
+  connection.query(
+    `
+    SELECT 
+    name,
+    MAX(CASE WHEN league = 'wta' THEN 1 ELSE 0 END) AS WTA,
+    MAX(CASE WHEN league = 'atp' THEN 1 ELSE 0 END) AS ATP,
+    GROUP_CONCAT(DISTINCT CASE WHEN league = 'wta' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS WTA_Years,
+    GROUP_CONCAT(DISTINCT CASE WHEN league = 'atp' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS ATP_Years
+    FROM tournament
+    GROUP BY name
+    ORDER BY name ASC
+    `,
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+};
+
 module.exports = {
   home,
   player,
@@ -401,4 +419,5 @@ module.exports = {
   tournament_home,
   tournament_select,
   tournament_alltime,
+  tournament_names,
 };
