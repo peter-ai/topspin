@@ -5,15 +5,13 @@ const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function PlayerPage() {
-    const [players, setPlayers] = useState([]); // variable for list of players
-    const [searchInput, setSearchInput] = useState(''); // variable tracking state of search bar
-    const [leagueInput, setLeagueInput] = useState('Both');
+    const [tournament, setTournaments] = useState([]); // variable for list of tournaments
     
     // use effect
     useEffect(() => {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament`) // send get request to /tournament route on server
         .then((res) => res.json()) // convert response to json
-        .then((resJson) => setPlayers(resJson)) // set players 
+        .then((resJson) => setTournaments(resJson)) // set tournaments 
         .catch((err) => console.log(err)); // catch and log errors
     }, []); // [] empty listener, so only run effect on load of page
 
