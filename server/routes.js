@@ -331,7 +331,7 @@ const tournament_alltime = async (req, res) => {
     // if we get a decade, filter those stats
     if (decade_start !== null) {
       query = `
-      (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
+      (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
       FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
@@ -342,7 +342,7 @@ const tournament_alltime = async (req, res) => {
       
       UNION 
       
-      (SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+      (SELECT 'Most Losses at Final' as role, g.loser_id as player_id, p2.name as record_holder, COUNT(*) as Record
       FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
@@ -399,7 +399,8 @@ const tournament_names = async (req, res) => {
     MAX(CASE WHEN league = 'wta' THEN 1 ELSE 0 END) AS WTA,
     MAX(CASE WHEN league = 'atp' THEN 1 ELSE 0 END) AS ATP,
     GROUP_CONCAT(DISTINCT CASE WHEN league = 'wta' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS WTA_Years,
-    GROUP_CONCAT(DISTINCT CASE WHEN league = 'atp' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS ATP_Years
+    GROUP_CONCAT(DISTINCT CASE WHEN league = 'atp' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS ATP_Years,
+    surface
     FROM tournament
     GROUP BY name
     ORDER BY name ASC
