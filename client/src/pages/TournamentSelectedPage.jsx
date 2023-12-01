@@ -87,7 +87,7 @@ export default function TournamentPage() {
           <img
             src={setMatchSurfacePath(tournament_surface)}
             alt={`Surface: ${tournament_surface}`}
-            style={{ maxWidth: "20%", borderRadius: '10px' }}
+            style={{ maxWidth: "20%", borderRadius: "10px" }}
           />
         </div>
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -101,7 +101,6 @@ export default function TournamentPage() {
             Stats
           </Typography>
         </div>
-        
         <div style={{ textAlign: "center" }}>
           <Typography
             variant="h5"
