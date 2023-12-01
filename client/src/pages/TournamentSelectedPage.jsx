@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Carousel from "react-material-ui-carousel";
 import {
+  Box,
   Card,
   CardMedia,
   CardContent,
@@ -28,14 +29,14 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 export default function TournamentPage() {
   const { id } = useParams(); // route parameters for tournament id
   const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
+  const [decade_stats, setTournamentDecadeStats] = useState([]); //all matches for a given tournament id
 
-  // use effect to send GET req to /tournament/:tourney_id/:match_num for match data
+  // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${id}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentMatches(resJson);
-        //setIsLoading(false); // if match data is successfully retrieved, set loading state to false
       })
       .catch((err) => console.log(err));
   }, []); // run on initial render
@@ -50,6 +51,9 @@ export default function TournamentPage() {
 
   const tournament_surface =
     matches.length > 0 ? matches[0].surface : "Loading...";
+
+  const tournament_winner =
+    matches.length > 0 ? matches[0].winner : "Loading...";
 
   // use effect to populate score table by parsing match scores in match data
 
@@ -85,15 +89,7 @@ export default function TournamentPage() {
           </Typography>
         </div>
         <Grid item xs={8}>
-          <div
-            style={{ maxWidth: "200px", maxHeight: "400px", margin: "auto" }}
-          >
-            <Carousel>
-              {uniqueTouramentNames.map((tournament, i) => (
-                <Item key={i} item={tournament} />
-              ))}
-            </Carousel>
-          </div>
+         
         </Grid>
         <div style={{ textAlign: "center" }}>
           <Typography

@@ -408,6 +408,28 @@ const tournament_names = async (req, res) => {
   );
 };
 
+// route that retrieves all distinct tournament names, with league and year info 
+const tname = async (req, res) => {
+  const tournament_id = req.params.tid;
+
+  // if tournament_id is not provided or not a string
+  if (!tournament_id) {
+    res.json([]);
+    // otherwise try execute query
+  } else {
+      connection.query(
+      `
+      SELECT 
+      name, surface, league, YEAR(start_date) as year
+      FROM tournament
+      WHERE id =?
+      `,
+      [tournament_id],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
+};
+
 module.exports = {
   home,
   player,
@@ -422,4 +444,5 @@ module.exports = {
   tournament_select,
   tournament_alltime,
   tournament_names,
+  tname,
 };

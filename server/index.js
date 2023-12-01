@@ -32,6 +32,9 @@ app.get("/api/tournamentnames", routes.tournament_names);
 app.get("/api/tournament/:id", routes.tournament_select);
 app.get("/api/tournament/stats/:name/:decade?", routes.tournament_alltime);
 
+//TODO: redundancy on tournament
+app.get("/api/:tid", routes.tname);
+
 // listen for requests
 const server = app.listen(`${SERVER_PORT}`, () => {
   console.log(`Topspin server listening on port ${SERVER_PORT}`);
