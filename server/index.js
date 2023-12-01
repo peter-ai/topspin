@@ -29,11 +29,11 @@ app.get("/api/tournament/:tourney_id/:match_num", routes.single_match);
 app.get("/api/compare/:player1/:player2", routes.compare);
 app.get("/api/tournament", routes.tournament_home);
 app.get("/api/tournamentnames", routes.tournament_names);
-app.get("/api/tournament/:id/matches", routes.tournament_select);
+app.get("/api/tournament/:id", routes.tournament_select);
 app.get("/api/tournament/stats/:name/:decade?", routes.tournament_alltime);
 
 //TODO: redundancy on tournament
-app.get("/api/tournament/:id", routes.tname);
+app.get("/api/tournament/data/:id", routes.tname);
 
 // listen for requests
 const server = app.listen(`${SERVER_PORT}`, () => {

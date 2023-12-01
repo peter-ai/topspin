@@ -34,6 +34,8 @@ export default function PlayerPage() {
       .catch((err) => console.log(err)); // catch and log errors
   }, []); // [] empty listener, so only run effect on load of page
 
+  // /api/tournament/:name/:league/:date
+
 
 
  

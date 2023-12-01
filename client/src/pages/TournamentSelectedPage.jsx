@@ -19,7 +19,7 @@ import {
   Paper,
 } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import { setMatchSurfacePath, defineRound, getPlayerFlag, getDate } from "../utils";
+import { setMatchSurfacePath, defineRound } from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -27,32 +27,33 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function TournamentPage() {
   const { id } = useParams(); // route parameters for tournament id
-  const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
   const [tournament, setTournamentData] = useState([]); //tournament level data for a given tournament id
+  const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
   const [decade_stats, setTournamentDecadeStats] = useState([]); //all matches for a given tournament id
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${id}/matches`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${id}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentMatches(resJson);
       })
       .catch((err) => console.log(err));
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/${id}`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/data${id}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentData(resJson);
       })
       .catch((err) => console.log(err));
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`)
+    /*  fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentDecadeStats(resJson);
       })
       .catch((err) => console.log(err));
+      */
   }, []); // run on initial render
 
   // temp instead of loading state
@@ -100,33 +101,7 @@ export default function TournamentPage() {
             Stats
           </Typography>
         </div>
-        <div
-          style={{
-            width: "150px",
-            margin: "auto",
-          }}
-        >
-          <Card
-            style={{
-              backgroundColor: "rgba(160, 160, 160, 0.8)",
-              textAlign: "center",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              maxHeight: '20%'
-            }}
-          >
-            <EmojiEventsIcon
-              style={{
-                fontSize: "50px",
-                color: "#ffd700", // Customize the color if needed
-                marginBottom: "1px",
-              }}
-            />
-            <CardContent>
-              <Typography variant="h6">{tournament[0].year} Winner</Typography>
-              <Typography variant="body1">{tournament_winner}</Typography>
-            </CardContent>
-          </Card>
-        </div>
+        
         <div style={{ textAlign: "center" }}>
           <Typography
             variant="h5"
