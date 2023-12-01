@@ -30,7 +30,7 @@ app.get("/api/compare/:player1/:player2", routes.compare);
 app.get("/api/tournament", routes.tournament_home);
 app.get("/api/tournamentnames", routes.tournament_names);
 app.get("/api/tournament/:id", routes.tournament_select);
-app.get("/api/tournament/stats/:name/:decade", routes.tournament_alltime);
+app.get("/api/tournament/stats/:name/:decade?", routes.tournament_alltime);
 
 // listen for requests
 const server = app.listen(`${SERVER_PORT}`, () => {
