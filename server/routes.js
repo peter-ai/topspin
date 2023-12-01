@@ -299,12 +299,12 @@ const tournament_select = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT t.name, t.surface, t.draw_size, t.tourney_level, YEAR(start_date) AS year, t.league, match_num, round,
+      SELECT match_num, round, start_date,
        p1.name as winner, p2.name as loser
       FROM tournament t INNER JOIN game g ON t.id=g.tourney_id INNER JOIN player p1 ON g.winner_id=p1.id INNER JOIN
       player p2 ON g.loser_id=p2.id
       WHERE tourney_id=?
-      ORDER BY g.match_num ASC;
+      ORDER BY g.match_num DESC;
       `,
       [tournament_id],
       (err, match_data) => handleResponse(err, match_data, req.path, res)
