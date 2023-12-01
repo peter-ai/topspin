@@ -410,7 +410,7 @@ const tournament_names = async (req, res) => {
 
 // route that retrieves all distinct tournament names, with league and year info 
 const tname = async (req, res) => {
-  const tournament_id = req.params.tid;
+  const tournament_id = req.params.id;
 
   // if tournament_id is not provided or not a string
   if (!tournament_id) {

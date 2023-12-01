@@ -33,7 +33,7 @@ export default function TournamentPage() {
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${id}`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${id}/matches`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentMatches(resJson);
@@ -47,13 +47,12 @@ export default function TournamentPage() {
       })
       .catch((err) => console.log(err));
 
-    /*  fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${tournament[0].name}/2013`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentDecadeStats(resJson);
       })
       .catch((err) => console.log(err));
-      */
   }, []); // run on initial render
 
   // temp instead of loading state
