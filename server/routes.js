@@ -388,7 +388,7 @@ const tournament_alltime = async (req, res) => {
   );
 };
 
-// route that retrieves all distinct tournament names and leagues
+// route that retrieves all distinct tournament names, with league and year info 
 const tournament_names = async (req, res) => {
   connection.query(
     `
