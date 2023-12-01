@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import {
-  Box,
   Card,
   CardMedia,
   CardContent,
@@ -10,6 +9,7 @@ import {
   Chip,
   Button,
   Container,
+  Link,
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import { setMatchSurfacePath, defineRound } from "../utils";
@@ -204,7 +204,19 @@ export default function MatchPage() {
                       letterSpacing: ".1rem",
                     }}
                   >
-                    {matchData.winner_name}
+                    <Link
+                      href={"/player/" + matchData.winner_id}
+                      underline="none"
+                      rel="noopener"
+                      sx={{
+                        ":hover": {
+                          color: "success.main",
+                          transition: "250ms",
+                        },
+                      }}
+                    >
+                      {matchData.winner_name}
+                    </Link>
                   </Typography>
                 </Grid>
                 <Grid
@@ -248,7 +260,19 @@ export default function MatchPage() {
                       letterSpacing: ".1rem",
                     }}
                   >
-                    {matchData.loser_name}
+                    <Link
+                      href={"/player/" + matchData.loser_id}
+                      underline="none"
+                      rel="noopener"
+                      sx={{
+                        ":hover": {
+                          color: "error.light",
+                          transition: "250ms",
+                        },
+                      }}
+                    >
+                      {matchData.loser_name}
+                    </Link>
                   </Typography>
                 </Grid>
                 <Grid

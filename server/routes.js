@@ -236,8 +236,8 @@ const single_match = async (req, res) => {
       SELECT G.tourney_id, G.match_num,
           T.name, T.surface, T.league,
           G.round, G.score,
-          W.name AS winner_name, W.ioc AS winner_country,
-          L.name AS loser_name, L.ioc AS loser_country
+          W.name AS winner_name, W.ioc AS winner_country, W.id AS winner_id,
+          L.name AS loser_name, L.ioc AS loser_country, L.id AS loser_id
       FROM game G
           JOIN tournament T ON G.tourney_id=T.id
           JOIN player W ON G.winner_id = W.id
