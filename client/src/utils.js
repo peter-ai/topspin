@@ -20,9 +20,9 @@ export const defineRound = (round) => {
     case "R16":
       return "Round of 16";
     case "QF":
-      return "Quarter-final";
+      return "Quarter Final";
     case "SF":
-      return "Semi-final";
+      return "Semi Final";
     case "F":
       return "Final";
     case "R64":

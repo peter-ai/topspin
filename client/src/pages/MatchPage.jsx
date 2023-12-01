@@ -148,8 +148,13 @@ export default function MatchPage() {
             {matchData.name}
           </Typography>
 
-          <Card>
-            {/* displays tournament data (league, round, surface) */}
+          <Card
+            sx={{
+              transition: "transform 0.225s ease-in-out",
+              ":hover": { transform: "scale3d(1.015, 1.015, 1.0)" },
+            }}
+          >
+            {/* displays tournament round */}
             <CardContent
               sx={{
                 display: "flex",
@@ -158,21 +163,9 @@ export default function MatchPage() {
                 marginY: "10px",
               }}
             >
-              <Chip
-                variant="outlined"
-                label={matchData.league.toUpperCase()}
-                sx={{ marginX: 1, fontSize: "15px" }}
-              />
-              <Chip
-                variant="outlined"
-                label={defineRound(matchData.round)}
-                sx={{ marginX: 1, fontSize: "15px" }}
-              />
-              <Chip
-                variant="outlined"
-                label={matchData.surface}
-                sx={{ marginX: 1, fontSize: "15px" }}
-              />
+              <Typography textAlign="center" variant="h5">
+                {defineRound(matchData.round)}
+              </Typography>
             </CardContent>
 
             {/* displays image of tournament surface */}
@@ -182,11 +175,25 @@ export default function MatchPage() {
                 maxWidth: 350,
                 borderRadius: "8px",
                 margin: "auto",
-                marginBottom: "20px",
               }}
               image={setMatchSurfacePath(matchData.surface)}
               title="court surface"
             />
+
+            {/* displays tournament surface */}
+            <CardContent
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Chip
+                variant="outlined"
+                label={matchData.surface}
+                sx={{ marginX: 1, fontSize: "15px" }}
+              />
+            </CardContent>
 
             <CardContent>
               <Grid container alignItems="center" spacing={2}>
