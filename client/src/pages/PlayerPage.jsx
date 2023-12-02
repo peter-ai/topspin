@@ -16,10 +16,10 @@ import {
 } from "@mui/material";
 import SearchBar from "../component/SearchBar";
 import { getPlayerFlag } from "../utils";
-import atp_logo_1 from "../public/atp-silhouette-1.png";
-import atp_logo_2 from "../public/atp-silhouette-2.png";
-import wta_logo_1 from "../public/wta-silhouette-1.png";
-import wta_logo_2 from "../public/wta-silhouette-2.png";
+import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
+import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
+import wta_logo_1 from "../assets/imgs/wta-silhouette-1.png";
+import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
