@@ -130,3 +130,32 @@ export function getPlayerHand(hand) {
     return "Unknown";
   }
 }
+
+// constant array of popular tennis players by wins
+export const popular_players = [
+  'Martina Navratilova',
+  'Chris Evert',
+  'Jimmy Connors',
+  'Roger Federer',
+  'Rafael Nadal',
+  'Novak Djokovic',
+  'Ivan Lendl',
+  'Guillermo Vilas',
+  'Virginia Wade',
+  'Steffi Graf',
+  'Ilie Nastase',
+  'Andre Agassi',
+  'John McEnroe',
+  'David Ferrer',
+  'Serena Williams',
+  'Arthur Ashe',
+  'Stan Smith',
+  'Andy Murray',
+  'Venus Williams',
+  'Evonne Goolagong',
+  'Stefan Edberg',
+  'Pete Sampras',
+  'Billie Jean King',
+  'Arantxa Sanchez Vicario',
+  'Richard Gasquet'  
+]
