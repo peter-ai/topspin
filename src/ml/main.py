@@ -1,6 +1,7 @@
 
 import json
 from flask import Flask
+from flask_cors import CORS, cross_origin
 import pickle
 import numpy as np
 
@@ -11,12 +12,16 @@ with open('model_v1.pkl', 'rb') as f:
     clf = pickle.load(f)
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/")
+@cross_origin()
 def home():
     return "<p>Tennis Match Predictor</p>"
 
 @app.route("/predict/<features>", methods=['GET'])
+@cross_origin()
 def predict(features):
     try:
         v = np.array([float(x) for x in features.split(',')])
