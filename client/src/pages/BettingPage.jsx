@@ -15,17 +15,7 @@ import {
   ThemeProvider,
   FormGroup
 } from '@mui/material';
-import { LineChart } from '@mui/x-charts/LineChart';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { DataGrid } from '@mui/x-data-grid';
-import SportsTennisTwoToneIcon from '@mui/icons-material/SportsTennisTwoTone';
-import QueryStatsTwoToneIcon from '@mui/icons-material/QueryStatsTwoTone';
-import PercentTwoToneIcon from '@mui/icons-material/PercentTwoTone';
-import atp_logo_1 from '../public/atp-silhouette-1.png';
-import atp_logo_2 from '../public/atp-silhouette-2.png';
-import wta_logo_1 from '../public/wta-silhouette-1.png';
-import wta_logo_2 from '../public/wta-silhouette-2.png';
-import { getPlayerFlag, getDate, getPlayerHand } from '../component/utils';
+
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -36,13 +26,11 @@ import InputAdornment from '@mui/material/InputAdornment';
 import * as React from 'react';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
-const FLASK_PORT = 5040;
+const FLASK_PORT = 5002;
 // const API_KEY = import.meta.env.VITE_BINGSEARCH_KEY;
 
 export default function BettingPage() {
@@ -68,6 +56,7 @@ export default function BettingPage() {
 
   const [p1, setPlayer1Stats] = useState({});
   const [p2, setPlayer2Stats] = useState({});
+  const [matchPrediction, setMatchPrediction] = useState({});
 
   // function handles change of page number
   const simulateBetting = () => {
@@ -104,18 +93,36 @@ export default function BettingPage() {
     .then((res) => res.json())
     .then((resJson) => setPlayer2Stats(resJson))
     .catch((err) => console.log(err));
-  };
 
-  console.log(p1);
-  console.log(p1.avg_ace);
-  fetch(
-    `http://${SERVER_HOST}:${FLASK_PORT}/predict/` +
-    `${p1.avgAce},` +
-    `${p1.avgSvpt},`
-  )
-  .then((res) => res.json())
-  .then((resJson) => setMatchPrediction(resJson))
-  .catch((err) => console.log(err));
+    console.log(p1);
+    console.log(p1.avg_ace);
+    fetch(
+      `http://${SERVER_HOST}:${FLASK_PORT}/predict/` +
+      `${p1.avg_ace},` +
+      `${p1.avg_df},` +
+      `${p1.avg_svpt},` +
+      `${p1.avg_1stIn},` +
+      `${p1.avg_1stWon},` +
+      `${p1.avg_2ndWon},` +
+      `${p1.avg_SvGms},` +
+      `${p1.avg_bpSaved},` +
+      `${p1.avg_bpFaced},` +
+      `${p2.avg_ace},` +
+      `${p2.avg_df},` +
+      `${p2.avg_svpt},` +
+      `${p2.avg_1stIn},` +
+      `${p2.avg_1stWon},` +
+      `${p2.avg_2ndWon},` +
+      `${p2.avg_SvGms},` +
+      `${p2.avg_bpSaved},` +
+      `${p2.avg_bpFaced}`
+    )
+    .then((res) => res.json())
+    .then((resJson) => setMatchPrediction(resJson))
+    .catch((err) => console.log(err));
+
+    console.log(matchPrediction);
+  };
 
   return (
     <Container maxWidth='xl'>
