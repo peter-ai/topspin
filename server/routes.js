@@ -390,8 +390,6 @@ const betting_favorite = async (req, res) => {
     res.json([]);
   }
   else {
-    console.log(start_date);
-    console.log(end_date);
     connection.query(
       `
       WITH valid_odds AS (
@@ -402,9 +400,10 @@ const betting_favorite = async (req, res) => {
         AND tournament.start_date <= "${end_date}"
       ) # betting odds of all matches given the query params
       SELECT
-          SUM(AvgW)/(SELECT COUNT(*) FROM valid_odds) as ROI,
-          ${betting_amount}*(SELECT COUNT(*) FROM valid_odds) as AmountBet,
-          SUM(${betting_amount}*AvgW) as AmountWon
+          (SELECT COUNT(*) FROM valid_odds) as NumMatches,
+          COUNT(NULLIF(AvgW,0)) as NumCorrect,
+          ${betting_amount} * (SELECT COUNT(*) FROM valid_odds) as AmountBet,
+          ${betting_amount} * SUM(AvgW) as AmountWon
       FROM valid_odds
       WHERE AvgW < AvgL; # matches where the favorite won
       `,
@@ -520,6 +519,40 @@ const betting_statistics = async (req, res) => {
   }
 }
 
+// route that retrieves a specific player's historical match stats
+const player_average_stats = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+  const year = parseInt(req.params.year);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json({});
+  } else if (isNaN(year)) {
+    res.json({});
+  } else {
+    connection.query(
+      `
+      SELECT
+        SUM(minutes)/SUM(nmatches) as avg_minutes,
+        SUM(ace)/SUM(nmatches) as avg_ace,
+        SUM(df)/SUM(nmatches) as avg_df,
+        SUM(svpt)/SUM(nmatches) as avg_svpt,
+        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+      FROM player_stats_yearly
+      WHERE id=${player_id}
+      AND year < ${year}
+      `,
+      (err, data) => handleResponse(err, data, req.path, res, false)
+    );
+  }
+};
+
+
 module.exports = {
   home,
   player,
@@ -535,4 +568,5 @@ module.exports = {
   tournament_alltime,
   betting_favorite,
   betting_statistics,
+  player_average_stats,
 };
