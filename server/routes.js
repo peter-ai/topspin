@@ -10,7 +10,7 @@ const connection = mysql.createConnection({
   port: config.PORT,
   database: config.DATABASE,
   keepAliveInitialDelay: 10000,
-  enableKeepAlive: true
+  enableKeepAlive: true,
 });
 connection.connect((err) => err && console.log(err));
 
@@ -20,9 +20,11 @@ const home = async (req, res) => {
 
 // route that retrieves all player data
 const player = async (req, res) => {
-  const getCount = req.query.count === 'true';
-  const name = '%' + req.query.search + '%';
-  const pageSize = parseInt(req.query.pageSize, 10) ? parseInt(req.query.pageSize, 10) : 30;
+  const getCount = req.query.count === "true";
+  const name = "%" + req.query.search + "%";
+  const pageSize = parseInt(req.query.pageSize, 10)
+    ? parseInt(req.query.pageSize, 10)
+    : 20;
   const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
   let league;
 
@@ -30,8 +32,8 @@ const player = async (req, res) => {
   const offset = pageSize * (page - 1);
 
   // validate league param
-  if (req.query.league != 'wta' && req.query.league != 'atp') {
-    league = ['atp', 'wta'];
+  if (req.query.league != "wta" && req.query.league != "atp") {
+    league = ["atp", "wta"];
   } else {
     league = [req.query.league];
   }
@@ -44,7 +46,7 @@ const player = async (req, res) => {
       WHERE name LIKE ? AND league IN (?)
       `,
       [name, league],
-      (err, data) => handleResponse(err, data, req.path, res, false)
+      (err, data) => handleResponse(err, data[0] ?? data, req.path, res)
     );
   } else {
     connection.query(
@@ -170,7 +172,13 @@ const player_stats = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT * 
+      SELECT player_id, wins, win_percentage, losses, loss_percentage,
+            total_games, avg_l_1stIn, avg_l_1stWon, avg_l_2ndWon,
+            avg_l_ace, avg_l_age, avg_l_bpFaced, avg_l_bpSaved,
+            avg_l_df, avg_l_minutes, avg_l_SvGms, avg_l_svpt,
+            avg_w_1stIn, avg_w_1stWon, avg_w_2ndWon, avg_w_ace,
+            avg_w_age, avg_w_bpFaced, avg_w_bpSaved, avg_w_df, 
+            avg_w_minutes, avg_w_SvGms, avg_w_svpt
       FROM player_stats
       WHERE player_id=?;
       `,
@@ -228,13 +236,13 @@ const single_match = async (req, res) => {
       SELECT G.tourney_id, G.match_num,
           T.name, T.surface, T.league,
           G.round, G.score,
-          W.name AS winner_name, W.ioc AS winner_country,
-          L.name AS loser_name, L.ioc AS loser_country
+          W.name AS winner_name, W.ioc AS winner_country, W.id AS winner_id,
+          L.name AS loser_name, L.ioc AS loser_country, L.id AS loser_id
       FROM game G
           JOIN tournament T ON G.tourney_id=T.id
           JOIN player W ON G.winner_id = W.id
-          JOIN player L ON G.loser_id = L.id;
-      WHERE G.tourney_id=? AND G.match_num=?
+          JOIN player L ON G.loser_id = L.id
+      WHERE G.tourney_id=? AND G.match_num=?;
       `,
       [tourney_id, match_num],
       (err, data) => handleResponse(err, data, req.path, res)
@@ -255,7 +263,14 @@ const compare = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT P.name, P.league, P.hand, P.height, S.*
+      SELECT P.name, P.league, P.hand, P.height, S.player_id,
+          S.wins, S.win_percentage, S.losses, S.loss_percentage,
+          S.total_games, S.avg_l_1stIn, S.avg_l_1stWon, S.avg_l_2ndWon,
+          S.avg_l_ace, S.avg_l_age, S.avg_l_bpFaced, S.avg_l_bpSaved,
+          S.avg_l_df, S.avg_l_minutes, S.avg_l_SvGms, S.avg_l_svpt,
+          S.avg_w_1stIn, S.avg_w_1stWon, S.avg_w_2ndWon, S.avg_w_ace,
+          S.avg_w_age, S.avg_w_bpFaced, S.avg_w_bpSaved, S.avg_w_df, 
+          S.avg_w_minutes, S.avg_w_SvGms, S.avg_w_svpt
       FROM player_stats S
           JOIN player P ON S.player_id = P.id
       WHERE S.player_id IN (?, ?)
@@ -291,10 +306,12 @@ const tournament_select = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT * 
-      FROM tournament t INNER JOIN game g ON t.id=g.tourney_id
+      SELECT match_num, round, start_date,
+       p1.name as winner, p2.name as loser
+      FROM tournament t INNER JOIN game g ON t.id=g.tourney_id INNER JOIN player p1 ON g.winner_id=p1.id INNER JOIN
+      player p2 ON g.loser_id=p2.id
       WHERE tourney_id=?
-      ORDER BY g.match_num ASC;
+      ORDER BY g.match_num DESC;
       `,
       [tournament_id],
       (err, match_data) => handleResponse(err, match_data, req.path, res)
@@ -321,7 +338,7 @@ const tournament_alltime = async (req, res) => {
     // if we get a decade, filter those stats
     if (decade_start !== null) {
       query = `
-      (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
+      (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
       FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
@@ -332,7 +349,7 @@ const tournament_alltime = async (req, res) => {
       
       UNION 
       
-      (SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+      (SELECT 'Most Losses at Final' as role, g.loser_id as player_id, p2.name as record_holder, COUNT(*) as Record
       FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
@@ -378,6 +395,47 @@ const tournament_alltime = async (req, res) => {
   connection.query(query, params, (err, data) =>
     handleResponse(err, data, req.path, res)
   );
+};
+
+// route that retrieves all distinct tournament names, with league and year info 
+const tournament_names = async (req, res) => {
+  connection.query(
+    `
+    SELECT 
+    name,
+    MAX(CASE WHEN league = 'wta' THEN 1 ELSE 0 END) AS WTA,
+    MAX(CASE WHEN league = 'atp' THEN 1 ELSE 0 END) AS ATP,
+    GROUP_CONCAT(DISTINCT CASE WHEN league = 'wta' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS WTA_Years,
+    GROUP_CONCAT(DISTINCT CASE WHEN league = 'atp' THEN YEAR(start_date) END ORDER BY YEAR(start_date)) AS ATP_Years,
+    surface
+    FROM tournament
+    GROUP BY name
+    ORDER BY name ASC
+    `,
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+};
+
+// route that retrieves all distinct tournament names, with league and year info 
+const tname = async (req, res) => {
+  const tournament_id = req.params.id;
+
+  // if tournament_id is not provided or not a string
+  if (!tournament_id) {
+    res.json([]);
+    // otherwise try execute query
+  } else {
+      connection.query(
+      `
+      SELECT 
+      name, surface, league, YEAR(start_date) as year
+      FROM tournament
+      WHERE id =?
+      `,
+      [tournament_id],
+      (err, data) => handleResponse(err, data, req.path, res)
+    );
+  }
 };
 
 // simulates betting the favorite as a strategy
@@ -566,6 +624,8 @@ module.exports = {
   tournament_home,
   tournament_select,
   tournament_alltime,
+  tournament_names,
+  tname,
   betting_favorite,
   betting_statistics,
   player_average_stats,
