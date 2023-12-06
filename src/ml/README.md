@@ -4,8 +4,9 @@
 ## Quickstart
 
 - python3 -m pip install -r ./requirements.txt
-- ./run.sh
-- go to SERVER:PORT/predict/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+- cd ./src/ml/
+- ./run_flask.sh
+- go to http://localhost:5002/predict/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 - If all worked, should get a json back containing a prediction
 
 ### run.sh
