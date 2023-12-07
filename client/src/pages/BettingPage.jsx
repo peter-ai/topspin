@@ -49,17 +49,28 @@ export default function BettingPage() {
   const [useBpSaved, setUseBpSaved] = useState(false);
   const [useBpFaced, setUseBpFaced] = useState(false);
 
-  const player1 = 107;
-  const year1 = 2017;
-  const player2 = 28;
-  const year2 = 2018;
-
-  const [p1, setPlayer1Stats] = useState({});
-  const [p2, setPlayer2Stats] = useState({});
   const [matchPrediction, setMatchPrediction] = useState({});
+  const [modelResults, setModelResults] = useState({});
+
+  var numMatches = 0;
+  var numCorrect = 0;
+  var amountBet = 0;
+  var amountWon = 0;
+  var ROI = 0;
+
+  const simulateBettingWithFavorites = () => {
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/betting/favorite?` + 
+      `amount=${bettingAmount}&` + 
+      `start_date=${startDate.format('YYYY-MM-DD')}&` + 
+      `end_date=${endDate.format('YYYY-MM-DD')}`
+    )
+    .then((res) => res.json()) // convert response to json
+    .then((resJson) => setResults(resJson)) // set results of the strategy
+    .catch((err) => console.log(err)); // catch and log errors
+  };
 
   // function handles change of page number
-  const simulateBetting = () => {
+  const simulateBettingWithStatistics = () => {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/betting/statistics?` + 
       `amount=${bettingAmount}&` + 
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
@@ -79,49 +90,100 @@ export default function BettingPage() {
     .catch((err) => console.log(err)); // catch and log errors
   };
 
-  const simulateMatch = () => {
-    fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${player1}/${year1}`
-    )
-    .then((res) => res.json())
-    .then((resJson) => setPlayer1Stats(resJson))
-    .catch((err) => console.log(err));
+  const simulateBettingWithModel = async () => {
 
-    fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${player2}/${year2}`
-    )
-    .then((res) => res.json())
-    .then((resJson) => setPlayer2Stats(resJson))
-    .catch((err) => console.log(err));
+    // get all the matches within the date range
+    const matchResults = await fetch(
+      `http://${SERVER_HOST}:${SERVER_PORT}/api/match/results?` + 
+      `start_date=${startDate.format('YYYY-MM-DD')}&` + 
+      `end_date=${endDate.format('YYYY-MM-DD')}`
+    );
+    const matchResultsJson = await matchResults.json();
 
-    console.log(p1);
-    console.log(p1.avg_ace);
-    fetch(
-      `http://${SERVER_HOST}:${FLASK_PORT}/predict/` +
-      `${p1.avg_ace},` +
-      `${p1.avg_df},` +
-      `${p1.avg_svpt},` +
-      `${p1.avg_1stIn},` +
-      `${p1.avg_1stWon},` +
-      `${p1.avg_2ndWon},` +
-      `${p1.avg_SvGms},` +
-      `${p1.avg_bpSaved},` +
-      `${p1.avg_bpFaced},` +
-      `${p2.avg_ace},` +
-      `${p2.avg_df},` +
-      `${p2.avg_svpt},` +
-      `${p2.avg_1stIn},` +
-      `${p2.avg_1stWon},` +
-      `${p2.avg_2ndWon},` +
-      `${p2.avg_SvGms},` +
-      `${p2.avg_bpSaved},` +
-      `${p2.avg_bpFaced}`
-    )
-    .then((res) => res.json())
-    .then((resJson) => setMatchPrediction(resJson))
-    .catch((err) => console.log(err));
+    // HOTFIX: this function takes a very long time if many matches are found
+    // TODO: add spinning wheel/query estimation time
+    if (matchResultsJson.length > 500) {
+      return {};
+    }
+    // deploy the model over each match
+    const simulationResultsData = await matchResultsJson.map(async match => {
 
-    console.log(matchPrediction);
+      // get the data from both players, Promise.all ensures we have both before continuing
+      const playerDataJson = (await Promise.all([
+        fetch(
+          `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.winner_id}/${match.year}`
+        ),
+        fetch(
+          `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.loser_id}/${match.year}`
+        ),
+      ])).map(data => (data.json()))
+      const p1 = await playerDataJson[0];
+      const p2 = await playerDataJson[1];
+
+      // HOTFIX: for some reason this feature is spitting out null, so set to 0 for now
+      // TODO: fix model to not include this feature?
+      p1.avg_SvGms = 0;
+      p2.avg_SvGms = 0;
+
+      // call the flask api to get the model prediction for these 2 players
+      const matchPrediction = await fetch(
+        `http://${SERVER_HOST}:${FLASK_PORT}/predict/` +
+        `${p1.avg_ace},` +
+        `${p1.avg_df},` +
+        `${p1.avg_svpt},` +
+        `${p1.avg_1stIn},` +
+        `${p1.avg_1stWon},` +
+        `${p1.avg_2ndWon},` +
+        `${p1.avg_SvGms},` +
+        `${p1.avg_bpSaved},` +
+        `${p1.avg_bpFaced},` +
+        `${p2.avg_ace},` +
+        `${p2.avg_df},` +
+        `${p2.avg_svpt},` +
+        `${p2.avg_1stIn},` +
+        `${p2.avg_1stWon},` +
+        `${p2.avg_2ndWon},` +
+        `${p2.avg_SvGms},` +
+        `${p2.avg_bpSaved},` +
+        `${p2.avg_bpFaced}`
+      );
+      const matchPredictionJson = await matchPrediction.json();
+
+      // TODO: retrain model to also include probality not just prediction
+      return {
+        "correct": matchPredictionJson.prediction == 0,
+        "avgW": match.AvgW // including AvgW to calculate payout based on correct prediction
+      }
+    });
+
+    // waiting until all matches are simultated
+    const simulationResults = await Promise.all(simulationResultsData);
+
+    // analyze the results
+    var numMatches = 0;
+    var numCorrect = 0;
+    var amountWon = 0;
+    for (const i in simulationResults) {
+
+      // only count non-null predictions
+      if (!(typeof simulationResults[i].correct === "undefined")) {
+        numMatches += 1;
+        if (simulationResults[i].correct) {
+          numCorrect += 1;
+          amountWon += bettingAmount * simulationResults[i].avgW;
+        }
+      }
+    }
+    const amountBet = bettingAmount * numMatches;
+    const ROI = amountWon / amountBet;
+
+    setResults({
+      NumMatches: numMatches,
+      NumCorrect: numCorrect,
+      AmountBet: amountBet,
+      AmountWon: amountWon,
+      ROI: ROI
+    });
   };
 
   return (
@@ -255,17 +317,23 @@ export default function BettingPage() {
           />
         </FormGroup>
         <Box width="100%" mt={1}/>
-        <Grid item xs={12}>
+        <Grid item xs={4}>
           <Button 
             variant="contained" 
-            onClick={() => {simulateBetting();}}
-          >Simulate</Button>
+            onClick={() => {simulateBettingWithFavorites();}}
+          >Simulate with Favorite</Button>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={4}>
           <Button 
             variant="contained" 
-            onClick={() => {simulateMatch();}}
-          >Match</Button>
+            onClick={() => {simulateBettingWithStatistics();}}
+          >Simulate with Stats</Button>
+        </Grid>
+        <Grid item xs={4}>
+          <Button 
+            variant="contained" 
+            onClick={() => {simulateBettingWithModel();}}
+          >Simulate with Predictive Model</Button>
         </Grid>
       </Grid>
       {JSON.stringify(results)}

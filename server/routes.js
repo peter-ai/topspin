@@ -464,7 +464,8 @@ const betting_favorite = async (req, res) => {
           (SELECT COUNT(*) FROM valid_odds) as NumMatches,
           COUNT(NULLIF(AvgW,0)) as NumCorrect,
           ${betting_amount} * (SELECT COUNT(*) FROM valid_odds) as AmountBet,
-          ${betting_amount} * SUM(AvgW) as AmountWon
+          ${betting_amount} * SUM(AvgW) as AmountWon,
+          SUM(AvgW)/(SELECT COUNT(*) FROM valid_odds) as ROI
       FROM valid_odds
       WHERE AvgW < AvgL; # matches where the favorite won
       `,
@@ -572,7 +573,8 @@ const betting_statistics = async (req, res) => {
         COUNT(*) as NumMatches,
         COUNT(NULLIF(AvgW,0)) as NumCorrect,
         ${betting_amount} * COUNT(*) as AmountBet,
-        ${betting_amount} * SUM(AvgW) as AmountWon
+        ${betting_amount} * SUM(AvgW) as AmountWon,
+        SUM(AvgW)/COUNT(*) as ROI
       FROM (SELECT * FROM bet_won UNION ALL SELECT * FROM bet_lost) bet_matches
       `,
       (err, data) => handleResponse(err, data, req.path, res, false)
@@ -613,6 +615,26 @@ const player_average_stats = async (req, res) => {
   }
 };
 
+const match_results = async (req, res) => {
+  const start_date = req.query.start_date;
+  const end_date = req.query.end_date;
+  connection.query(
+    `
+    SELECT
+      winner_id,
+      loser_id,
+      YEAR(tournament.start_date) as year,
+      AvgW
+    FROM game
+    JOIN tournament ON game.tourney_id = tournament.id
+    JOIN odds ON game.match_num = odds.match_num
+    AND game.tourney_id = odds.tourney_id
+    WHERE tournament.start_date >= "${start_date}"
+    AND tournament.start_date <= "${end_date}"
+    `,
+    (err, data) => handleResponse(err, data, req.path, res, true)
+  );
+};
 
 module.exports = {
   home,
@@ -632,4 +654,5 @@ module.exports = {
   betting_favorite,
   betting_statistics,
   player_average_stats,
+  match_results,
 };
