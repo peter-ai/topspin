@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Grid, Typography, Container } from "@mui/material";
+import { Grid, Typography, Container, Avatar } from "@mui/material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -50,6 +51,19 @@ export default function ComparePage() {
   //   console.log(compareData);
   // }, [compareData]);
 
+  const playerAvatar = () => {
+    return (
+      <Avatar
+        sx={{
+          width: 180,
+          height: 180,
+        }}
+      >
+        <PersonAddIcon fontSize="large" />
+      </Avatar>
+    );
+  };
+
   return (
     <Container maxWidth="xl">
       <Grid
@@ -60,7 +74,8 @@ export default function ComparePage() {
         alignItems={"center"}
         sx={{ marginTop: 0 }}
       >
-        <Grid item xs={4}>
+        {/* Page title and tagline */}
+        <Grid item xs={5}>
           <Typography
             variant="h3"
             textAlign="left"
@@ -73,7 +88,7 @@ export default function ComparePage() {
             Compare Players
           </Typography>
         </Grid>
-        <Grid item xs={8}>
+        <Grid item xs={7}>
           <Typography
             variant="h5"
             textAlign="right"
@@ -83,9 +98,51 @@ export default function ComparePage() {
             }}
             gutterBottom
           >
-            Pick two players and watch them go head to head over their career!
+            Pick two players and compare their career performance!
           </Typography>
         </Grid>
+
+        <Grid
+          container
+          direction="row"
+          justifyContent="right"
+          xs={3}
+          marginRight={5}
+        >
+          {playerAvatar()}
+        </Grid>
+        <Grid container direction="row" justifyContent="center" xs={1}>
+          <Typography
+            variant="h5"
+            textAlign="center"
+            sx={{
+              fontWeight: 300,
+              letterSpacing: ".2rem",
+            }}
+          >
+            vs
+          </Typography>
+        </Grid>
+        <Grid
+          container
+          direction="row"
+          justifyContent="left"
+          xs={3}
+          marginLeft={5}
+        >
+          {playerAvatar()}
+        </Grid>
+
+        {/* Player avatars
+        <Grid item xs={5}>
+          Player1
+        </Grid>
+        <Grid item xs={2}>
+          vs
+        </Grid>
+        <Grid item xs={5}>
+          Player2
+        </Grid> */}
       </Grid>
     </Container>
   );
