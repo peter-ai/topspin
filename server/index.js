@@ -34,6 +34,11 @@ app.get("/api/tournament/stats/:name/:decade?", routes.tournament_alltime);
 
 //TODO: redundancy on tournament
 app.get("/api/tournament/data/:id", routes.tname);
+app.get("/api/tournament/stats/:name/:decade", routes.tournament_alltime);
+app.get("/api/betting/favorite", routes.betting_favorite);
+app.get("/api/betting/statistics", routes.betting_statistics);
+app.get("/api/player/:id/:year", routes.player_average_stats);
+app.get("/api/match/results", routes.match_results);
 
 // listen for requests
 const server = app.listen(`${SERVER_PORT}`, () => {

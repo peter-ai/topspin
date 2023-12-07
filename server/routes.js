@@ -438,6 +438,201 @@ const tname = async (req, res) => {
   }
 };
 
+// simulates betting the favorite as a strategy
+const betting_favorite = async (req, res) => {
+  const start_date = req.query.start_date;
+  const end_date = req.query.end_date;
+  const betting_amount = parseFloat(req.query.amount);
+
+  if (isNaN(betting_amount)) {
+    res.json([]);
+  }
+  else {
+    connection.query(
+      `
+      WITH valid_odds AS (
+        SELECT AvgW, AvgL
+        FROM odds
+        JOIN tournament ON odds.tourney_id = tournament.id
+        WHERE tournament.start_date >= "${start_date}"
+        AND tournament.start_date <= "${end_date}"
+      ) # betting odds of all matches given the query params
+      SELECT
+          (SELECT COUNT(*) FROM valid_odds) as NumMatches,
+          COUNT(NULLIF(AvgW,0)) as NumCorrect,
+          ${betting_amount} * (SELECT COUNT(*) FROM valid_odds) as AmountBet,
+          ${betting_amount} * SUM(AvgW) as AmountWon,
+          SUM(AvgW)/(SELECT COUNT(*) FROM valid_odds) as ROI
+      FROM valid_odds
+      WHERE AvgW < AvgL; # matches where the favorite won
+      `,
+      (err, data) => handleResponse(err, data, req.path, res, false)
+    );
+  }
+}
+
+// simulates betting using a statistic comparison as a strategy
+// TODO: can add a threshold to each test
+// TODO: could recalculate player stats up to a certain date instead of yearly
+const betting_statistics = async (req, res) => {
+
+  // date range of for simulation
+  const start_date = req.query.start_date;
+  const end_date = req.query.end_date;
+
+  // amount of money to bet per match
+  const betting_amount = parseFloat(req.query.amount);
+
+  // flags denoting whether or not to use this statistic as a determining factor for betting
+  const use_avg_ace = req.query.use_avg_ace === 'true' ? 1 : 0;
+  const use_avg_df = req.query.use_avg_df === 'true' ? 1 : 0;
+  const use_avg_svpt = req.query.use_avg_svpt === 'true' ? 1 : 0;
+  const use_avg_1stIn = req.query.use_avg_1stIn === 'true' ? 1 : 0;
+  const use_avg_1stWon = req.query.use_avg_1stWon === 'true' ? 1 : 0;
+  const use_avg_2ndWon = req.query.use_avg_2ndWon === 'true' ? 1 : 0;
+  const use_avg_SvGms = req.query.use_avg_SvGms === 'true' ? 1 : 0;
+  const use_avg_bpSaved = req.query.use_avg_bpSaved === 'true' ? 1 : 0;
+  const use_avg_bpFaced = req.query.use_avg_bpFaced === 'true' ? 1 : 0;
+
+  // make sure we have a valid number
+  if (isNaN(betting_amount)) {
+    res.json([]);
+  }
+  // make sure at least 1 statistic is turned on
+  else if ((use_avg_ace+use_avg_df+use_avg_svpt+use_avg_1stIn+use_avg_1stWon+use_avg_2ndWon+use_avg_SvGms+use_avg_bpSaved+use_avg_bpFaced) == 0) {
+    res.json([]);
+  }
+  else {
+    connection.query(
+      `
+      WITH historical_player_stats AS (
+        SELECT
+          id,
+          SUM(minutes)/SUM(nmatches) as avg_minutes,
+          SUM(ace)/SUM(nmatches) as avg_ace,
+          SUM(df)/SUM(nmatches) as avg_df,
+          SUM(svpt)/SUM(nmatches) as avg_svpt,
+          SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+          SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+          SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+          SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+          SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+          SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+        FROM player_stats_yearly as player
+        WHERE player.year < YEAR("${start_date}") # only allowed to use stats from before the betting simulation
+        GROUP BY player.id
+      ),
+      valid_odds AS (
+          SELECT
+              AvgW,
+              AvgL,
+              winner_id,
+              loser_id
+          FROM odds
+          JOIN game on odds.tourney_id = game.tourney_id and odds.match_num = game.match_num
+          JOIN tournament ON game.tourney_id = tournament.id
+          WHERE tournament.start_date >= "${start_date}"
+          AND tournament.start_date <= "${end_date}"
+      ), # betting odds of all matches given the query params
+      bet_won AS (
+        SELECT
+          AvgW # bet multiplier (bet won)
+        FROM valid_odds
+        JOIN historical_player_stats AS W ON valid_odds.winner_id = W.id
+        JOIN historical_player_stats AS L ON valid_odds.loser_id = L.id
+        WHERE (W.avg_ace > L.avg_ace OR (${1-use_avg_ace}=1))
+        AND (W.avg_df > L.avg_df OR (${1-use_avg_df}=1))
+        AND (W.avg_svpt > L.avg_svpt OR (${1-use_avg_svpt}=1))
+        AND (W.avg_1stIn > L.avg_1stIn OR (${1-use_avg_1stIn}=1))
+        AND (W.avg_1stWon > L.avg_1stWon OR (${1-use_avg_1stWon}=1))
+        AND (W.avg_2ndWon > L.avg_2ndWon OR (${1-use_avg_2ndWon}=1))
+        AND (W.avg_SvGms > L.avg_SvGms OR (${1-use_avg_SvGms}=1))
+        AND (W.avg_bpSaved > L.avg_bpSaved OR (${1-use_avg_bpSaved}=1))
+        AND (W.avg_bpFaced > L.avg_bpFaced OR (${1-use_avg_bpFaced}=1))
+      ), # matches that met the criteria and the bet won
+      bet_lost AS (
+        SELECT
+          0 # bet multiplier (bet lost)
+        FROM valid_odds
+        JOIN historical_player_stats AS W ON valid_odds.winner_id = W.id
+        JOIN historical_player_stats AS L ON valid_odds.loser_id = L.id
+        WHERE (L.avg_ace > W.avg_ace OR (${1-use_avg_ace}=1))
+        AND (L.avg_df > W.avg_df OR (${1-use_avg_df}=1))
+        AND (L.avg_svpt > W.avg_svpt OR (${1-use_avg_svpt}=1))
+        AND (L.avg_1stIn > W.avg_1stIn OR (${1-use_avg_1stIn}=1))
+        AND (L.avg_1stWon > W.avg_1stWon OR (${1-use_avg_1stWon}=1))
+        AND (L.avg_2ndWon > W.avg_2ndWon OR (${1-use_avg_2ndWon}=1))
+        AND (L.avg_SvGms > W.avg_SvGms OR (${1-use_avg_SvGms}=1))
+        AND (L.avg_bpSaved > W.avg_bpSaved OR (${1-use_avg_bpSaved}=1))
+        AND (L.avg_bpFaced > W.avg_bpFaced OR (${1-use_avg_bpFaced}=1))
+      ) # matches that met the criteria and the bet lost
+      SELECT
+        COUNT(*) as NumMatches,
+        COUNT(NULLIF(AvgW,0)) as NumCorrect,
+        ${betting_amount} * COUNT(*) as AmountBet,
+        ${betting_amount} * SUM(AvgW) as AmountWon,
+        SUM(AvgW)/COUNT(*) as ROI
+      FROM (SELECT * FROM bet_won UNION ALL SELECT * FROM bet_lost) bet_matches
+      `,
+      (err, data) => handleResponse(err, data, req.path, res, false)
+    );
+  }
+}
+
+// route that retrieves a specific player's historical match stats
+const player_average_stats = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+  const year = parseInt(req.params.year);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json({});
+  } else if (isNaN(year)) {
+    res.json({});
+  } else {
+    connection.query(
+      `
+      SELECT
+        SUM(minutes)/SUM(nmatches) as avg_minutes,
+        SUM(ace)/SUM(nmatches) as avg_ace,
+        SUM(df)/SUM(nmatches) as avg_df,
+        SUM(svpt)/SUM(nmatches) as avg_svpt,
+        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+      FROM player_stats_yearly
+      WHERE id=${player_id}
+      AND year < ${year}
+      `,
+      (err, data) => handleResponse(err, data, req.path, res, false)
+    );
+  }
+};
+
+const match_results = async (req, res) => {
+  const start_date = req.query.start_date;
+  const end_date = req.query.end_date;
+  connection.query(
+    `
+    SELECT
+      winner_id,
+      loser_id,
+      YEAR(tournament.start_date) as year,
+      AvgW
+    FROM game
+    JOIN tournament ON game.tourney_id = tournament.id
+    JOIN odds ON game.match_num = odds.match_num
+    AND game.tourney_id = odds.tourney_id
+    WHERE tournament.start_date >= "${start_date}"
+    AND tournament.start_date <= "${end_date}"
+    `,
+    (err, data) => handleResponse(err, data, req.path, res, true)
+  );
+};
+
 module.exports = {
   home,
   player,
@@ -453,4 +648,8 @@ module.exports = {
   tournament_alltime,
   tournament_names,
   tname,
+  betting_favorite,
+  betting_statistics,
+  player_average_stats,
+  match_results,
 };
