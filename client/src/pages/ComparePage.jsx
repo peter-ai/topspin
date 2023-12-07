@@ -58,6 +58,12 @@ export default function ComparePage() {
             width: 180,
             height: 180,
             margin: "auto",
+            transition: "transform 0.225s ease-in-out",
+            ":hover": {
+              borderStyle: "dashed",
+              borderWidth: 4,
+              cursor: "pointer",
+            },
           }}
         >
           <PersonAddIcon fontSize="large" />
