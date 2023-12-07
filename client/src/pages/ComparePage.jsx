@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Grid, Typography, Container, Avatar } from "@mui/material";
+import { Grid, Box, Typography, Container, Avatar } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 // declare server port and host for requests
@@ -9,9 +9,20 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 export default function ComparePage() {
   // // state variables for player1 and player2
   // const [players, setPlayers] = useState([]);
-  // const [player1, setPlayer1] = useState(null);
-  // const [player2, setPlayer2] = useState(null);
+  const [player1, setPlayer1] = useState(null);
+  const [player2, setPlayer2] = useState(null);
   // const [compareData, setCompareData] = useState([]);
+  const [arePlayersSelected, setArePlayersSelected] = useState(false);
+
+  // GET req to /compare/:player1/:player2 to compare two selected players
+  useEffect(() => {
+    fetch(
+      `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1}/${player2}`
+    )
+      .then((res) => res.json())
+      .then((res) => setCompareData(res))
+      .catch((err) => console.log(err));
+  }, [arePlayersSelected]); // runs when a change is made to either player, but a value must be present for both
 
   // // GET request to /player
   // useEffect(() => {
@@ -34,33 +45,27 @@ export default function ComparePage() {
   //   setPlayer2(e.target.value);
   // };
 
-  // // GET req to /compare/:player1/:player2 to compare two selected players
-  // useEffect(() => {
-  //   if (player1 && player2) {
-  //     fetch(
-  //       `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1}/${player2}`
-  //     )
-  //       .then((res) => res.json())
-  //       .then((res) => setCompareData(res))
-  //       .catch((err) => console.log(err));
-  //   }
-  // }, [player1, player2]); // runs when a change is made to either player, but a value must be present for both
-
   // // TODO logs compare data to screen for now
   // useEffect(() => {
   //   console.log(compareData);
   // }, [compareData]);
 
-  const playerAvatar = () => {
+  const playerAvatar = (playerName) => {
     return (
-      <Avatar
-        sx={{
-          width: 180,
-          height: 180,
-        }}
-      >
-        <PersonAddIcon fontSize="large" />
-      </Avatar>
+      <>
+        <Avatar
+          sx={{
+            width: 180,
+            height: 180,
+            margin: "auto",
+          }}
+        >
+          <PersonAddIcon fontSize="large" />
+        </Avatar>{" "}
+        <Typography marginTop={2} textAlign={"center"}>
+          {playerName}
+        </Typography>
+      </>
     );
   };
 
@@ -104,33 +109,28 @@ export default function ComparePage() {
 
         <Grid
           container
-          direction="row"
-          justifyContent="right"
-          xs={3}
-          marginRight={5}
+          alignItems="center"
+          justifyContent="center"
+          marginTop={5}
         >
-          {playerAvatar()}
-        </Grid>
-        <Grid container direction="row" justifyContent="center" xs={1}>
-          <Typography
-            variant="h5"
-            textAlign="center"
-            sx={{
-              fontWeight: 300,
-              letterSpacing: ".2rem",
-            }}
-          >
-            vs
-          </Typography>
-        </Grid>
-        <Grid
-          container
-          direction="row"
-          justifyContent="left"
-          xs={3}
-          marginLeft={5}
-        >
-          {playerAvatar()}
+          <Grid item xs={2} marginRight={5}>
+            {playerAvatar("Player 1")}
+          </Grid>
+          <Grid item xs={1} marginBottom={5}>
+            <Typography
+              variant="h5"
+              textAlign="center"
+              sx={{
+                fontWeight: 300,
+                letterSpacing: ".2rem",
+              }}
+            >
+              vs
+            </Typography>
+          </Grid>
+          <Grid item xs={2} marginLeft={5}>
+            {playerAvatar("Player 2")}
+          </Grid>
         </Grid>
 
         {/* Player avatars
