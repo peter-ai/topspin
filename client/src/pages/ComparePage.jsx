@@ -7,22 +7,25 @@ const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function ComparePage() {
-  // // state variables for player1 and player2
-  // const [players, setPlayers] = useState([]);
-  const [player1, setPlayer1] = useState(null);
-  const [player2, setPlayer2] = useState(null);
-  // const [compareData, setCompareData] = useState([]);
-  const [arePlayersSelected, setArePlayersSelected] = useState(false);
+  // initial state objects for player 1 and player 2 (default name is Player 1 and Player 2, ids are null)
+  const [player1, setPlayer1] = useState({ name: "Player 1", id: null });
+  const [player2, setPlayer2] = useState({ name: "Player 2", id: null });
+  const [compareData, setCompareData] = useState([]);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
-    fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1}/${player2}`
-    )
-      .then((res) => res.json())
-      .then((res) => setCompareData(res))
-      .catch((err) => console.log(err));
-  }, [arePlayersSelected]); // runs when a change is made to either player, but a value must be present for both
+    if (player1.id && player2.id) {
+      fetch(
+        `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
+      )
+        .then((res) => res.json())
+        .then((res) => {
+          console.log(res);
+          setCompareData(res);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [player1, player2]); // runs when a change is made to either player, but a non-null id must be present for both
 
   // // GET request to /player
   // useEffect(() => {
@@ -50,10 +53,20 @@ export default function ComparePage() {
   //   console.log(compareData);
   // }, [compareData]);
 
-  const playerAvatar = (playerName) => {
+  const clickPlayerOne = () => {
+    setPlayer1({ name: "Bilal Ali", id: 1 });
+  };
+
+  const clickPlayerTwo = () => {
+    setPlayer2({ name: "Jess Escobar", id: 2 });
+  };
+
+  // constructs the player avatar, which can be clicked to select a player
+  const playerAvatar = (player, clickPlayer) => {
     return (
       <>
         <Avatar
+          onClick={() => clickPlayer()}
           sx={{
             width: 180,
             height: 180,
@@ -67,9 +80,9 @@ export default function ComparePage() {
           }}
         >
           <PersonAddIcon fontSize="large" />
-        </Avatar>{" "}
+        </Avatar>
         <Typography marginTop={2} textAlign={"center"}>
-          {playerName}
+          {player.name}
         </Typography>
       </>
     );
@@ -120,7 +133,7 @@ export default function ComparePage() {
           marginTop={5}
         >
           <Grid item xs={2} marginRight={5}>
-            {playerAvatar("Player 1")}
+            {playerAvatar(player1, clickPlayerOne)}
           </Grid>
           <Grid item xs={1} marginBottom={5}>
             <Typography
@@ -135,7 +148,7 @@ export default function ComparePage() {
             </Typography>
           </Grid>
           <Grid item xs={2} marginLeft={5}>
-            {playerAvatar("Player 2")}
+            {playerAvatar(player2, clickPlayerTwo)}
           </Grid>
         </Grid>
 
