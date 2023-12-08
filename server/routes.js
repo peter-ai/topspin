@@ -633,6 +633,80 @@ const match_results = async (req, res) => {
   );
 };
 
+
+
+const eligible_players = async (req, res) => {
+  const year = parseInt(req.params.year);
+  let league;
+
+  if (year > 2023 || year < 1878) {
+    res.json([]);
+  }
+  
+  // validate league param
+  if (req.params.league != "wta" && req.params.league != "atp") {
+    league = ["atp", "wta"];
+  } else {
+    league = [req.params.league];
+  }
+
+  connection.query(
+    `
+    SELECT name AS label, IDs.id AS id
+    FROM player P INNER JOIN (
+        SELECT DISTINCT id
+        FROM player_stats_yearly
+        WHERE year < ?
+    ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
+    WHERE league IN (?)
+    ORDER BY PS.wins DESC;
+    `,
+    [year, league],
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+}
+
+
+const simulate_match = async (req, res) => {
+  const player1_id = parseInt(req.params.player1_id);
+  const player2_id = parseInt(req.params.player2_id);
+  const year = parseInt(req.params.year);
+
+  connection.query(`
+    SELECT *
+    FROM
+    (SELECT
+      SUM(ace)/SUM(nmatches) as avg_ace_1,
+      SUM(df)/SUM(nmatches) as avg_df_1,
+      SUM(svpt)/SUM(nmatches) as avg_svpt_1,
+      SUM(1stIn)/SUM(nmatches) as avg_1stIn_1,
+      SUM(1stWon)/SUM(nmatches) as avg_1stWon_1,
+      SUM(2ndWon)/SUM(nmatches) as avg_2ndWon_1,
+      SUM(SvGms)/SUM(nmatches) as avg_SvGms_1,
+      SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_1,
+      SUM(bpFaced)/SUM(nmatches) as avg_bpFaced_1
+    FROM player_stats_yearly
+    WHERE id=? AND year < ?) P1 CROSS JOIN
+    (SELECT
+      SUM(ace)/SUM(nmatches) as avg_ace_2,
+      SUM(df)/SUM(nmatches) as avg_df_2,
+      SUM(svpt)/SUM(nmatches) as avg_svpt_2,
+      SUM(1stIn)/SUM(nmatches) as avg_1stIn_2,
+      SUM(1stWon)/SUM(nmatches) as avg_1stWon_2,
+      SUM(2ndWon)/SUM(nmatches) as avg_2ndWon_2,
+      SUM(SvGms)/SUM(nmatches) as avg_SvGms_2,
+      SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_2,
+      SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+    FROM player_stats_yearly
+    WHERE id=? AND year < ?) P2;
+    `,
+    [player1_id, year, player2_id, year],
+    (err, data) => handleResponse(err, data, req.path, res, res_array=false)
+  );
+
+  
+}
+
 module.exports = {
   home,
   player,
@@ -652,4 +726,6 @@ module.exports = {
   betting_statistics,
   player_average_stats,
   match_results,
+  eligible_players,
+  simulate_match,
 };
