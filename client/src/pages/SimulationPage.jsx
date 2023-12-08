@@ -74,9 +74,6 @@ export default function SimulationPage() {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${year}/${league}`)
       .then((res) => res.json())
       .then((resJson) => {
-        setTournament(Array(8).fill(null)); // resets the player ids in tournament array
-        setPlayers(Array(8).fill(null)); // resets player names in players array
-        clearSimulation('', false); // clear all errors, tournament slots, winners
         setPlayerList(resJson); // update with new player list
       })
       .catch((err) => console.log(err));
@@ -327,6 +324,9 @@ export default function SimulationPage() {
 
   // function handles the change of the year
   const handleYearFilter = (value) => {
+    setTournament(Array(8).fill(null)); // resets the player ids in tournament array
+    setPlayers(Array(8).fill(null)); // resets player names in players array
+    clearSimulation('', false); // clear all errors, tournament slots, winners
     setYear(value.year());
   }
 
