@@ -23,7 +23,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import ClearIcon from '@mui/icons-material/Clear';
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dayjs from 'dayjs';
 
 // declare server port and host for requests
@@ -33,25 +33,7 @@ const FLASK_PORT = import.meta.env.VITE_FLASK_PORT;
 
 
 export default function SimulationPage() {
-  /*
-  TODO: When a user resets the date, all dropdowns must reset/clear!!!
-  This is because on the client side we don't have perspective on if the currently selected player
-  has games & stats predating the newly selected year. There is a chance that this player actually
-  doesn't show up in the new list retrieved from the query, but can technically be simulated because
-  it was the current selection when the user changed the query parameters. So we need to reset this
-  every time to be safe (only on the year change) so that we don't try simulate the tournament
-  with some subset of players with no actual data predating the selected year (no feature vector exists for
-    ML model in this case).
-
-  To illustrate - Say we start with Year as 2023, and we put Naomi Osaka in a bracket. And then we change
-  the year to 2002. She had not played a game of professional tennis at that poitnt, so if we query the 
-  db for her feature vector, it will be null, yet, given the current pipeline, we would send that null
-  vector off to the model which would result in erraneous behavior. Not a good ux. Pls fix.
-
-  Otherwise... this is pretty much done
-  */
-
-  const OPTIONS_LIMIT = 500; // number of players to show in autocomplete list
+  const OPTIONS_LIMIT = 750; // number of players to show in autocomplete list
 
   // query filters
   const [league, setLeague] = useState('both'); // league filter
@@ -78,17 +60,56 @@ export default function SimulationPage() {
   const [f2, setF2] = useState();
   const [winner, setWinner] = useState();
 
-  // macro state variable to help with resetting simulation state
-  const [clear, setClear] = useState(false);
-
+  // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${year}/${league}`)
       .then((res) => res.json())
       .then((resJson) => setPlayerList(resJson))
       .catch((err) => console.log(err));
-  }, [year, league]);
+  }, [league]);
 
-  const runTournament = async () => {
+  // retrives new list of players whenever the year of competition is changed
+  useEffect(() => {
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${year}/${league}`)
+      .then((res) => res.json())
+      .then((resJson) => {
+        setTournament(Array(8).fill(null)); // resets the player ids in tournament array
+        setPlayers(Array(8).fill(null)); // resets player names in players array
+        setError(false); // clears any errors
+        setErrorLoc([]); // clears any errors
+        setWinner(); // clears any winner being displayed if there was one
+        setPlayerList(resJson); // update with new player list
+      })
+      .catch((err) => console.log(err));
+  }, [year]);
+
+  // function that clears the stages of the simulation displayed
+  // but leaves the selected players in place in case the user would prefer
+  // not to reconstruct the bracket from scratch but rather use previous players
+  const clearSimulation = (e) => {
+    // reset all tournament stages
+    setWinner();
+    setF1();
+    setF2();
+    setSF1();
+    setSF2();
+    setSF3();
+    setSF4();
+
+    // reset state of simulation and error messaging
+    setSimulating(false);
+    setValidInput(true);
+    setError(false);
+    setErrorLoc([]);
+  }
+
+  // function that handles running the simulation through a stagewise approach
+  // each round: 
+  // - sends a sequence of queries to the Node server for the feature vector representing the match
+  // - formats feature vector and sends to Flask server for processing and prediction using ML model
+  // - updates state variables based on winners and losers of matches, displaying results
+  // - triggers winner display once simulation is over
+  const runSimulation = async () => {
     // construct R1 matchups
     const matchup1 = tournament.slice(0,2);
     const matchup2 = tournament.slice(2,4);
@@ -131,7 +152,7 @@ export default function SimulationPage() {
         // construct semifinal matchups
         const semimatchup1 = [matchup1[result1.prediction], matchup2[result2.prediction]];
         const semimatchup2 = [matchup3[result3.prediction], matchup4[result4.prediction]];
-        
+
         // set semifinalists
         setSF1(semifinalists[0]);
         setSF2(semifinalists[1]);
@@ -177,6 +198,8 @@ export default function SimulationPage() {
     .catch((err) => console.log(err));
   }
 
+  // function that shows the results of the simulation or an error message if
+  // the input players were not valid selections
   const showResults = () => {
     if (error) {
       return (
@@ -203,7 +226,6 @@ export default function SimulationPage() {
         </Box>
       );
     } 
-
     if (winner) {
       return (
         <Box
@@ -225,69 +247,40 @@ export default function SimulationPage() {
     return '';
   }
 
-  const clearSimulation = (e) => {
-    // reset all tournament stages
-    setWinner();
-    setF1();
-    setF2();
-    setSF1();
-    setSF2();
-    setSF3();
-    setSF4();
-
-    // reset state of simulation and error messaging
-    setSimulating(false);
-    setValidInput(true);
-    setError(false);
-    setErrorLoc([]);
-
-    setClear(true);
-    setClear(false);
-  }
-
-  // function handles change of league dropdown
-  const handleLeagueFilter = (e) => {
-    e.preventDefault();
-    setLeague(e.target.value); // set variable to current value of league selected
-  };
-
-  const handleYearFilter = (value) => {
-    setYear(value.year());
-  }
-
-  const handleClick = (e) => {
-    setSimulating(true);
-    runTournament();
-  }
-
-  const filterOptions = createFilterOptions({
-    limit: OPTIONS_LIMIT
-  });
-
-
+  // function that processes the selection of players and validates they are unique
+  // triggers show result if validation is not passed via setError(true)
   const processPlayerSelection = ({e=null, id=null, value, reason=null}) => {
-    var round;
     var seed;
 
     if (id) {
-      round = id.split('-')[0];
       seed = parseInt(id.split('-')[1]) - 1; // get the specific selector number
-      if (round === 'p') {
-        tournament[seed] = reason === 'selectOption' ? value.id : null; // if reason is clear set value to null
-        players[seed] = reason === 'selectOption' ? value.label : null;
-      }
+
+      var tournament_copy = [
+        ...tournament.slice(0,seed), 
+        (reason === 'selectOption' ? value.id : null), 
+        ...tournament.slice(seed+1)
+      ];
+      var players_copy = [
+        ...players.slice(0,seed), 
+        (reason === 'selectOption' ? value.label : null), 
+        ...players.slice(seed+1)
+      ];
+
+      setTournament(tournament_copy);
+      setPlayers(players_copy);
+      
     }
 
-    if (!tournament.some(element => element === null) && new Set(tournament).size === 8) {
+    if (!tournament_copy.some(element => element === null) && new Set(tournament_copy).size === 8) {
       // if array contains no null values and no duplicate values, valid input, allow simulation
       setErrorLoc([]);
       setError(false);
       setValidInput(true);
-    } else if (!tournament.some(element => element === null) && new Set(tournament).size < 8) {
+    } else if (!tournament_copy.some(element => element === null) && new Set(tournament_copy).size < 8) {
       // if array has no null values but contains duplicates show warning, disallow simulation
       const duplicates = [];
-      for (let i = 0; i < tournament.length; i++) {
-        if (tournament.indexOf(tournament[i]) !== i) {
+      for (let i = 0; i < tournament_copy.length; i++) {
+        if (tournament_copy.indexOf(tournament_copy[i]) !== i) {
             duplicates.push(i+1);
         }
       }
@@ -302,6 +295,28 @@ export default function SimulationPage() {
     }
   }
 
+  // function handles change of league dropdown
+  const handleLeagueFilter = (e) => {
+    e.preventDefault();
+    setLeague(e.target.value); // set variable to current value of league selected
+  };
+
+  // function handles the change of the year
+  const handleYearFilter = (value) => {
+    setYear(value.year());
+  }
+
+  // function runs the simulation on the click of the button
+  const handleClick = (e) => {
+    setSimulating(true);
+    runSimulation();
+  }
+
+  // function sets the filter option for the autocomplete dropdown and restricts number of players
+  // VISIBLE to the user within the search to OPTIONS_LIMIT
+  const filterOptions = createFilterOptions({
+    limit: OPTIONS_LIMIT
+  });
 
   return (
     <Container maxWidth={'xl'}>
@@ -393,236 +408,237 @@ export default function SimulationPage() {
 
 
         {/* Row3 columns for data and selectors */}
-        {
-          !clear
-          ?
-          <>
-            <Grid item xs={2}>
-              {/* Round of 8 */}
-              <Stack spacing={12}>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-1"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 1' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-1', value:value, reason:reason})}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-2"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 2' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-2', value:value, reason:reason})}
-                  />
-                </FormControl>
-                
-                {<Divider orientation="horizontal" flexItem />}
+          
+        <Grid item xs={2}>
+          {/* Round of 8 */}
+          <Stack spacing={12}>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-1'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-1"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 1' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-1', value:value, reason:reason})}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-2'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-2"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 2' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-2', value:value, reason:reason})}
+              />
+            </FormControl>
+            
+            {<Divider orientation="horizontal" flexItem />}
 
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-3"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 3' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-3', value:value, reason:reason})}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-4"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 4' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-4', value:value, reason:reason})}
-                  />
-                </FormControl>
-              </Stack>
-            </Grid>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-3'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-3"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 3' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-3', value:value, reason:reason})}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-4'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-4"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 4' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-4', value:value, reason:reason})}
+              />
+            </FormControl>
+          </Stack>
+        </Grid>
 
-            <Grid item xs={2}>
-              {/* Round of 4 */}
-              <Stack spacing={41}>
-                <FormControl fullWidth>
-                  <TextField
-                    id='sf-1'
-                    label={sf1 ? sf1 : 'Semi-Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-                <FormControl fullWidth>
-                  <TextField
-                    id='sf-2'
-                    label={sf2 ? sf2 : 'Semi-Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-              </Stack>
-            </Grid>
+        <Grid item xs={2}>
+          {/* Round of 4 */}
+          <Stack spacing={41}>
+            <FormControl fullWidth>
+              <TextField
+                id='sf-1'
+                label={sf1 ? sf1 : 'Semi-Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                id='sf-2'
+                label={sf2 ? sf2 : 'Semi-Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+          </Stack>
+        </Grid>
 
-            <Grid item xs={2}>
-              {/* Final */}
-              <Stack>
-                <FormControl fullWidth>
-                  <TextField
-                    id='f-1'
-                    label={f1 ? f1 : 'Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-              </Stack>
-            </Grid>
-            <Grid item xs={2}>
-              {/* Final */}
-              <Stack>
-                <FormControl fullWidth>
-                  <TextField
-                    id='f-2'
-                    label={f2 ? f2 : 'Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-              </Stack>
-            </Grid>
+        <Grid item xs={2}>
+          {/* Final */}
+          <Stack>
+            <FormControl fullWidth>
+              <TextField
+                id='f-1'
+                label={f1 ? f1 : 'Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+          </Stack>
+        </Grid>
+        <Grid item xs={2}>
+          {/* Final */}
+          <Stack>
+            <FormControl fullWidth>
+              <TextField
+                id='f-2'
+                label={f2 ? f2 : 'Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+          </Stack>
+        </Grid>
 
-            <Grid item xs={2}>
-              {/* Round of 4 */}
-              <Stack spacing={41}>
-                <FormControl fullWidth>
-                  <TextField
-                    id='sf-3'
-                    label={sf3 ? sf3 : 'Semi-Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-                <FormControl fullWidth>
-                  <TextField
-                    id='sf-4'
-                    label={sf4 ? sf4 : 'Semi-Finalist'}
-                    size='small'
-                    disabled
-                  >
-                  </TextField>
-                </FormControl>
-              </Stack>
-            </Grid>
+        <Grid item xs={2}>
+          {/* Round of 4 */}
+          <Stack spacing={41}>
+            <FormControl fullWidth>
+              <TextField
+                id='sf-3'
+                label={sf3 ? sf3 : 'Semi-Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                id='sf-4'
+                label={sf4 ? sf4 : 'Semi-Finalist'}
+                size='small'
+                disabled
+              >
+              </TextField>
+            </FormControl>
+          </Stack>
+        </Grid>
 
-            <Grid item xs={2}>
-              {/* Round of 8 */}
-              <Stack spacing={12}>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-5"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 5' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-5', value:value, reason:reason})}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-6"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 6' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-6', value:value, reason:reason})}
-                  />
-                </FormControl>
+        <Grid item xs={2}>
+          {/* Round of 8 */}
+          <Stack spacing={12}>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-5'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-5"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 5' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-5', value:value, reason:reason})}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-6'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-6"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 6' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-6', value:value, reason:reason})}
+              />
+            </FormControl>
 
-                {<Divider orientation="horizontal" flexItem />}
+            {<Divider orientation="horizontal" flexItem />}
 
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-7"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 7' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-7', value:value, reason:reason})}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    filterOptions={filterOptions}
-                    disabled={simulating}
-                    size='small'
-                    disablePortal
-                    id="p-8"
-                    options={playerList}
-                    sx={{ width: '100%' }}
-                    getOptionKey={(option) => option.id}
-                    renderInput={(params) => 
-                      <TextField {...params} label='Player 8' color='success' />
-                    }
-                    onChange={(e, value, reason) => processPlayerSelection({id:'p-8', value:value, reason:reason})}
-                  />
-                </FormControl>
-              </Stack>
-            </Grid>
-          </>
-          :
-          <></>
-        }
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-7'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-7"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 7' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-7', value:value, reason:reason})}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <Autocomplete
+                key={year.toString()+'p-8'} // forces component to rerender when year changes, which signals a change in the list of possible players
+                filterOptions={filterOptions}
+                disabled={simulating}
+                size='small'
+                disablePortal
+                id="p-8"
+                options={playerList}
+                sx={{ width: '100%' }}
+                getOptionKey={(option) => option.id}
+                renderInput={(params) => 
+                  <TextField {...params} label='Player 8' color='success' />
+                }
+                onChange={(e, value, reason) => processPlayerSelection({id:'p-8', value:value, reason:reason})}
+              />
+            </FormControl>
+          </Stack>
+        </Grid>
 
 
         { 
