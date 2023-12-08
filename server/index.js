@@ -33,7 +33,7 @@ app.get("/api/tournament/find/:name/:league/:date", routes.tournament_select);
 app.get("/api/tournament/stats/:name/:decade/:league", routes.tournament_alltime);
 app.get("/api/simulation/:year/:league", routes.eligible_players);
 app.get("/api/tournament/:name/:league/:date", routes.getmatches);
-
+app.get("/api/simulation/:player1_id/:player2_id/:year", routes.simulate_match);
 
 
 //TODO: redundancy on tournament
