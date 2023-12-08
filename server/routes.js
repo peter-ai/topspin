@@ -263,14 +263,10 @@ const compare = async (req, res) => {
   } else {
     connection.query(
       `
-      SELECT P.name, P.league, P.hand, P.height, S.player_id,
-          S.wins, S.win_percentage, S.losses, S.loss_percentage,
-          S.total_games, S.avg_l_1stIn, S.avg_l_1stWon, S.avg_l_2ndWon,
-          S.avg_l_ace, S.avg_l_age, S.avg_l_bpFaced, S.avg_l_bpSaved,
-          S.avg_l_df, S.avg_l_minutes, S.avg_l_SvGms, S.avg_l_svpt,
-          S.avg_w_1stIn, S.avg_w_1stWon, S.avg_w_2ndWon, S.avg_w_ace,
-          S.avg_w_age, S.avg_w_bpFaced, S.avg_w_bpSaved, S.avg_w_df, 
-          S.avg_w_minutes, S.avg_w_SvGms, S.avg_w_svpt
+      SELECT P.name, S.player_id, S.wins, S.win_percentage, S.total_games,
+          S.ttl_ovr_minutes, S.avg_ovr_1stIn, S.avg_ovr_1stWon, S.avg_ovr_2ndWon,
+          S.avg_ovr_ace, S.avg_ovr_bpFaced, S.avg_ovr_bpSaved,
+          S.avg_ovr_df, S.avg_ovr_minutes, S.avg_ovr_SvGms, S.avg_ovr_svpt
       FROM player_stats S
           JOIN player P ON S.player_id = P.id
       WHERE S.player_id IN (?, ?)
@@ -397,7 +393,7 @@ const tournament_alltime = async (req, res) => {
   );
 };
 
-// route that retrieves all distinct tournament names, with league and year info 
+// route that retrieves all distinct tournament names, with league and year info
 const tournament_names = async (req, res) => {
   connection.query(
     `
@@ -416,7 +412,7 @@ const tournament_names = async (req, res) => {
   );
 };
 
-// route that retrieves all distinct tournament names, with league and year info 
+// route that retrieves all distinct tournament names, with league and year info
 const tname = async (req, res) => {
   const tournament_id = req.params.id;
 
@@ -425,7 +421,7 @@ const tname = async (req, res) => {
     res.json([]);
     // otherwise try execute query
   } else {
-      connection.query(
+    connection.query(
       `
       SELECT 
       name, surface, league, YEAR(start_date) as year
