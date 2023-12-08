@@ -31,6 +31,7 @@ app.get("/api/tournament", routes.tournament_home);
 app.get("/api/tournamentnames", routes.tournament_names);
 app.get("/api/tournament/:id", routes.tournament_select);
 app.get("/api/tournament/stats/:name/:decade?", routes.tournament_alltime);
+app.get("/api/simulation/:year/:league", routes.eligible_players);
 
 //TODO: redundancy on tournament
 app.get("/api/tournament/data/:id", routes.tname);

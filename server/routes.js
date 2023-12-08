@@ -633,6 +633,40 @@ const match_results = async (req, res) => {
   );
 };
 
+
+
+const eligible_players = async (req, res) => {
+  const year = parseInt(req.params.year);
+  let league;
+
+  if (year > 2023 || year < 1878) {
+    res.json([]);
+  }
+  
+  // validate league param
+  if (req.params.league != "wta" && req.params.league != "atp") {
+    league = ["atp", "wta"];
+  } else {
+    league = [req.params.league];
+  }
+
+  connection.query(
+    `
+    SELECT name AS label, IDs.id AS id
+    FROM player P INNER JOIN (
+        SELECT DISTINCT id
+        FROM player_stats_yearly
+        WHERE year < ?
+    ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
+    WHERE league IN (?)
+    ORDER BY PS.wins DESC;
+    `,
+    [year, league],
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+}
+
+
 module.exports = {
   home,
   player,
@@ -652,4 +686,5 @@ module.exports = {
   betting_statistics,
   player_average_stats,
   match_results,
+  eligible_players,
 };
