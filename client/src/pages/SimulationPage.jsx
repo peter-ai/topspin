@@ -12,7 +12,8 @@ import {
   createFilterOptions, 
   Divider, 
   Box, 
-  Button
+  Button,
+  FormHelperText
 } from "@mui/material";
 import Fade from '@mui/material/Fade';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -75,9 +76,7 @@ export default function SimulationPage() {
       .then((resJson) => {
         setTournament(Array(8).fill(null)); // resets the player ids in tournament array
         setPlayers(Array(8).fill(null)); // resets player names in players array
-        setError(false); // clears any errors
-        setErrorLoc([]); // clears any errors
-        setWinner(); // clears any winner being displayed if there was one
+        clearSimulation('', false); // clear all errors, tournament slots, winners
         setPlayerList(resJson); // update with new player list
       })
       .catch((err) => console.log(err));
@@ -86,7 +85,7 @@ export default function SimulationPage() {
   // function that clears the stages of the simulation displayed
   // but leaves the selected players in place in case the user would prefer
   // not to reconstruct the bracket from scratch but rather use previous players
-  const clearSimulation = (e) => {
+  const clearSimulation = (e, tournament=true) => {
     // reset all tournament stages
     setWinner();
     setF1();
@@ -98,7 +97,7 @@ export default function SimulationPage() {
 
     // reset state of simulation and error messaging
     setSimulating(false);
-    setValidInput(true);
+    setValidInput(tournament);
     setError(false);
     setErrorLoc([]);
   }
@@ -110,6 +109,8 @@ export default function SimulationPage() {
   // - updates state variables based on winners and losers of matches, displaying results
   // - triggers winner display once simulation is over
   const runSimulation = async () => {
+    const delay = 1500; // create delay between simulation of rounds to make staged progession more natural
+
     // construct R1 matchups
     const matchup1 = tournament.slice(0,2);
     const matchup2 = tournament.slice(2,4);
@@ -117,26 +118,38 @@ export default function SimulationPage() {
     const matchup4 = tournament.slice(6);
 
     // query node server for stats vector and then query flask server for prediction
-    const match1 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup1[0]}/${matchup1[1]}/${year}`)
-      .then((res) => res.json())
-      .then((resJson) => Object.values(resJson).join(','))
-      .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-      .then((res) => res.json())
-    const match2 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup2[0]}/${matchup2[1]}/${year}`)
-      .then((res) => res.json())
-      .then((resJson) => Object.values(resJson).join(','))
-      .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-      .then((res) => res.json())
-    const match3 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup3[0]}/${matchup3[1]}/${year}`)
-      .then((res) => res.json())
-      .then((resJson) => Object.values(resJson).join(','))
-      .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-      .then((res) => res.json())
-    const match4 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup4[0]}/${matchup4[1]}/${year}`)
-      .then((res) => res.json())
-      .then((resJson) => Object.values(resJson).join(','))
-      .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-      .then((res) => res.json())
+    const match1 = new Promise(resolve => setTimeout(resolve, delay)) 
+      .then(() =>
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup1[0]}/${matchup1[1]}/${year}`)
+          .then((res) => res.json())
+          .then((resJson) => Object.values(resJson).join(','))
+          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((res) => res.json())
+      );
+    const match2 = new Promise(resolve => setTimeout(resolve, delay)) 
+      .then(() =>
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup2[0]}/${matchup2[1]}/${year}`)
+          .then((res) => res.json())
+          .then((resJson) => Object.values(resJson).join(','))
+          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((res) => res.json())
+      );
+    const match3 = new Promise(resolve => setTimeout(resolve, delay)) 
+      .then(() =>
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup3[0]}/${matchup3[1]}/${year}`)
+          .then((res) => res.json())
+          .then((resJson) => Object.values(resJson).join(','))
+          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((res) => res.json())
+      );
+    const match4 = new Promise(resolve => setTimeout(resolve, delay)) 
+      .then(() =>
+        fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup4[0]}/${matchup4[1]}/${year}`)
+          .then((res) => res.json())
+          .then((resJson) => Object.values(resJson).join(','))
+          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((res) => res.json())
+      );
 
     // proceed once all promises have been fulfilled
     Promise.all([match1, match2, match3, match4])
@@ -159,17 +172,24 @@ export default function SimulationPage() {
         setSF3(semifinalists[2]);
         setSF4(semifinalists[3]);
         
-        const semimatch1 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup1[0]}/${semimatchup1[1]}/${year}`)
-          .then((res) => res.json())
-          .then((resJson) => Object.values(resJson).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-          .then((res) => res.json())
-        const semimatch2 = fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup2[0]}/${semimatchup2[1]}/${year}`)
-          .then((res) => res.json())
-          .then((resJson) => Object.values(resJson).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-          .then((res) => res.json())
+        const semimatch1 = new Promise(resolve => setTimeout(resolve, delay)) 
+          .then(() =>
+            fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup1[0]}/${semimatchup1[1]}/${year}`)
+              .then((res) => res.json())
+              .then((resJson) => Object.values(resJson).join(','))
+              .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+              .then((res) => res.json())
+          );
+        const semimatch2 = new Promise(resolve => setTimeout(resolve, delay)) 
+          .then(() =>
+            fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup2[0]}/${semimatchup2[1]}/${year}`)
+              .then((res) => res.json())
+              .then((resJson) => Object.values(resJson).join(','))
+              .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+              .then((res) => res.json())
+          );
 
+        // proceed once all promises are fulfilled  
         Promise.all([semimatch1, semimatch2])
           .then(([semi1result, semi2result])=> {
             // retrieve names of players in final
@@ -182,16 +202,20 @@ export default function SimulationPage() {
             // set finalists
             setF1(finalists[0]);
             setF2(finalists[1]);
-            
-            fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${final[0]}/${final[1]}/${year}`)
-              .then((res) => res.json())
-              .then((resJson) => Object.values(resJson).join(','))
-              .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
-              .then((res) => res.json())
-              .then((resJson) => {
-                setWinner(finalists[resJson.prediction]);
-                setSimulating(false);
-              })
+
+            // run final
+            new Promise(resolve => setTimeout(resolve, delay)) 
+              .then(() =>
+                fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${final[0]}/${final[1]}/${year}`)
+                  .then((res) => res.json())
+                  .then((resJson) => Object.values(resJson).join(','))
+                  .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+                  .then((res) => res.json())
+                  .then((resJson) => {
+                    setWinner(finalists[resJson.prediction]);
+                    setSimulating(false);
+                  })
+              );
           })
           .catch((err) => console.log(err));  
     })
@@ -238,7 +262,7 @@ export default function SimulationPage() {
               align='center'
               variant='h6'
             >
-              <strong>{winner}</strong> has won the TopSpin Cup!
+              <strong>{winner}</strong> has won the {year} TopSpin Cup!
             </Typography>
           </Fade>
         </Box>
@@ -342,9 +366,8 @@ export default function SimulationPage() {
             TopSpin Cup
           </Typography>
         </Grid>
-        
         <Grid item xs={2} textAlign={'end'} pr={1}>
-          <FormControl sx={{ width: '80%' }}>
+          <FormControl sx={{ width: '90%' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label={'Competition Year'}
@@ -361,7 +384,7 @@ export default function SimulationPage() {
           </FormControl>
         </Grid>
         <Grid item xs={2} textAlign={'start'} pl={1}>
-          <FormControl sx={{ width: '80%' }}>
+          <FormControl sx={{ width: '90%' }}>
             <InputLabel id="select-league" color="success">
               League
             </InputLabel>
@@ -392,23 +415,36 @@ export default function SimulationPage() {
               loading={simulating}
               loadingPosition='start'
               startIcon={<SportsTennisIcon />}
-              onClick={(e) => handleClick(e)} // to be updated with logic
+              onClick={(e) => handleClick(e)}
             >
               <span>{simulating ? 'Simulating...' : 'Run Simulation'}</span>
             </LoadingButton>
           </FormControl>
         </Grid>
 
-        {/* Row2 for winner, error messages, and loading bar */}
+        {/* Row2 display helper text */}
+        <Grid container textAlign={'center'}>
+          <Grid item xs={12}>
+            <Box margin={'auto'}>
+              <Typography
+                variant='caption'
+                align='center'
+                color={'rgba(117, 114, 125, 1)'}
+              >
+                {'Filter player selection by year or league'.toUpperCase()}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Row3 for display of winner and error messages */}
         <Grid item xs={12} alignItems={'center'}>
           {
             showResults()
           }
         </Grid>
 
-
-        {/* Row3 columns for data and selectors */}
-          
+        {/* Row4 columns for data and selectors */}
         <Grid item xs={2}>
           {/* Round of 8 */}
           <Stack spacing={12}>
@@ -640,7 +676,7 @@ export default function SimulationPage() {
           </Stack>
         </Grid>
 
-
+        {/* Row5 display helper text */}
         { 
           winner 
           ?
