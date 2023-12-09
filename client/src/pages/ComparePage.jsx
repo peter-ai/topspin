@@ -41,34 +41,54 @@ export default function ComparePage() {
   });
   const [compareData, setCompareData] = useState([]);
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
-  const [league, setLeague] = useState("both"); // league filter
-  const [playerList, setPlayerList] = useState([]); // players that match filters
+  const [player1League, setPlayer1League] = useState("both"); // league filter
+  const [player2League, setPlayer2League] = useState("both"); // league filter
+  const [player1List, setPlayer1List] = useState([]); // players that match filters
+  const [player2List, setPlayer2List] = useState([]); // players that match filters
   const [displayPlayer1Form, setDisplayPlayer1Form] = useState(false);
   const [displayPlayer2Form, setDisplayPlayer2Form] = useState(false);
 
   // function handles change of league dropdown
-  const handleLeagueFilter = (e) => {
+  const handlePlayer1LeagueFilter = (e) => {
     e.preventDefault();
-    setLeague(e.target.value); // set variable to current value of league selected
+    setPlayer1League(e.target.value); // set variable to current value of league selected
+  };
+
+  // function handles change of league dropdown
+  const handlePlayer2LeagueFilter = (e) => {
+    e.preventDefault();
+    setPlayer2League(e.target.value); // set variable to current value of league selected
   };
 
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
+    fetch(
+      `http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${player1League}`
+    )
       .then((res) => res.json())
-      .then((resJson) => setPlayerList(resJson))
+      .then((resJson) => setPlayer1List(resJson))
       .catch((err) => console.log(err));
-  }, [league]);
+  }, [player1League]);
 
-  // retrives list of players on initial entry
+  // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
+    fetch(
+      `http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${player2League}`
+    )
       .then((res) => res.json())
-      .then((resJson) => {
-        setPlayerList(resJson); // update with new player list
-      })
+      .then((resJson) => setPlayer2List(resJson))
       .catch((err) => console.log(err));
-  }, [league]);
+  }, [player2League]);
+
+  // // retrives list of players on initial entry
+  // useEffect(() => {
+  //   fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
+  //     .then((res) => res.json())
+  //     .then((resJson) => {
+  //       setPlayerList(resJson); // update with new player list
+  //     })
+  //     .catch((err) => console.log(err));
+  // }, [league]);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
@@ -123,11 +143,7 @@ export default function ComparePage() {
   };
 
   const clickPlayerTwo = () => {
-    setPlayer2({
-      name: "Jess Escobar",
-      id: 2,
-      src: getPlayerSrc("atp"),
-    });
+    setDisplayPlayer2Form(true);
   };
 
   // function sets the filter option for the autocomplete dropdown and restricts number of players
@@ -155,10 +171,10 @@ export default function ComparePage() {
             <Select
               labelId="select-league"
               size="small"
-              id="league"
-              value={league}
+              id="league1"
+              value={player1League}
               label="League"
-              onChange={handleLeagueFilter}
+              onChange={handlePlayer1LeagueFilter}
               color="success"
             >
               <MenuItem value={"both"}>Both</MenuItem>
@@ -172,11 +188,11 @@ export default function ComparePage() {
             filterOptions={filterOptions}
             size="small"
             disablePortal
-            id="player"
-            options={playerList}
+            id="player1"
+            options={player1List}
             getOptionKey={(option) => option.id}
             renderInput={(params) => (
-              <TextField {...params} label="Player 2" color="success" />
+              <TextField {...params} label="Player 1" color="success" />
             )}
           />
         </Grid>
@@ -214,10 +230,10 @@ export default function ComparePage() {
             <Select
               labelId="select-league"
               size="small"
-              id="league"
-              value={league}
+              id="league2"
+              value={player2League}
               label="League"
-              onChange={handleLeagueFilter}
+              onChange={handlePlayer2LeagueFilter}
               color="success"
             >
               <MenuItem value={"both"}>Both</MenuItem>
@@ -231,8 +247,8 @@ export default function ComparePage() {
             filterOptions={filterOptions}
             size="small"
             disablePortal
-            id="player"
-            options={playerList}
+            id="player2"
+            options={player2List}
             getOptionKey={(option) => option.id}
             renderInput={(params) => (
               <TextField {...params} label="Player 2" color="success" />
