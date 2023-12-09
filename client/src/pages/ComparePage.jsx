@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import AddIcon from "@mui/icons-material/Add";
 import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
 import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
@@ -406,7 +405,7 @@ export default function ComparePage() {
             maxWidth={"md"}
             spacing={1}
           >
-            {compareResultLine("Total games played", "total_games")}
+            {compareResultLine("Total matches played", "total_games")}
             {compareResultLine("Career wins", "wins")}
             {compareResultLine(
               "Career winning percentage",
