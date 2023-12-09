@@ -8,9 +8,6 @@ import {
   Autocomplete,
   TextField,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   createFilterOptions,
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
@@ -140,7 +137,7 @@ export default function ComparePage() {
       setPlayer1({
         name: value.label,
         id: value.id,
-        src: getPlayerSrc("atp", value.id),
+        src: getPlayerSrc(value.league, value.id),
       });
       setDisplayPlayer1Form(false);
     }
@@ -198,7 +195,7 @@ export default function ComparePage() {
       setPlayer2({
         name: value.label,
         id: value.id,
-        src: getPlayerSrc("atp", value.id),
+        src: getPlayerSrc(value.league, value.id),
       });
       setDisplayPlayer2Form(false);
     }
