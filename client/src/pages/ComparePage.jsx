@@ -98,17 +98,6 @@ export default function ComparePage() {
 
   // select image based on player's league and id
   const getPlayerSrc = (league, id) => {
-    // src={
-    //   player.league === "atp"
-    //     ? player.id % 2
-    //       ? atp_logo_1
-    //       : atp_logo_2
-    //     : player.id % 2
-    //     ? wta_logo_1
-    //     : wta_logo_2
-    // }
-    console.log(league);
-
     return league === "atp"
       ? id % 2
         ? atp_logo_1
@@ -134,12 +123,15 @@ export default function ComparePage() {
 
   const processPlayer1Selection = ({ e = null, id = null, value }) => {
     if (id) {
+      setDisplayPlayer1Form(false);
+      if (displayCompareCard) {
+        setDisplayCompareCard(false);
+      }
       setPlayer1({
         name: value.label,
         id: value.id,
         src: getPlayerSrc(value.league, value.id),
       });
-      setDisplayPlayer1Form(false);
     }
   };
 
@@ -192,12 +184,15 @@ export default function ComparePage() {
 
   const processPlayer2Selection = ({ e = null, id = null, value }) => {
     if (id) {
+      setDisplayPlayer2Form(false);
+      if (displayCompareCard) {
+        setDisplayCompareCard(false);
+      }
       setPlayer2({
         name: value.label,
         id: value.id,
         src: getPlayerSrc(value.league, value.id),
       });
-      setDisplayPlayer2Form(false);
     }
   };
 
@@ -378,11 +373,6 @@ export default function ComparePage() {
           maxWidth={"md"}
           spacing={1}
         >
-          {/* <Grid item xs={12}>
-            <Typography textAlign={"center"} variant="h5">
-              Career results
-            </Typography>
-          </Grid> */}
           {compareResultLine("Total games played", "total_games")}
           {compareResultLine("Career wins", "wins")}
           {compareResultLine(
