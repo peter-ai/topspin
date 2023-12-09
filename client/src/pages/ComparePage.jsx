@@ -6,6 +6,12 @@ import {
   Avatar,
   Badge,
   Autocomplete,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  createFilterOptions,
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
@@ -20,6 +26,8 @@ const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function ComparePage() {
+  const OPTIONS_LIMIT = 250; // number of players to show in autocomplete list
+
   // initial state objects for player 1 and player 2 (default name is Player 1 and Player 2, ids are null)
   const [player1, setPlayer1] = useState({
     name: "Player 1",
@@ -35,6 +43,12 @@ export default function ComparePage() {
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
   const [league, setLeague] = useState("both"); // league filter
   const [playerList, setPlayerList] = useState([]); // players that match filters
+
+  // function handles change of league dropdown
+  const handleLeagueFilter = (e) => {
+    e.preventDefault();
+    setLeague(e.target.value); // set variable to current value of league selected
+  };
 
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
@@ -52,7 +66,7 @@ export default function ComparePage() {
         setPlayerList(resJson); // update with new player list
       })
       .catch((err) => console.log(err));
-  }, []);
+  }, [league]);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
@@ -118,10 +132,62 @@ export default function ComparePage() {
     });
   };
 
+  // function sets the filter option for the autocomplete dropdown and restricts number of players
+  // VISIBLE to the user within the search to OPTIONS_LIMIT
+  const filterOptions = createFilterOptions({
+    limit: OPTIONS_LIMIT,
+  });
+
+  const selectPlayerForm = () => {
+    return (
+      <Grid
+        item
+        direction="column"
+        container
+        xs={3.5}
+        justifyContent={"center"}
+        alignItems={"center"}
+        spacing={2}
+      >
+        <FormControl sx={{ width: "60%" }}>
+          <InputLabel id="select-league" color="success">
+            League
+          </InputLabel>
+          <Select
+            labelId="select-league"
+            size="small"
+            id="league"
+            value={league}
+            label="League"
+            onChange={handleLeagueFilter}
+            color="success"
+          >
+            <MenuItem value={"both"}>Both</MenuItem>
+            <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
+            <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Autocomplete
+          sx={{ width: "60%", marginTop: 3 }}
+          filterOptions={filterOptions}
+          size="small"
+          disablePortal
+          id="player"
+          options={playerList}
+          getOptionKey={(option) => option.id}
+          renderInput={(params) => (
+            <TextField {...params} label="Player 2" color="success" />
+          )}
+        />
+      </Grid>
+    );
+  };
+
   // constructs the player avatar, which can be clicked to select a player
   const playerAvatar = (player, clickPlayer) => {
     return (
-      <Grid item container xs={2} marginX={5} justifyContent={"center"}>
+      <Grid item container xs={2} justifyContent={"center"}>
         <Badge
           overlap="circular"
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -320,6 +386,7 @@ export default function ComparePage() {
 
       {/* Player avatars and names */}
       <Grid container alignItems="center" justifyContent="center" marginTop={5}>
+        {selectPlayerForm()}
         {playerAvatar(player1, clickPlayerOne)}
         <Grid item xs={1} marginBottom={5}>
           <Typography
@@ -334,66 +401,10 @@ export default function ComparePage() {
           </Typography>
         </Grid>
         {playerAvatar(player2, clickPlayerTwo)}
+        {selectPlayerForm()}
       </Grid>
 
       {compareCard()}
-
-      <Autocomplete
-        disablePortal
-        id="combo-box-demo"
-        options={top100Films}
-        sx={{ width: 300 }}
-        renderInput={(params) => <TextField {...params} label="Movie" />}
-      />
     </Container>
   );
-
-  // // GET request to /player
-  // useEffect(() => {
-  //   fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player`)
-  //     .then((res) => res.json())
-  //     .then((res) => setPlayers(res.slice(0, 10)))
-  //     .catch((err) => console.log(err));
-  // }, []); // run on page load
-
-  // // TODO abstract these into a single helper function
-  // // handles change for player1 and player2
-  // const handlePlayer1Change = (e) => {
-  //   e.preventDefault();
-  //   setPlayer1(e.target.value);
-  // };
-
-  // // handles change for player1 and player2
-  // const handlePlayer2Change = (e) => {
-  //   e.preventDefault();
-  //   setPlayer2(e.target.value);
-  // };
-
-  // // TODO logs compare data to screen for now
-  // useEffect(() => {
-  //   console.log(compareData);
-  // }, [compareData]);
-
-  // return (
-  //   <>
-  //     <h1>Compare</h1>
-  //     <h2>Pick two players and compare their career performance!</h2>
-  //     <select name="player1" id="player1" onChange={handlePlayer1Change}>
-  //       <option value="">Select a player</option>
-  //       {players.map((player) => (
-  //         <option key={player.id} value={player.id}>
-  //           {player.name}
-  //         </option>
-  //       ))}
-  //     </select>
-  //     <select name="player2" id="player2" onChange={handlePlayer2Change}>
-  //       <option value="">Select a player</option>
-  //       {players.map((player) => (
-  //         <option key={player.id} value={player.id}>
-  //           {player.name}
-  //         </option>
-  //       ))}
-  //     </select>
-  //   </>
-  // );
 }
