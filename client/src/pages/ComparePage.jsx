@@ -11,6 +11,7 @@ import {
   createFilterOptions,
   Fade,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
 import AddIcon from "@mui/icons-material/Add";
@@ -24,18 +25,21 @@ const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function ComparePage() {
+  const { league, player1Name, player1Id, player2Name, player2Id } =
+    useParams(); // route parameters for tournament id and match number
+
   const OPTIONS_LIMIT = 250; // number of players to show in autocomplete list
 
   // initial state objects for player 1 and player 2 (default name is Player 1 and Player 2, ids are null)
   const [player1, setPlayer1] = useState({
-    name: "Player 1",
-    id: null,
-    src: "",
+    name: player1Name ? player1Name : "Player 1",
+    id: player1Id ? player1Id : null,
+    src: league ? (league === "atp" ? atp_logo_1 : wta_logo_1) : "",
   });
   const [player2, setPlayer2] = useState({
-    name: "Player 2",
-    id: null,
-    src: "",
+    name: player2Name ? player2Name : "Player 2",
+    id: player2Id ? player2Id : null,
+    src: league ? (league === "atp" ? atp_logo_2 : wta_logo_2) : "",
   });
   const [compareData, setCompareData] = useState([]);
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
@@ -46,8 +50,9 @@ export default function ComparePage() {
   const [isSamePlayer, setIsSamePlayer] = useState(false);
 
   const fixOrderOfCompareData = (res) => {
+    console.log(res);
     const buildCompareData = [];
-    if (res[0].player_id === player1.id) {
+    if (res[0].player_id == player1.id) {
       buildCompareData.push(res[0]);
       buildCompareData.push(res[1]);
     } else {
@@ -70,7 +75,6 @@ export default function ComparePage() {
           })
           .catch((err) => console.log(err));
       } else {
-        console.log("this is rendering");
         setIsSamePlayer(true);
       }
     }
