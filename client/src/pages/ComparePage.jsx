@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Grid, Typography, Container, Avatar } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
+import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -47,11 +49,13 @@ export default function ComparePage() {
           container
           spacing={2}
           maxWidth={"sm"}
-          textAlign={"center"}
           justifyContent={"center"}
+          alignItems={"center"}
         >
           <Grid item xs={12}>
-            <Typography variant="h5">Career match results</Typography>
+            <Typography textAlign={"center"} variant="h5">
+              Career match results
+            </Typography>
           </Grid>
           {compareResultLine("Total games played", "total_games")}
           {compareResultLine("Career wins", "wins")}
@@ -61,7 +65,7 @@ export default function ComparePage() {
             true
           )}
           {compareResultLine("Career minutes played", "ttl_ovr_minutes")}
-          {compareResultLine("Average duration", "avg_ovr_minutes")}
+          {compareResultLine("Average match duration", "avg_ovr_minutes")}
           {compareResultLine("Average aces", "avg_ovr_ace")}
           {compareResultLine("Average double faults", "avg_ovr_df")}
           {compareResultLine("Average serve points", "avg_ovr_svpt")}
@@ -82,6 +86,27 @@ export default function ComparePage() {
     }
   };
 
+  const generateArrow = (category, direction) => {
+    const isMinResult = ["avg_ovr_df", "avg_ovr_bpFaced", "avg_ovr_minutes"];
+    if (
+      compareData[0][category] !== null &&
+      compareData[1][category] !== null
+    ) {
+      if (direction === "left") {
+        if (isMinResult.includes(category)) {
+          return compareData[0][category] < compareData[1][category];
+        }
+        return compareData[0][category] > compareData[1][category];
+      } else if (direction === "right") {
+        if (isMinResult.includes(category)) {
+          return compareData[0][category] > compareData[1][category];
+        }
+        return compareData[0][category] < compareData[1][category];
+      }
+    }
+    return false;
+  };
+
   // constructs individual result lines in the compare card
   const compareResultLine = (
     categoryName,
@@ -90,18 +115,38 @@ export default function ComparePage() {
   ) => {
     return (
       <Grid item xs={12}>
-        <Grid container>
-          <Grid item xs={3}>
+        <Grid textAlign={"center"} container>
+          <Grid item xs={2}>
             <Typography>
               {compareData[0][category] !== null
                 ? formatNumber(compareData[0][category], isWinPercentage)
                 : "N/A"}
             </Typography>
           </Grid>
+          <Grid item xs={1}>
+            {generateArrow(category, "left") ? (
+              <ArrowLeftSharpIcon
+                sx={{ color: "success.main" }}
+                fontSize="large"
+              />
+            ) : (
+              <></>
+            )}
+          </Grid>
           <Grid item xs={6}>
             <Typography>{categoryName}</Typography>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={1}>
+            {generateArrow(category, "right") ? (
+              <ArrowRightSharpIcon
+                sx={{ color: "success.main" }}
+                fontSize="large"
+              />
+            ) : (
+              <></>
+            )}
+          </Grid>
+          <Grid item xs={2}>
             <Typography>
               {compareData[1][category] !== null
                 ? formatNumber(compareData[1][category], isWinPercentage)
