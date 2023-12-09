@@ -263,9 +263,9 @@ const compare = async (req, res) => {
     connection.query(
       `
       SELECT P.name, S.player_id, S.wins, S.win_percentage, S.total_games,
-          S.ttl_ovr_minutes, S.avg_ovr_1stIn, S.avg_ovr_1stWon, S.avg_ovr_2ndWon,
+          S.avg_ovr_1stIn, S.avg_ovr_1stWon, S.avg_ovr_2ndWon,
           S.avg_ovr_ace, S.avg_ovr_bpFaced, S.avg_ovr_bpSaved,
-          S.avg_ovr_df, S.avg_ovr_minutes, S.avg_ovr_SvGms, S.avg_ovr_svpt
+          S.avg_ovr_df, S.avg_ovr_SvGms, S.avg_ovr_svpt
       FROM player_stats S
           JOIN player P ON S.player_id = P.id
       WHERE S.player_id IN (?, ?)
