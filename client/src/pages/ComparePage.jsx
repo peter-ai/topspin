@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Grid, Typography, Container, Avatar } from "@mui/material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Grid, Typography, Container, Avatar, Badge } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
+import AddIcon from "@mui/icons-material/Add";
+import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
+import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
+import wta_logo_1 from "../assets/imgs/wta-silhouette-1.png";
+import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -10,8 +14,18 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function ComparePage() {
   // initial state objects for player 1 and player 2 (default name is Player 1 and Player 2, ids are null)
-  const [player1, setPlayer1] = useState({ name: "Player 1", id: null });
-  const [player2, setPlayer2] = useState({ name: "Player 2", id: null });
+  const [player1, setPlayer1] = useState({
+    name: "Player 1",
+    id: null,
+    src: "",
+  });
+  const [player2, setPlayer2] = useState({
+    name: "Player 2",
+    id: null,
+    src: "",
+  });
+  // const [player1ImgSrc, setPlayer1ImgSrc] = useState("");
+  // const [player2ImgSrc, setPlayer2ImgSrc] = useState("");
   const [compareData, setCompareData] = useState([]);
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
 
@@ -42,37 +56,80 @@ export default function ComparePage() {
     return (Math.round((num + Number.EPSILON) * 100) / 100).toLocaleString();
   };
 
+  // select image based on player's league and id
+  const getPlayerSrc = (league) => {
+    // src={
+    //   player.league === "atp"
+    //     ? player.id % 2
+    //       ? atp_logo_1
+    //       : atp_logo_2
+    //     : player.id % 2
+    //     ? wta_logo_1
+    //     : wta_logo_2
+    // }
+
+    return league === "atp"
+      ? 25 % 2
+        ? atp_logo_1
+        : atp_logo_2
+      : 25 % 2
+      ? wta_logo_1
+      : wta_logo_2;
+  };
+
   const clickPlayerOne = () => {
-    setPlayer1({ name: "Bilal Ali", id: 1 });
+    setPlayer1({
+      name: "Bilal Ali",
+      id: 1,
+      src: getPlayerSrc("atp"),
+    });
   };
 
   const clickPlayerTwo = () => {
-    setPlayer2({ name: "Jess Escobar", id: 2 });
+    setPlayer2({
+      name: "Jess Escobar",
+      id: 2,
+      src: getPlayerSrc("atp"),
+    });
   };
 
   // constructs the player avatar, which can be clicked to select a player
   const playerAvatar = (player, clickPlayer) => {
     return (
-      <>
-        <Avatar
-          onClick={() => clickPlayer()}
-          sx={{
-            width: 180,
-            height: 180,
-            margin: "auto",
-            ":hover": {
-              borderStyle: "dashed",
-              borderWidth: 4,
-              cursor: "pointer",
-            },
-          }}
+      <Grid item container xs={2} marginX={5} justifyContent={"center"}>
+        <Badge
+          overlap="circular"
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          badgeContent={
+            <Avatar
+              sx={{
+                border: "2px solid",
+                ":hover": {
+                  cursor: "pointer",
+                  color: "success.main",
+                },
+              }}
+              onClick={() => clickPlayer()}
+            >
+              <AddIcon fontSize="small" />
+            </Avatar>
+          }
         >
-          <PersonAddIcon fontSize="large" />
-        </Avatar>
+          <Avatar
+            sx={{
+              width: 180,
+              height: 180,
+              border: player.src === "" ? "2px dashed" : "",
+              color: "white",
+            }}
+            src={player.src}
+          ></Avatar>
+        </Badge>
+
         <Typography marginTop={2} textAlign={"center"} variant="h5">
           {player.name}
         </Typography>
-      </>
+      </Grid>
     );
   };
 
@@ -238,9 +295,7 @@ export default function ComparePage() {
 
       {/* Player avatars and names */}
       <Grid container alignItems="center" justifyContent="center" marginTop={5}>
-        <Grid item xs={2} marginRight={5}>
-          {playerAvatar(player1, clickPlayerOne)}
-        </Grid>
+        {playerAvatar(player1, clickPlayerOne)}
         <Grid item xs={1} marginBottom={5}>
           <Typography
             variant="h5"
@@ -253,9 +308,7 @@ export default function ComparePage() {
             vs
           </Typography>
         </Grid>
-        <Grid item xs={2} marginLeft={5}>
-          {playerAvatar(player2, clickPlayerTwo)}
-        </Grid>
+        {playerAvatar(player2, clickPlayerTwo)}
       </Grid>
 
       {compareCard()}
