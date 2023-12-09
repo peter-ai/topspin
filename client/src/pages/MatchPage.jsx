@@ -316,7 +316,20 @@ export default function MatchPage() {
                 justifyContent: "center",
               }}
             >
-              <Button>Compare Players</Button>
+              <Link
+                href={`/compare/${matchData.league}/${matchData.winner_name}/${matchData.winner_id}/
+                                  ${matchData.loser_name}/${matchData.loser_id}`}
+                underline="none"
+                rel="noopener"
+                sx={{
+                  ":hover": {
+                    color: "error.light",
+                    transition: "250ms",
+                  },
+                }}
+              >
+                <Button>Compare Players</Button>
+              </Link>
             </CardContent>
           </Card>
         </Container>
