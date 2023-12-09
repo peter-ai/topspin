@@ -47,7 +47,6 @@ export default function ComparePage() {
   const [isSamePlayer, setIsSamePlayer] = useState(false);
 
   const fixOrderOfCompareData = (res) => {
-    console.log(res);
     const buildCompareData = [];
     if (res[0].player_id === player1.id) {
       buildCompareData.push(res[0]);
@@ -398,37 +397,39 @@ export default function ComparePage() {
   const compareCard = () => {
     if (displayCompareCard) {
       return (
-        <Grid
-          marginTop={6}
-          marginBottom={8}
-          container
-          marginX={"auto"}
-          maxWidth={"md"}
-          spacing={1}
-        >
-          {compareResultLine("Total games played", "total_games")}
-          {compareResultLine("Career wins", "wins")}
-          {compareResultLine(
-            "Career winning percentage",
-            "win_percentage",
-            true
-          )}
-          {compareResultLine("Average aces", "avg_ovr_ace")}
-          {compareResultLine("Average double faults", "avg_ovr_df")}
-          {compareResultLine("Average serve points", "avg_ovr_svpt")}
-          {compareResultLine("Average first serves made", "avg_ovr_1stIn")}
-          {compareResultLine(
-            "Average first serve points won",
-            "avg_ovr_1stWon"
-          )}
-          {compareResultLine(
-            "Average second serve points won",
-            "avg_ovr_2ndWon"
-          )}
-          {compareResultLine("Average serve games", "avg_ovr_SvGms")}
-          {compareResultLine("Average break points saved", "avg_ovr_bpSaved")}
-          {compareResultLine("Average break points faced", "avg_ovr_bpFaced")}
-        </Grid>
+        <Fade in timeout={200}>
+          <Grid
+            marginTop={6}
+            marginBottom={8}
+            container
+            marginX={"auto"}
+            maxWidth={"md"}
+            spacing={1}
+          >
+            {compareResultLine("Total games played", "total_games")}
+            {compareResultLine("Career wins", "wins")}
+            {compareResultLine(
+              "Career winning percentage",
+              "win_percentage",
+              true
+            )}
+            {compareResultLine("Average aces", "avg_ovr_ace")}
+            {compareResultLine("Average double faults", "avg_ovr_df")}
+            {compareResultLine("Average serve points", "avg_ovr_svpt")}
+            {compareResultLine("Average first serves made", "avg_ovr_1stIn")}
+            {compareResultLine(
+              "Average first serve points won",
+              "avg_ovr_1stWon"
+            )}
+            {compareResultLine(
+              "Average second serve points won",
+              "avg_ovr_2ndWon"
+            )}
+            {compareResultLine("Average serve games", "avg_ovr_SvGms")}
+            {compareResultLine("Average break points saved", "avg_ovr_bpSaved")}
+            {compareResultLine("Average break points faced", "avg_ovr_bpFaced")}
+          </Grid>
+        </Fade>
       );
     }
   };
