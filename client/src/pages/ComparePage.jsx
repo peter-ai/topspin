@@ -43,6 +43,8 @@ export default function ComparePage() {
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
   const [league, setLeague] = useState("both"); // league filter
   const [playerList, setPlayerList] = useState([]); // players that match filters
+  const [displayPlayer1Form, setDisplayPlayer1Form] = useState(false);
+  const [displayPlayer2Form, setDisplayPlayer2Form] = useState(false);
 
   // function handles change of league dropdown
   const handleLeagueFilter = (e) => {
@@ -117,11 +119,7 @@ export default function ComparePage() {
   };
 
   const clickPlayerOne = () => {
-    setPlayer1({
-      name: "Bilal Ali",
-      id: 1,
-      src: getPlayerSrc("atp"),
-    });
+    setDisplayPlayer1Form(true);
   };
 
   const clickPlayerTwo = () => {
@@ -138,7 +136,52 @@ export default function ComparePage() {
     limit: OPTIONS_LIMIT,
   });
 
-  const selectPlayerForm = () => {
+  const selectPlayer1Form = () => {
+    if (displayPlayer1Form) {
+      return (
+        <Grid
+          item
+          direction="column"
+          container
+          xs={3.5}
+          justifyContent={"center"}
+          alignItems={"center"}
+          spacing={2}
+        >
+          <FormControl sx={{ width: "60%" }}>
+            <InputLabel id="select-league" color="success">
+              League
+            </InputLabel>
+            <Select
+              labelId="select-league"
+              size="small"
+              id="league"
+              value={league}
+              label="League"
+              onChange={handleLeagueFilter}
+              color="success"
+            >
+              <MenuItem value={"both"}>Both</MenuItem>
+              <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
+              <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Autocomplete
+            sx={{ width: "60%", marginTop: 3 }}
+            filterOptions={filterOptions}
+            size="small"
+            disablePortal
+            id="player"
+            options={playerList}
+            getOptionKey={(option) => option.id}
+            renderInput={(params) => (
+              <TextField {...params} label="Player 2" color="success" />
+            )}
+          />
+        </Grid>
+      );
+    }
     return (
       <Grid
         item
@@ -148,39 +191,66 @@ export default function ComparePage() {
         justifyContent={"center"}
         alignItems={"center"}
         spacing={2}
-      >
-        <FormControl sx={{ width: "60%" }}>
-          <InputLabel id="select-league" color="success">
-            League
-          </InputLabel>
-          <Select
-            labelId="select-league"
-            size="small"
-            id="league"
-            value={league}
-            label="League"
-            onChange={handleLeagueFilter}
-            color="success"
-          >
-            <MenuItem value={"both"}>Both</MenuItem>
-            <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
-            <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
-          </Select>
-        </FormControl>
+      ></Grid>
+    );
+  };
 
-        <Autocomplete
-          sx={{ width: "60%", marginTop: 3 }}
-          filterOptions={filterOptions}
-          size="small"
-          disablePortal
-          id="player"
-          options={playerList}
-          getOptionKey={(option) => option.id}
-          renderInput={(params) => (
-            <TextField {...params} label="Player 2" color="success" />
-          )}
-        />
-      </Grid>
+  const selectPlayer2Form = () => {
+    if (displayPlayer2Form) {
+      return (
+        <Grid
+          item
+          direction="column"
+          container
+          xs={3.5}
+          justifyContent={"center"}
+          alignItems={"center"}
+          spacing={2}
+        >
+          <FormControl sx={{ width: "60%" }}>
+            <InputLabel id="select-league" color="success">
+              League
+            </InputLabel>
+            <Select
+              labelId="select-league"
+              size="small"
+              id="league"
+              value={league}
+              label="League"
+              onChange={handleLeagueFilter}
+              color="success"
+            >
+              <MenuItem value={"both"}>Both</MenuItem>
+              <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
+              <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Autocomplete
+            sx={{ width: "60%", marginTop: 3 }}
+            filterOptions={filterOptions}
+            size="small"
+            disablePortal
+            id="player"
+            options={playerList}
+            getOptionKey={(option) => option.id}
+            renderInput={(params) => (
+              <TextField {...params} label="Player 2" color="success" />
+            )}
+          />
+        </Grid>
+      );
+    }
+    return (
+      <Grid
+        item
+        direction="column"
+        container
+        xs={3.5}
+        justifyContent={"center"}
+        alignItems={"center"}
+        spacing={2}
+      ></Grid>
     );
   };
 
@@ -386,7 +456,7 @@ export default function ComparePage() {
 
       {/* Player avatars and names */}
       <Grid container alignItems="center" justifyContent="center" marginTop={5}>
-        {selectPlayerForm()}
+        {selectPlayer1Form()}
         {playerAvatar(player1, clickPlayerOne)}
         <Grid item xs={1} marginBottom={5}>
           <Typography
@@ -401,7 +471,7 @@ export default function ComparePage() {
           </Typography>
         </Grid>
         {playerAvatar(player2, clickPlayerTwo)}
-        {selectPlayerForm()}
+        {selectPlayer2Form()}
       </Grid>
 
       {compareCard()}
