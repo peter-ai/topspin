@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Grid,
-  Typography,
-  Container,
-  Avatar,
-  Paper,
-  Box,
-  Divider,
-} from "@mui/material";
+import { Grid, Typography, Container, Avatar } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 // declare server port and host for requests
@@ -18,9 +10,10 @@ export default function ComparePage() {
   // initial state objects for player 1 and player 2 (default name is Player 1 and Player 2, ids are null)
   const [player1, setPlayer1] = useState({ name: "Player 1", id: null });
   const [player2, setPlayer2] = useState({ name: "Player 2", id: null });
-  const [player1Data, setPlayer1Data] = useState({});
-  const [player2Data, setPlayer2Data] = useState({});
+  // const [player1Data, setPlayer1Data] = useState({});
+  // const [player2Data, setPlayer2Data] = useState({});
   const [compareData, setCompareData] = useState([]);
+  const [displayCompareCard, setDisplayCompareCard] = useState(false);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
@@ -39,22 +32,23 @@ export default function ComparePage() {
 
   // use effect to set each players data once compare data is retrieved
   useEffect(() => {
-    setPlayer1Data(compareData[0]);
-    setPlayer2Data(compareData[1]);
+    if (compareData.length > 0) {
+      setDisplayCompareCard(true);
+    }
   }, [compareData]); // triggered when compareData changes (should only occur after GET req after selecting two players)
 
-  const compareResultLine = (category) => {
+  const compareResultLine = (categoryName, category) => {
     return (
       <Grid item xs={12}>
         <Grid container>
           <Grid item xs={3}>
-            <Typography>100</Typography>
+            <Typography>{compareData[0][category]}</Typography>
           </Grid>
           <Grid item xs={6}>
-            <Typography>{category}</Typography>
+            <Typography>{categoryName}</Typography>
           </Grid>
           <Grid item xs={3}>
-            <Typography>200</Typography>
+            <Typography>{compareData[1][category]}</Typography>
           </Grid>
         </Grid>
       </Grid>
@@ -63,35 +57,43 @@ export default function ComparePage() {
 
   // constructs the player avatar, which can be clicked to select a player
   const compareCard = () => {
-    return (
-      <Grid
-        marginTop={5}
-        marginBottom={8}
-        container
-        spacing={2}
-        maxWidth={"sm"}
-        textAlign={"center"}
-        justifyContent={"center"}
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Career match results</Typography>
+    if (displayCompareCard) {
+      return (
+        <Grid
+          marginTop={5}
+          marginBottom={8}
+          container
+          spacing={2}
+          maxWidth={"sm"}
+          textAlign={"center"}
+          justifyContent={"center"}
+        >
+          <Grid item xs={12}>
+            <Typography variant="h5">Career match results</Typography>
+          </Grid>
+          {compareResultLine("Total games played", "total_games")}
+          {compareResultLine("Career wins", "wins")}
+          {compareResultLine("Career winning %", "win_percentage")}
+          {compareResultLine("Career minutes played", "ttl_ovr_minutes")}
+          {compareResultLine("Average duration", "avg_ovr_minutes")}
+          {compareResultLine("Average aces", "avg_ovr_ace")}
+          {compareResultLine("Average double faults", "avg_ovr_df")}
+          {compareResultLine("Average serve points", "avg_ovr_svpt")}
+          {compareResultLine("Average first serves made", "avg_ovr_1stIn")}
+          {compareResultLine(
+            "Average first serve points won",
+            "avg_ovr_1stWon"
+          )}
+          {compareResultLine(
+            "Average second serve points won",
+            "avg_ovr_2ndWon"
+          )}
+          {compareResultLine("Average serve games", "avg_ovr_SvGms")}
+          {compareResultLine("Average break points saved", "avg_ovr_bpSaved")}
+          {compareResultLine("Average break points faced", "avg_ovr_bpFaced")}
         </Grid>
-        {compareResultLine("Total games played")}
-        {compareResultLine("Career wins")}
-        {compareResultLine("Career winning %")}
-        {compareResultLine("Career minutes played")}
-        {compareResultLine("Average duration")}
-        {compareResultLine("Average aces")}
-        {compareResultLine("Average double faults")}
-        {compareResultLine("Average serve points")}
-        {compareResultLine("Average first serves made")}
-        {compareResultLine("Average first serve points won")}
-        {compareResultLine("Average second serve points won")}
-        {compareResultLine("Average serve games")}
-        {compareResultLine("Average break points saved")}
-        {compareResultLine("Average break points faced")}
-      </Grid>
-    );
+      );
+    }
   };
 
   // // GET request to /player
