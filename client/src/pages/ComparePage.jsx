@@ -48,6 +48,33 @@ export default function ComparePage() {
   const [displayPlayer1Form, setDisplayPlayer1Form] = useState(false);
   const [displayPlayer2Form, setDisplayPlayer2Form] = useState(false);
 
+  const fixOrderOfCompareData = (res) => {
+    console.log(res);
+    const buildCompareData = [];
+    if (res[0].player_id === player1.id) {
+      buildCompareData.push(res[0]);
+      buildCompareData.push(res[1]);
+    } else {
+      buildCompareData.push(res[1]);
+      buildCompareData.push(res[0]);
+    }
+    setCompareData(buildCompareData);
+  };
+
+  // GET req to /compare/:player1/:player2 to compare two selected players
+  useEffect(() => {
+    if (player1.id && player2.id && player1.id != player2.id) {
+      fetch(
+        `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
+      )
+        .then((res) => res.json())
+        .then((res) => {
+          fixOrderOfCompareData(res);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [player1, player2]); // runs when a change is made to either player, but a non-null id must be present for both
+
   // function handles change of league dropdown
   const handlePlayer1LeagueFilter = (e) => {
     e.preventDefault();
@@ -79,18 +106,6 @@ export default function ComparePage() {
       .then((resJson) => setPlayer2List(resJson))
       .catch((err) => console.log(err));
   }, [player2League]);
-
-  // GET req to /compare/:player1/:player2 to compare two selected players
-  useEffect(() => {
-    if (player1.id && player2.id) {
-      fetch(
-        `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
-      )
-        .then((res) => res.json())
-        .then((res) => setCompareData(res))
-        .catch((err) => console.log(err));
-    }
-  }, [player1, player2]); // runs when a change is made to either player, but a non-null id must be present for both
 
   // use effect to set each players data once compare data is retrieved
   useEffect(() => {
@@ -150,6 +165,8 @@ export default function ComparePage() {
         id: value.id,
         src: getPlayerSrc(player1League, value.id),
       });
+      setDisplayPlayer1Form(false);
+      setPlayer1League("both");
     }
   };
 
@@ -226,6 +243,8 @@ export default function ComparePage() {
         id: value.id,
         src: getPlayerSrc(player2League, value.id),
       });
+      setDisplayPlayer2Form(false);
+      setPlayer2League("both");
     }
   };
 
