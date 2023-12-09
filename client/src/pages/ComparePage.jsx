@@ -41,8 +41,6 @@ export default function ComparePage() {
   });
   const [compareData, setCompareData] = useState([]);
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
-  const [player1League, setPlayer1League] = useState("both"); // league filter
-  const [player2League, setPlayer2League] = useState("both"); // league filter
   const [player1List, setPlayer1List] = useState([]); // players that match filters
   const [player2List, setPlayer2List] = useState([]); // players that match filters
   const [displayPlayer1Form, setDisplayPlayer1Form] = useState(false);
@@ -75,37 +73,16 @@ export default function ComparePage() {
     }
   }, [player1, player2]); // runs when a change is made to either player, but a non-null id must be present for both
 
-  // function handles change of league dropdown
-  const handlePlayer1LeagueFilter = (e) => {
-    e.preventDefault();
-    setPlayer1League(e.target.value); // set variable to current value of league selected
-  };
-
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
-    fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${player1League}`
-    )
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/both`)
       .then((res) => res.json())
-      .then((resJson) => setPlayer1List(resJson))
+      .then((resJson) => {
+        setPlayer1List(resJson);
+        setPlayer2List(resJson);
+      })
       .catch((err) => console.log(err));
-  }, [player1League]);
-
-  // function handles change of league dropdown
-  const handlePlayer2LeagueFilter = (e) => {
-    e.preventDefault();
-    setPlayer2League(e.target.value); // set variable to current value of league selected
-  };
-
-  // retrieves new list of players whenever the league filter is toggled
-  useEffect(() => {
-    fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${player2League}`
-    )
-      .then((res) => res.json())
-      .then((resJson) => setPlayer2List(resJson))
-      .catch((err) => console.log(err));
-  }, [player2League]);
+  }, [player1, player2]);
 
   // use effect to set each players data once compare data is retrieved
   useEffect(() => {
@@ -163,10 +140,9 @@ export default function ComparePage() {
       setPlayer1({
         name: value.label,
         id: value.id,
-        src: getPlayerSrc(player1League, value.id),
+        src: getPlayerSrc("atp", value.id),
       });
       setDisplayPlayer1Form(false);
-      setPlayer1League("both");
     }
   };
 
@@ -183,25 +159,6 @@ export default function ComparePage() {
           spacing={2}
         >
           <FormControl sx={{ width: "60%" }}>
-            <InputLabel id="select-league" color="success">
-              League
-            </InputLabel>
-            <Select
-              labelId="select-league"
-              size="small"
-              id="league1"
-              value={player1League}
-              label="League"
-              onChange={handlePlayer1LeagueFilter}
-              color="success"
-            >
-              <MenuItem value={"both"}>Both</MenuItem>
-              <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
-              <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
-            </Select>
-          </FormControl>
-
-          <FormControl sx={{ width: "60%", marginTop: 3 }}>
             <Autocomplete
               filterOptions={filterOptions}
               size="small"
@@ -241,10 +198,9 @@ export default function ComparePage() {
       setPlayer2({
         name: value.label,
         id: value.id,
-        src: getPlayerSrc(player2League, value.id),
+        src: getPlayerSrc("atp", value.id),
       });
       setDisplayPlayer2Form(false);
-      setPlayer2League("both");
     }
   };
 
@@ -261,25 +217,6 @@ export default function ComparePage() {
           spacing={2}
         >
           <FormControl sx={{ width: "60%" }}>
-            <InputLabel id="select-league" color="success">
-              League
-            </InputLabel>
-            <Select
-              labelId="select-league"
-              size="small"
-              id="league2"
-              value={player2League}
-              label="League"
-              onChange={handlePlayer2LeagueFilter}
-              color="success"
-            >
-              <MenuItem value={"both"}>Both</MenuItem>
-              <MenuItem value={"wta"}>Women's (WTA)</MenuItem>
-              <MenuItem value={"atp"}>Men's (ATP)</MenuItem>
-            </Select>
-          </FormControl>
-
-          <FormControl sx={{ width: "60%", marginTop: 3 }}>
             <Autocomplete
               filterOptions={filterOptions}
               size="small"
