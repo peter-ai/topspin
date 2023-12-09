@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Grid, Typography, Container, Avatar, Badge } from "@mui/material";
+import {
+  Grid,
+  Typography,
+  Container,
+  Avatar,
+  Badge,
+  Autocomplete,
+} from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
 import AddIcon from "@mui/icons-material/Add";
@@ -24,10 +31,28 @@ export default function ComparePage() {
     id: null,
     src: "",
   });
-  // const [player1ImgSrc, setPlayer1ImgSrc] = useState("");
-  // const [player2ImgSrc, setPlayer2ImgSrc] = useState("");
   const [compareData, setCompareData] = useState([]);
   const [displayCompareCard, setDisplayCompareCard] = useState(false);
+  const [league, setLeague] = useState("both"); // league filter
+  const [playerList, setPlayerList] = useState([]); // players that match filters
+
+  // retrieves new list of players whenever the league filter is toggled
+  useEffect(() => {
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
+      .then((res) => res.json())
+      .then((resJson) => setPlayerList(resJson))
+      .catch((err) => console.log(err));
+  }, [league]);
+
+  // retrives list of players on initial entry
+  useEffect(() => {
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
+      .then((res) => res.json())
+      .then((resJson) => {
+        setPlayerList(resJson); // update with new player list
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
@@ -312,6 +337,14 @@ export default function ComparePage() {
       </Grid>
 
       {compareCard()}
+
+      <Autocomplete
+        disablePortal
+        id="combo-box-demo"
+        options={top100Films}
+        sx={{ width: 300 }}
+        renderInput={(params) => <TextField {...params} label="Movie" />}
+      />
     </Container>
   );
 
