@@ -9,9 +9,11 @@ import {
   TextField,
   FormControl,
   createFilterOptions,
+  Fade,
 } from "@mui/material";
 import ArrowLeftSharpIcon from "@mui/icons-material/ArrowLeftSharp";
 import ArrowRightSharpIcon from "@mui/icons-material/ArrowRightSharp";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import AddIcon from "@mui/icons-material/Add";
 import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
 import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
@@ -42,6 +44,7 @@ export default function ComparePage() {
   const [player2List, setPlayer2List] = useState([]); // players that match filters
   const [displayPlayer1Form, setDisplayPlayer1Form] = useState(false);
   const [displayPlayer2Form, setDisplayPlayer2Form] = useState(false);
+  const [isSamePlayer, setIsSamePlayer] = useState(false);
 
   const fixOrderOfCompareData = (res) => {
     console.log(res);
@@ -58,15 +61,20 @@ export default function ComparePage() {
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
-    if (player1.id && player2.id && player1.id != player2.id) {
-      fetch(
-        `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
-      )
-        .then((res) => res.json())
-        .then((res) => {
-          fixOrderOfCompareData(res);
-        })
-        .catch((err) => console.log(err));
+    if (player1.id && player2.id) {
+      if (player1.id != player2.id) {
+        fetch(
+          `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
+        )
+          .then((res) => res.json())
+          .then((res) => {
+            fixOrderOfCompareData(res);
+          })
+          .catch((err) => console.log(err));
+      } else {
+        console.log("this is rendering");
+        setIsSamePlayer(true);
+      }
     }
   }, [player1, player2]); // runs when a change is made to either player, but a non-null id must be present for both
 
@@ -123,6 +131,7 @@ export default function ComparePage() {
 
   const processPlayer1Selection = ({ e = null, id = null, value }) => {
     if (id) {
+      setIsSamePlayer(false);
       setDisplayPlayer1Form(false);
       if (displayCompareCard) {
         setDisplayCompareCard(false);
@@ -184,6 +193,7 @@ export default function ComparePage() {
 
   const processPlayer2Selection = ({ e = null, id = null, value }) => {
     if (id) {
+      setIsSamePlayer(false);
       setDisplayPlayer2Form(false);
       if (displayCompareCard) {
         setDisplayCompareCard(false);
@@ -361,6 +371,29 @@ export default function ComparePage() {
     );
   };
 
+  // alerts if same player has been selected
+  const samePlayerAlert = () => {
+    if (isSamePlayer) {
+      return (
+        <Grid
+          marginTop={6}
+          item
+          container
+          marginX={"auto"}
+          maxWidth={"md"}
+          justifyContent={"center"}
+        >
+          <Fade in timeout={1000}>
+            <Typography color={"warning.light"} textAlign="center" variant="h6">
+              The same athlete has been selected. Please select two different
+              players to view results.
+            </Typography>
+          </Fade>
+        </Grid>
+      );
+    }
+  };
+
   // constructs the compare card, which displays all player results
   const compareCard = () => {
     if (displayCompareCard) {
@@ -457,6 +490,8 @@ export default function ComparePage() {
         {playerAvatar(player2, clickPlayerTwo)}
         {selectPlayer2Form()}
       </Grid>
+
+      {samePlayerAlert()}
 
       {compareCard()}
     </Container>
