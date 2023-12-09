@@ -54,12 +54,6 @@ export default function ComparePage() {
     setPlayer1League(e.target.value); // set variable to current value of league selected
   };
 
-  // function handles change of league dropdown
-  const handlePlayer2LeagueFilter = (e) => {
-    e.preventDefault();
-    setPlayer2League(e.target.value); // set variable to current value of league selected
-  };
-
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
     fetch(
@@ -70,6 +64,12 @@ export default function ComparePage() {
       .catch((err) => console.log(err));
   }, [player1League]);
 
+  // function handles change of league dropdown
+  const handlePlayer2LeagueFilter = (e) => {
+    e.preventDefault();
+    setPlayer2League(e.target.value); // set variable to current value of league selected
+  };
+
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
     fetch(
@@ -79,16 +79,6 @@ export default function ComparePage() {
       .then((resJson) => setPlayer2List(resJson))
       .catch((err) => console.log(err));
   }, [player2League]);
-
-  // // retrives list of players on initial entry
-  // useEffect(() => {
-  //   fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/${league}`)
-  //     .then((res) => res.json())
-  //     .then((resJson) => {
-  //       setPlayerList(resJson); // update with new player list
-  //     })
-  //     .catch((err) => console.log(err));
-  // }, [league]);
 
   // GET req to /compare/:player1/:player2 to compare two selected players
   useEffect(() => {
@@ -118,7 +108,7 @@ export default function ComparePage() {
   };
 
   // select image based on player's league and id
-  const getPlayerSrc = (league) => {
+  const getPlayerSrc = (league, id) => {
     // src={
     //   player.league === "atp"
     //     ? player.id % 2
@@ -128,12 +118,13 @@ export default function ComparePage() {
     //     ? wta_logo_1
     //     : wta_logo_2
     // }
+    console.log(league);
 
     return league === "atp"
-      ? 25 % 2
+      ? id % 2
         ? atp_logo_1
         : atp_logo_2
-      : 25 % 2
+      : id % 2
       ? wta_logo_1
       : wta_logo_2;
   };
@@ -151,6 +142,16 @@ export default function ComparePage() {
   const filterOptions = createFilterOptions({
     limit: OPTIONS_LIMIT,
   });
+
+  const processPlayer1Selection = ({ e = null, id = null, value }) => {
+    if (id) {
+      setPlayer1({
+        name: value.label,
+        id: value.id,
+        src: getPlayerSrc(player1League, value.id),
+      });
+    }
+  };
 
   const selectPlayer1Form = () => {
     if (displayPlayer1Form) {
@@ -183,18 +184,25 @@ export default function ComparePage() {
             </Select>
           </FormControl>
 
-          <Autocomplete
-            sx={{ width: "60%", marginTop: 3 }}
-            filterOptions={filterOptions}
-            size="small"
-            disablePortal
-            id="player1"
-            options={player1List}
-            getOptionKey={(option) => option.id}
-            renderInput={(params) => (
-              <TextField {...params} label="Player 1" color="success" />
-            )}
-          />
+          <FormControl sx={{ width: "60%", marginTop: 3 }}>
+            <Autocomplete
+              filterOptions={filterOptions}
+              size="small"
+              disablePortal
+              id="player1"
+              options={player1List}
+              getOptionKey={(option) => option.id}
+              renderInput={(params) => (
+                <TextField {...params} label="Player 1" color="success" />
+              )}
+              onChange={(e, value) =>
+                processPlayer1Selection({
+                  id: "player1",
+                  value: value,
+                })
+              }
+            />
+          </FormControl>
         </Grid>
       );
     }
@@ -209,6 +217,16 @@ export default function ComparePage() {
         spacing={2}
       ></Grid>
     );
+  };
+
+  const processPlayer2Selection = ({ e = null, id = null, value }) => {
+    if (id) {
+      setPlayer2({
+        name: value.label,
+        id: value.id,
+        src: getPlayerSrc(player2League, value.id),
+      });
+    }
   };
 
   const selectPlayer2Form = () => {
@@ -242,18 +260,25 @@ export default function ComparePage() {
             </Select>
           </FormControl>
 
-          <Autocomplete
-            sx={{ width: "60%", marginTop: 3 }}
-            filterOptions={filterOptions}
-            size="small"
-            disablePortal
-            id="player2"
-            options={player2List}
-            getOptionKey={(option) => option.id}
-            renderInput={(params) => (
-              <TextField {...params} label="Player 2" color="success" />
-            )}
-          />
+          <FormControl sx={{ width: "60%", marginTop: 3 }}>
+            <Autocomplete
+              filterOptions={filterOptions}
+              size="small"
+              disablePortal
+              id="player2"
+              options={player2List}
+              getOptionKey={(option) => option.id}
+              renderInput={(params) => (
+                <TextField {...params} label="Player 2" color="success" />
+              )}
+              onChange={(e, value) =>
+                processPlayer2Selection({
+                  id: "player2",
+                  value: value,
+                })
+              }
+            />
+          </FormControl>
         </Grid>
       );
     }
