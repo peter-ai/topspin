@@ -37,25 +37,7 @@ export default function ComparePage() {
     }
   }, [compareData]); // triggered when compareData changes (should only occur after GET req after selecting two players)
 
-  const compareResultLine = (categoryName, category) => {
-    return (
-      <Grid item xs={12}>
-        <Grid container>
-          <Grid item xs={3}>
-            <Typography>{compareData[0][category]}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography>{categoryName}</Typography>
-          </Grid>
-          <Grid item xs={3}>
-            <Typography>{compareData[1][category]}</Typography>
-          </Grid>
-        </Grid>
-      </Grid>
-    );
-  };
-
-  // constructs the player avatar, which can be clicked to select a player
+  // constructs the compare card, which displays all player results
   const compareCard = () => {
     if (displayCompareCard) {
       return (
@@ -73,7 +55,11 @@ export default function ComparePage() {
           </Grid>
           {compareResultLine("Total games played", "total_games")}
           {compareResultLine("Career wins", "wins")}
-          {compareResultLine("Career winning %", "win_percentage")}
+          {compareResultLine(
+            "Career winning percentage",
+            "win_percentage",
+            true
+          )}
           {compareResultLine("Career minutes played", "ttl_ovr_minutes")}
           {compareResultLine("Average duration", "avg_ovr_minutes")}
           {compareResultLine("Average aces", "avg_ovr_ace")}
@@ -94,6 +80,45 @@ export default function ComparePage() {
         </Grid>
       );
     }
+  };
+
+  // constructs individual result lines in the compare card
+  const compareResultLine = (
+    categoryName,
+    category,
+    isWinPercentage = false
+  ) => {
+    return (
+      <Grid item xs={12}>
+        <Grid container>
+          <Grid item xs={3}>
+            <Typography>
+              {compareData[0][category] !== null
+                ? formatNumber(compareData[0][category], isWinPercentage)
+                : "N/A"}
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography>{categoryName}</Typography>
+          </Grid>
+          <Grid item xs={3}>
+            <Typography>
+              {compareData[1][category] !== null
+                ? formatNumber(compareData[1][category], isWinPercentage)
+                : "N/A"}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+    );
+  };
+
+  // function to assist in the formatting of player statistics
+  const formatNumber = (num, isWinPercentage) => {
+    if (isWinPercentage) {
+      return Math.round(num * 100) + "%";
+    }
+    return (Math.round((num + Number.EPSILON) * 100) / 100).toLocaleString();
   };
 
   // // GET request to /player
