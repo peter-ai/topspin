@@ -37,7 +37,7 @@ export default function App() {
             />
             <Route exact path="/compare" element={<ComparePage />} />
             <Route exact path="/tournament" element={<TournamentHomePage />} />
-            <Route exact path="/tournament/:id" element={<TournamentSelectedPage />} />
+            <Route exact path="/tournament/:name/:league/:date" element={<TournamentSelectedPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           {/* TODO: CREATE FOOTER */}
