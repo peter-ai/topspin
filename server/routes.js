@@ -417,22 +417,33 @@ const tournament_names = async (req, res) => {
 };
 
 // route that retrieves all distinct tournament names, with league and year info 
-const tname = async (req, res) => {
-  const tournament_id = req.params.id;
+const getmatches = async (req, res) => {
+  const tournament_name = req.params.name;
+  const tournament_league = req.params.league;
+  const tournament_date = req.params.date
+
+  console.log('tournament_name:', tournament_name);
+  console.log('tournament_league:', tournament_league);
+  console.log('tournament_date:', tournament_date);
 
   // if tournament_id is not provided or not a string
-  if (!tournament_id) {
+  if (!tournament_name || !tournament_league || !tournament_date ) {
     res.json([]);
     // otherwise try execute query
   } else {
       connection.query(
       `
-      SELECT 
-      name, surface, league, YEAR(start_date) as year
+      WITH TID As(
+      SELECT id, surface
       FROM tournament
-      WHERE id =?
+      WHERE name =? AND league =? AND start_date = ?)
+      SELECT match_num, round, p1.name as winner, p2.name as loser
+      FROM TID INNER JOIN game g ON TID.id=g.tourney_id INNER JOIN player p1 ON g.winner_id=p1.id INNER JOIN
+      player p2 ON g.loser_id=p2.id
+      ORDER BY g.match_num DESC;
       `,
-      [tournament_id],
+      
+      [tournament_name,tournament_league, tournament_date],
       (err, data) => handleResponse(err, data, req.path, res)
     );
   }
@@ -452,5 +463,5 @@ module.exports = {
   tournament_select,
   tournament_alltime,
   tournament_names,
-  tname,
+  getmatches,
 };
