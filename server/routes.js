@@ -322,12 +322,10 @@ const tournament_select = async (req, res) => {
 // promise.all? or nesting queries? Discuss best practice! -- AA
 //temp route for decade.. need to build out optional decade param. ? in route not working.
 const tournament_alltime = async (req, res) => {
-  console.log("Params:", req.params);
   const tournament_name = req.params.name;
   const decade_start = req.params.decade !== 'all' ? parseInt(req.params.decade) : -1;
   const decade_end = decade_start ? decade_start + 9 : null;
   const league = req.params.league !== 'both'? req.params.league : '%'
-  console.log("league:", league);
   let query;
   let params;
 

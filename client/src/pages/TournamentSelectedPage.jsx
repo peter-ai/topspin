@@ -176,7 +176,7 @@ export default function TournamentPage() {
             <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center' }}>
             <Tooltip title={`Across League and Gender`}>
             <Typography variant="h6">
-              G.O.A.T. (All Time):
+              G.O.A.T.:
             </Typography>
             </Tooltip>
             <Typography variant="subtitle1">
