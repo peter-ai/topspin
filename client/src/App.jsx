@@ -43,11 +43,7 @@ export default function App() {
               element={<ComparePage />}
             />
             <Route exact path="/tournament" element={<TournamentHomePage />} />
-            <Route
-              exact
-              path="/tournament/:id"
-              element={<TournamentSelectedPage />}
-            />
+            <Route exact path="/tournament/:name/:league/:date" element={<TournamentSelectedPage />} />
             <Route exact path="/simulate" element={<SimulationPage />} />
             <Route exact path="/betting" element={<BettingPage />} />
             <Route path="*" element={<NotFound />} />
