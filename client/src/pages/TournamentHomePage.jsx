@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import Carousel from "react-material-ui-carousel";
 import {
+  Grid,
+  Popover,
+  Tooltip,
+  IconButton,
   Table,
   TableHead,
   TableBody,
@@ -14,6 +18,7 @@ import {
   Skeleton
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import InfoIcon from "@mui/icons-material/Info";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -40,74 +45,49 @@ export default function TournamentHomePage() {
 
   //create columns for all data
   const columns = [
-    { field: 'name', headerName: 'Tournament Name', width: 200 },
-    { field: 'league', headerName: 'League', width: 70 },
+    { field: 'name', headerName: 'Tournament Name', width: 250 },
+    { field: 'league', headerName: 'League', width: 100 },
     { field: 'date', headerName: 'Date', width: 150 },
-    { field: 'surface', headerName: 'Surface', width: 200 },
+    { field: 'surface', headerName: 'Surface', width: 150 },
+    { field: 'level', headerName: (
+      <Tooltip title=" Levels refer to the type of tournament, including prize money or format. For more information, see our sidebar.
+      " arrow>
+        <div>
+          Level <InfoIcon style={{ fontSize: 16, verticalAlign: 'middle' }} />
+        </div>
+      </Tooltip>
+    ),
+    width: 200,
+  },
   ];
 
-  const TournamentDataGrid = ({ tournaments }) => {
-    const rows = tournaments.map((tournament) => ({
-      name: tournament.name,
-      date: tournament.start_date,
-      league: tournament.league,
-      surface: tournament.surface
-    }));
+   // create rows for DataGrid
+   const rows = tournaments.map((tournament) => ({
+    id: tournament.id,
+    name: tournament.name,
+    date: new Date(tournament.start_date).toLocaleDateString(),
+    league: tournament.league,
+    surface: tournament.surface,
+    level: tournament.level,
+  }));
 
-    return (
-      <div style={{ height: 400, width: '100%' }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          checkboxSelection
-          disableSelectionOnClick
-        />
-      </div>
-    );
-
-    }
-
-    return (
-      
-      <div style={{ height: 400, width: '100%' }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          checkboxSelection
-          disableSelectionOnClick
-        />
-      </div>
-    )
-
-};
-
-/*
-return (
-  <div style={{ maxWidth: "800px", maxHeight: "400px", margin: "auto" }}>
-    <Carousel
-    //IndicatorIcon={numbersArray}
-    autoPlay={false} 
-    >
-      {uniqueTouramentNames.map((tournament, i) => (
-        <Item key={i} item={tournament} />
-      ))}
-    </Carousel>
-  </div>
-);
-
-function Item(props) {
   return (
-    <Paper>
-      <h2>{props.item.name}</h2>
-      <p>{props.item.WTA ? "Yes" : "No"}</p>
-      <p>{props.item.ATP ? "Yes" : "No"}</p>
-
-      <Button className="CheckButton">Check it out!</Button>
-    </Paper>
+    <Grid container justifyContent="flex-end" spacing={4} p={4}>
+      <Grid item xs={8}>
+        <div style={{ height: 500, width: '100%' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSize={10}
+            rowsPerPageOptions={[10, 20, 50]}
+            checkboxSelection
+            disableSelectionOnClick
+          />
+        </div>
+      </Grid>
+      {/* Additional content can be added here */}
+    </Grid>
   );
-}  
-*/
+}
+
+  
