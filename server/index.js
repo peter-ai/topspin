@@ -32,6 +32,13 @@ app.get("/api/tournamentnames", routes.tournament_names);
 app.get("/api/tournament/find/:name/:league/:date", routes.tournament_select);
 app.get("/api/tournament/stats/:name/:decade/:league", routes.tournament_alltime);
 app.get("/api/tournament/:name/:league/:date", routes.getmatches);
+app.get("/api/simulation/:year/:league", routes.eligible_players);
+app.get("/api/simulation/:player1_id/:player2_id/:year", routes.simulate_match);
+app.get("/api/betting/favorite", routes.betting_favorite);
+app.get("/api/betting/statistics", routes.betting_statistics);
+app.get("/api/player/:id/:year", routes.player_average_stats);
+app.get("/api/match/results", routes.match_results);
+
 
 // listen for requests
 const server = app.listen(`${SERVER_PORT}`, () => {

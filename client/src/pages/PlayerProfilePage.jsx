@@ -19,16 +19,15 @@ import { DataGrid } from "@mui/x-data-grid";
 import SportsTennisTwoToneIcon from "@mui/icons-material/SportsTennisTwoTone";
 import QueryStatsTwoToneIcon from "@mui/icons-material/QueryStatsTwoTone";
 import PercentTwoToneIcon from "@mui/icons-material/PercentTwoTone";
-import atp_logo_1 from "../public/atp-silhouette-1.png";
-import atp_logo_2 from "../public/atp-silhouette-2.png";
-import wta_logo_1 from "../public/wta-silhouette-1.png";
-import wta_logo_2 from "../public/wta-silhouette-2.png";
+import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
+import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
+import wta_logo_1 from "../assets/imgs/wta-silhouette-1.png";
+import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
 import { getPlayerFlag, getDate, getPlayerHand } from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
-// const API_KEY = import.meta.env.VITE_BINGSEARCH_KEY;
 
 export default function PlayerProfilePage() {
   const { id } = useParams(); // get player id parameter from url
@@ -914,63 +913,10 @@ export default function PlayerProfilePage() {
     }
   };
 
-  // useEffect(() => {
-  //   getPlayerImages();
-  // }, [players])
-
-  // // async function to perform Bing image searches
-  // async function bingImage(player_name) {
-  //   let player_res = await fetch(`https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURI(player_name)}&mkt=en-us&safeSearch=moderate&count=1&offset=0`, {
-  //     method: 'GET',
-  //     headers: {
-  //       'Ocp-Apim-Subscription-Key' : API_KEY
-  //     }
-  //   });
-  //   let player_json = await player_res.json();
-  //   let player_val = await player_json.value[0];
-  //   let player_url = await player_val.thumbnailUrl;
-
-  //   return player_url;
-  // }
-
-  // // function to aggregate results form async Bing image search
-  // const getPlayerImages = () => {
-  //   const promises = [];
-  //   players.forEach((player) => {
-  //     promises.push(bingImage(player.name + ' tennis'));
-  //   });
-  //   Promise.all(promises).then((v) => setPlayerImages(v));
-  // }
+  
 
   return (
     <Container maxWidth="xl">
-      {/* { 
-        playerImages[index] ?
-        (<Link
-        href={'/player/'+player.id} 
-        sx={{
-          ':hover': {
-            color: 'success.main',
-            transition: '250ms'
-          }
-        }}
-        >
-          <Box
-            component="img"
-            sx={{
-              height: 200,
-              width: 200,
-              borderRadius: '50%',
-              border: 3
-            }}
-            alt={'Image of ' + player.name}
-            src={playerImages[index]}
-          />
-        </Link>) :
-        (<Grid container justifyContent={'center'}>
-          <Skeleton variant="circular" width={200} height={200}/>
-        </Grid>)
-      } */}
       <Grid
         container
         direction={"row"}
