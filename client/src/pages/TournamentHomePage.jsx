@@ -42,18 +42,17 @@ export default function TournamentHomePage() {
   const generateTournamentLink = (params) => {
     return (
       <Link
-        href={`/tournament/${params.row.name}/${params.row.league}/${params.row.start_date}`}
-        underline="none"
-        target="_blank"
-        rel="noopener"
-        sx={{
-          ":hover": {
-            color: "success.main",
-            transition: "250ms",
-          },
-        }}
-      >
-        {params.value}
+        href= {`/tournament/${params.row.name}/${params.row.league}/${params.row.start_date}`}
+        style={{ color: "inherit", textDecoration: "none" }}
+        onMouseOver={(e) => {
+                    e.target.style.color = "#008000";
+                    e.target.style.textDecoration = "none";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.color = "inherit";
+                    e.target.style.textDecoration = "none";
+                  }}>
+          {params.row.name}
       </Link>
     );
   };
@@ -70,7 +69,7 @@ export default function TournamentHomePage() {
 
   //create columns for all data
   const columns = [
-    { field: 'name', headerName: 'Tournament Name', width: 250 , renderCell: generateTournamentLink },
+    { field: 'name', headerName: 'Tournament Name', width: 250 , renderCell: (params) => generateTournamentLink(params) },
     { field: 'league', headerName: 'League', width: 100 },
     { field: 'date', headerName: 'Date', width: 150 },
     { field: 'surface', headerName: 'Surface', width: 150 },
