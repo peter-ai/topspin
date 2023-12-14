@@ -20,6 +20,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import InfoIcon from "@mui/icons-material/Info";
 import { Link } from "react-router-dom";
+import {getDate} from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -40,18 +41,23 @@ export default function TournamentHomePage() {
 
   // generate tournament link function
   const generateTournamentLink = (params) => {
+    //const date = (params.row.start_date).date
+    const path = `/tournament/${params.row.name}/${params.row.league}/${params.row.date}`
+
     return (
+      
       <Link
-        href= {`/tournament/${params.row.name}/${params.row.league}/${params.row.start_date}`}
-        style={{ color: "inherit", textDecoration: "none" }}
-        onMouseOver={(e) => {
-                    e.target.style.color = "#008000";
-                    e.target.style.textDecoration = "none";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.color = "inherit";
-                    e.target.style.textDecoration = "none";
-                  }}>
+      to={path}
+      underline="none"
+      style={{ color: "inherit", textDecoration: "none" }}
+              onMouseOver={(e) => {
+                          e.target.style.color = "#008000";
+                          e.target.style.textDecoration = "none";
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.color = "inherit";
+                          e.target.style.textDecoration = "none";
+                        }}>
           {params.row.name}
       </Link>
     );
@@ -61,7 +67,7 @@ export default function TournamentHomePage() {
   const rows = tournaments.map((tournament) => ({
     id: tournament.id,
     name:tournament.name,
-    date: new Date(tournament.start_date).toLocaleDateString(),
+    date: tournament.start_date.substring(0,10),
     league: tournament.league,
     surface: tournament.surface,
     level: tournament.level,
