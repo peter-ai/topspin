@@ -280,7 +280,7 @@ const compare = async (req, res) => {
 const tournament_home = async (req, res) => {
   connection.query(
     `
-    SELECT name, league, start_date, surface, id
+    SELECT name, league, start_date, surface, id, tourney_level as level
     FROM tournament
     ORDER BY name ASC;
     `,
