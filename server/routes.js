@@ -495,7 +495,12 @@ const betting_statistics = async (req, res) => {
 
   // make sure we have a valid number
   if (isNaN(betting_amount)) {
-    res.json([]);
+    res.json({NumMatches: 0,
+      NumCorrect: 0,
+      AmountBet: 0.0,
+      AmountWon: 0.0,
+      ROI: 0.0
+    });
   }
   // make sure at least 1 statistic is turned on
   else if (
@@ -510,7 +515,13 @@ const betting_statistics = async (req, res) => {
       use_avg_bpFaced ==
     0
   ) {
-    res.json([]);
+    res.json({
+      NumMatches: 0,
+      NumCorrect: 0,
+      AmountBet: 0.0,
+      AmountWon: 0.0,
+      ROI: 0.0
+    });
   } else {
     connection.query(
       `
