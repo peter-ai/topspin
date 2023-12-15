@@ -255,22 +255,17 @@ const compare = async (req, res) => {
   const player2 = parseInt(req.params.player2);
 
   // player ids or comparison between same player ids
-  // TODO ideally, same player ids should be controlled at client level
-  if (isNaN(player1) || isNaN(player2) || player1 === player2) {
+  if (isNaN(player1) || isNaN(player2)) {
     console.log("Invalid req params");
     res.json([]);
     // execute query
   } else {
     connection.query(
       `
-      SELECT P.name, P.league, P.hand, P.height, S.player_id,
-          S.wins, S.win_percentage, S.losses, S.loss_percentage,
-          S.total_games, S.avg_l_1stIn, S.avg_l_1stWon, S.avg_l_2ndWon,
-          S.avg_l_ace, S.avg_l_age, S.avg_l_bpFaced, S.avg_l_bpSaved,
-          S.avg_l_df, S.avg_l_minutes, S.avg_l_SvGms, S.avg_l_svpt,
-          S.avg_w_1stIn, S.avg_w_1stWon, S.avg_w_2ndWon, S.avg_w_ace,
-          S.avg_w_age, S.avg_w_bpFaced, S.avg_w_bpSaved, S.avg_w_df, 
-          S.avg_w_minutes, S.avg_w_SvGms, S.avg_w_svpt
+      SELECT P.name, S.player_id, S.wins, S.win_percentage, S.total_games,
+          S.avg_ovr_1stIn, S.avg_ovr_1stWon, S.avg_ovr_2ndWon,
+          S.avg_ovr_ace, S.avg_ovr_bpFaced, S.avg_ovr_bpSaved,
+          S.avg_ovr_df, S.avg_ovr_SvGms, S.avg_ovr_svpt
       FROM player_stats S
           JOIN player P ON S.player_id = P.id
       WHERE S.player_id IN (?, ?)
@@ -282,12 +277,10 @@ const compare = async (req, res) => {
 };
 
 // route that retrieves all tournament data
-// TODO: current query format doesn't work. Need to do it as players
-// functionality needed is a group by, with a list of all ids that fall under a given name
 const tournament_home = async (req, res) => {
   connection.query(
     `
-    SELECT name, league, start_date, surface, id
+    SELECT name, league, start_date, surface, id, tourney_level as level
     FROM tournament
     ORDER BY name ASC;
     `,
@@ -295,26 +288,27 @@ const tournament_home = async (req, res) => {
   );
 };
 
-// route that retrieves all matches in a specific tournament
+// route that finds the tournament id given alternate keys
 const tournament_select = async (req, res) => {
-  const tournament_id = req.params.id;
+  const tournament_name = req.params.name;
+  const tournament_league = req.params.league;
+  const tournament_date = req.params.date
+
 
   // if tournament_id is not provided or not a string
-  if (!tournament_id) {
+  if (!tournament_name || !tournament_league || !tournament_date ) {
     res.json([]);
     // otherwise try execute query
   } else {
-    connection.query(
+      connection.query(
       `
-      SELECT match_num, round, start_date,
-       p1.name as winner, p2.name as loser
-      FROM tournament t INNER JOIN game g ON t.id=g.tourney_id INNER JOIN player p1 ON g.winner_id=p1.id INNER JOIN
-      player p2 ON g.loser_id=p2.id
-      WHERE tourney_id=?
-      ORDER BY g.match_num DESC;
+      SELECT id, surface
+      FROM tournament
+      WHERE name =? AND league =? AND start_date = ?
       `,
-      [tournament_id],
-      (err, match_data) => handleResponse(err, match_data, req.path, res)
+      
+      [tournament_name,tournament_league, tournament_date],
+      (err, data) => handleResponse(err, data, req.path, res)
     );
   }
 };
@@ -323,12 +317,10 @@ const tournament_select = async (req, res) => {
 // promise.all? or nesting queries? Discuss best practice! -- AA
 //temp route for decade.. need to build out optional decade param. ? in route not working.
 const tournament_alltime = async (req, res) => {
-  console.log("Params:", req.params);
   const tournament_name = req.params.name;
-  const decade_start = req.params.decade ? parseInt(req.params.decade) : null;
+  const decade_start = req.params.decade !== 'all' ? parseInt(req.params.decade) : -1;
   const decade_end = decade_start ? decade_start + 9 : null;
-  console.log("Tournament name:", tournament_name);
-  console.log("Decade start:", decade_start);
+  const league = req.params.league !== 'both'? req.params.league : '%'
   let query;
   let params;
 
@@ -336,15 +328,15 @@ const tournament_alltime = async (req, res) => {
     res.json([]);
   } else {
     // if we get a decade, filter those stats
-    if (decade_start !== null) {
+    if (decade_start !== -1) {
       query = `
       (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
       FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
-      WHERE t.name=? AND g.round = 'F' AND YEAR(t.start_date) BETWEEN ? AND ?
+      WHERE t.name=? AND g.round = 'F' AND YEAR(t.start_date) BETWEEN ? AND ? AND t.league = ?
       GROUP BY g.winner_id, p1.name
-      ORDER BY Victories DESC
+      ORDER BY Record DESC
       LIMIT 1)
       
       UNION 
@@ -353,40 +345,42 @@ const tournament_alltime = async (req, res) => {
       FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
-      WHERE t2.name=? AND g.round = 'F' AND YEAR(t2.start_date) BETWEEN ? AND ?
+      WHERE t2.name=? AND g.round = 'F' AND YEAR(t2.start_date) BETWEEN ? AND ? AND t2.league =?
       GROUP BY g.loser_id, p2.name
-      ORDER BY Losses DESC
+      ORDER BY Record DESC
       LIMIT 1)
       `;
       params = [
         tournament_name,
         decade_start,
         decade_end,
+        league,
         tournament_name,
         decade_start,
         decade_end,
+        league
       ];
     } else {
       // else all time stats
       query = `
-      (SELECT 'Most Tournament Wins' as \`role\`, g.winner_id as \`Player ID\`, p1.name as \`Record Holder\`, COUNT(*) as Victories
+      (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
       FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
       WHERE t.name=? AND g.round = 'F'
       GROUP BY g.winner_id, p1.name
-      ORDER BY Victories DESC
+      ORDER BY Record DESC
       LIMIT 1)
       
       UNION 
       
-      (SELECT 'Most Losses at Final' as \`role\`, g.loser_id as \`Player ID\`, p2.name as \`Record Holder\`, COUNT(*) as Losses
+      (SELECT 'Most Losses at Final' as role, g.loser_id as player_id, p2.name as record_holder, COUNT(*) as Record
       FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
       WHERE t2.name=? AND g.round = 'F'
       GROUP BY g.loser_id, p2.name
-      ORDER BY Losses DESC
+      ORDER BY Record DESC
       LIMIT 1)
       `;
       params = [tournament_name, tournament_name];
@@ -397,7 +391,7 @@ const tournament_alltime = async (req, res) => {
   );
 };
 
-// route that retrieves all distinct tournament names, with league and year info 
+// route that retrieves all distinct tournament names, with league and year info
 const tournament_names = async (req, res) => {
   connection.query(
     `
@@ -417,22 +411,29 @@ const tournament_names = async (req, res) => {
 };
 
 // route that retrieves all distinct tournament names, with league and year info 
-const tname = async (req, res) => {
-  const tournament_id = req.params.id;
+const getmatches = async (req, res) => {
+  const tournament_name = req.params.name;
+  const tournament_league = req.params.league;
+  const tournament_date = req.params.date
 
   // if tournament_id is not provided or not a string
-  if (!tournament_id) {
+  if (!tournament_name || !tournament_league || !tournament_date ) {
     res.json([]);
     // otherwise try execute query
   } else {
-      connection.query(
+    connection.query(
       `
-      SELECT 
-      name, surface, league, YEAR(start_date) as year
+      WITH TID As(
+      SELECT id, surface
       FROM tournament
-      WHERE id =?
+      WHERE name =? AND league =? AND start_date = ?)
+      SELECT TID.id as id, match_num, round, p1.name as winner, p2.name as loser, p1.id as winnerID, p2.id as loserID, surface
+      FROM TID INNER JOIN game g ON TID.id=g.tourney_id INNER JOIN player p1 ON g.winner_id=p1.id INNER JOIN
+      player p2 ON g.loser_id=p2.id
+      ORDER BY g.match_num DESC;
       `,
-      [tournament_id],
+      
+      [tournament_name,tournament_league, tournament_date],
       (err, data) => handleResponse(err, data, req.path, res)
     );
   }
@@ -446,8 +447,7 @@ const betting_favorite = async (req, res) => {
 
   if (isNaN(betting_amount)) {
     res.json([]);
-  }
-  else {
+  } else {
     connection.query(
       `
       WITH valid_odds AS (
@@ -469,13 +469,12 @@ const betting_favorite = async (req, res) => {
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
-}
+};
 
 // simulates betting using a statistic comparison as a strategy
 // TODO: can add a threshold to each test
 // TODO: could recalculate player stats up to a certain date instead of yearly
 const betting_statistics = async (req, res) => {
-
   // date range of for simulation
   const start_date = req.query.start_date;
   const end_date = req.query.end_date;
@@ -484,15 +483,15 @@ const betting_statistics = async (req, res) => {
   const betting_amount = parseFloat(req.query.amount);
 
   // flags denoting whether or not to use this statistic as a determining factor for betting
-  const use_avg_ace = req.query.use_avg_ace === 'true' ? 1 : 0;
-  const use_avg_df = req.query.use_avg_df === 'true' ? 1 : 0;
-  const use_avg_svpt = req.query.use_avg_svpt === 'true' ? 1 : 0;
-  const use_avg_1stIn = req.query.use_avg_1stIn === 'true' ? 1 : 0;
-  const use_avg_1stWon = req.query.use_avg_1stWon === 'true' ? 1 : 0;
-  const use_avg_2ndWon = req.query.use_avg_2ndWon === 'true' ? 1 : 0;
-  const use_avg_SvGms = req.query.use_avg_SvGms === 'true' ? 1 : 0;
-  const use_avg_bpSaved = req.query.use_avg_bpSaved === 'true' ? 1 : 0;
-  const use_avg_bpFaced = req.query.use_avg_bpFaced === 'true' ? 1 : 0;
+  const use_avg_ace = req.query.use_avg_ace === "true" ? 1 : 0;
+  const use_avg_df = req.query.use_avg_df === "true" ? 1 : 0;
+  const use_avg_svpt = req.query.use_avg_svpt === "true" ? 1 : 0;
+  const use_avg_1stIn = req.query.use_avg_1stIn === "true" ? 1 : 0;
+  const use_avg_1stWon = req.query.use_avg_1stWon === "true" ? 1 : 0;
+  const use_avg_2ndWon = req.query.use_avg_2ndWon === "true" ? 1 : 0;
+  const use_avg_SvGms = req.query.use_avg_SvGms === "true" ? 1 : 0;
+  const use_avg_bpSaved = req.query.use_avg_bpSaved === "true" ? 1 : 0;
+  const use_avg_bpFaced = req.query.use_avg_bpFaced === "true" ? 1 : 0;
 
   // make sure we have a valid number
   if (isNaN(betting_amount)) {
@@ -504,7 +503,18 @@ const betting_statistics = async (req, res) => {
     });
   }
   // make sure at least 1 statistic is turned on
-  else if ((use_avg_ace+use_avg_df+use_avg_svpt+use_avg_1stIn+use_avg_1stWon+use_avg_2ndWon+use_avg_SvGms+use_avg_bpSaved+use_avg_bpFaced) == 0) {
+  else if (
+    use_avg_ace +
+      use_avg_df +
+      use_avg_svpt +
+      use_avg_1stIn +
+      use_avg_1stWon +
+      use_avg_2ndWon +
+      use_avg_SvGms +
+      use_avg_bpSaved +
+      use_avg_bpFaced ==
+    0
+  ) {
     res.json({
       NumMatches: 0,
       NumCorrect: 0,
@@ -512,8 +522,7 @@ const betting_statistics = async (req, res) => {
       AmountWon: 0.0,
       ROI: 0.0
     });
-  }
-  else {
+  } else {
     connection.query(
       `
       WITH historical_player_stats AS (
@@ -551,15 +560,15 @@ const betting_statistics = async (req, res) => {
         FROM valid_odds
         JOIN historical_player_stats AS W ON valid_odds.winner_id = W.id
         JOIN historical_player_stats AS L ON valid_odds.loser_id = L.id
-        WHERE (W.avg_ace > L.avg_ace OR (${1-use_avg_ace}=1))
-        AND (W.avg_df > L.avg_df OR (${1-use_avg_df}=1))
-        AND (W.avg_svpt > L.avg_svpt OR (${1-use_avg_svpt}=1))
-        AND (W.avg_1stIn > L.avg_1stIn OR (${1-use_avg_1stIn}=1))
-        AND (W.avg_1stWon > L.avg_1stWon OR (${1-use_avg_1stWon}=1))
-        AND (W.avg_2ndWon > L.avg_2ndWon OR (${1-use_avg_2ndWon}=1))
-        AND (W.avg_SvGms > L.avg_SvGms OR (${1-use_avg_SvGms}=1))
-        AND (W.avg_bpSaved > L.avg_bpSaved OR (${1-use_avg_bpSaved}=1))
-        AND (W.avg_bpFaced > L.avg_bpFaced OR (${1-use_avg_bpFaced}=1))
+        WHERE (W.avg_ace > L.avg_ace OR (${1 - use_avg_ace}=1))
+        AND (W.avg_df > L.avg_df OR (${1 - use_avg_df}=1))
+        AND (W.avg_svpt > L.avg_svpt OR (${1 - use_avg_svpt}=1))
+        AND (W.avg_1stIn > L.avg_1stIn OR (${1 - use_avg_1stIn}=1))
+        AND (W.avg_1stWon > L.avg_1stWon OR (${1 - use_avg_1stWon}=1))
+        AND (W.avg_2ndWon > L.avg_2ndWon OR (${1 - use_avg_2ndWon}=1))
+        AND (W.avg_SvGms > L.avg_SvGms OR (${1 - use_avg_SvGms}=1))
+        AND (W.avg_bpSaved > L.avg_bpSaved OR (${1 - use_avg_bpSaved}=1))
+        AND (W.avg_bpFaced > L.avg_bpFaced OR (${1 - use_avg_bpFaced}=1))
       ), # matches that met the criteria and the bet won
       bet_lost AS (
         SELECT
@@ -567,15 +576,15 @@ const betting_statistics = async (req, res) => {
         FROM valid_odds
         JOIN historical_player_stats AS W ON valid_odds.winner_id = W.id
         JOIN historical_player_stats AS L ON valid_odds.loser_id = L.id
-        WHERE (L.avg_ace > W.avg_ace OR (${1-use_avg_ace}=1))
-        AND (L.avg_df > W.avg_df OR (${1-use_avg_df}=1))
-        AND (L.avg_svpt > W.avg_svpt OR (${1-use_avg_svpt}=1))
-        AND (L.avg_1stIn > W.avg_1stIn OR (${1-use_avg_1stIn}=1))
-        AND (L.avg_1stWon > W.avg_1stWon OR (${1-use_avg_1stWon}=1))
-        AND (L.avg_2ndWon > W.avg_2ndWon OR (${1-use_avg_2ndWon}=1))
-        AND (L.avg_SvGms > W.avg_SvGms OR (${1-use_avg_SvGms}=1))
-        AND (L.avg_bpSaved > W.avg_bpSaved OR (${1-use_avg_bpSaved}=1))
-        AND (L.avg_bpFaced > W.avg_bpFaced OR (${1-use_avg_bpFaced}=1))
+        WHERE (L.avg_ace > W.avg_ace OR (${1 - use_avg_ace}=1))
+        AND (L.avg_df > W.avg_df OR (${1 - use_avg_df}=1))
+        AND (L.avg_svpt > W.avg_svpt OR (${1 - use_avg_svpt}=1))
+        AND (L.avg_1stIn > W.avg_1stIn OR (${1 - use_avg_1stIn}=1))
+        AND (L.avg_1stWon > W.avg_1stWon OR (${1 - use_avg_1stWon}=1))
+        AND (L.avg_2ndWon > W.avg_2ndWon OR (${1 - use_avg_2ndWon}=1))
+        AND (L.avg_SvGms > W.avg_SvGms OR (${1 - use_avg_SvGms}=1))
+        AND (L.avg_bpSaved > W.avg_bpSaved OR (${1 - use_avg_bpSaved}=1))
+        AND (L.avg_bpFaced > W.avg_bpFaced OR (${1 - use_avg_bpFaced}=1))
       ) # matches that met the criteria and the bet lost
       SELECT
         COUNT(*) as NumMatches,
@@ -588,7 +597,7 @@ const betting_statistics = async (req, res) => {
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
-}
+};
 
 // route that retrieves a specific player's historical match stats
 const player_average_stats = async (req, res) => {
@@ -644,6 +653,85 @@ const match_results = async (req, res) => {
   );
 };
 
+const eligible_players = async (req, res) => {
+  const year = parseInt(req.params.year);
+  let league;
+
+  if (year > 2023 || year < 1878) {
+    res.json([]);
+  }
+
+  // validate league param
+  if (req.params.league != "wta" && req.params.league != "atp") {
+    league = ["atp", "wta"];
+  } else {
+    league = [req.params.league];
+  }
+
+  connection.query(
+    `
+    SELECT name AS label, IDs.id AS id, league
+    FROM player P INNER JOIN (
+        SELECT DISTINCT id
+        FROM player_stats_yearly
+        WHERE year < ?
+    ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
+    WHERE league IN (?)
+    ORDER BY PS.wins DESC;
+    `,
+    [year, league],
+    (err, data) => handleResponse(err, data, req.path, res)
+  );
+};
+
+// SELECT name AS label, IDs.id AS id
+// FROM player P INNER JOIN (
+//     SELECT DISTINCT id
+//     FROM player_stats_yearly
+//     WHERE year < ?
+// ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
+// WHERE league IN (?)
+// ORDER BY PS.wins DESC;
+
+const simulate_match = async (req, res) => {
+  const player1_id = parseInt(req.params.player1_id);
+  const player2_id = parseInt(req.params.player2_id);
+  const year = parseInt(req.params.year);
+
+  connection.query(
+    `
+    SELECT *
+    FROM
+    (SELECT
+      SUM(ace)/SUM(nmatches) as avg_ace_1,
+      SUM(df)/SUM(nmatches) as avg_df_1,
+      SUM(svpt)/SUM(nmatches) as avg_svpt_1,
+      SUM(1stIn)/SUM(nmatches) as avg_1stIn_1,
+      SUM(1stWon)/SUM(nmatches) as avg_1stWon_1,
+      SUM(2ndWon)/SUM(nmatches) as avg_2ndWon_1,
+      SUM(SvGms)/SUM(nmatches) as avg_SvGms_1,
+      SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_1,
+      SUM(bpFaced)/SUM(nmatches) as avg_bpFaced_1
+    FROM player_stats_yearly
+    WHERE id=? AND year < ?) P1 CROSS JOIN
+    (SELECT
+      SUM(ace)/SUM(nmatches) as avg_ace_2,
+      SUM(df)/SUM(nmatches) as avg_df_2,
+      SUM(svpt)/SUM(nmatches) as avg_svpt_2,
+      SUM(1stIn)/SUM(nmatches) as avg_1stIn_2,
+      SUM(1stWon)/SUM(nmatches) as avg_1stWon_2,
+      SUM(2ndWon)/SUM(nmatches) as avg_2ndWon_2,
+      SUM(SvGms)/SUM(nmatches) as avg_SvGms_2,
+      SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_2,
+      SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+    FROM player_stats_yearly
+    WHERE id=? AND year < ?) P2;
+    `,
+    [player1_id, year, player2_id, year],
+    (err, data) => handleResponse(err, data, req.path, res, (res_array = false))
+  );
+};
+
 module.exports = {
   home,
   player,
@@ -658,9 +746,11 @@ module.exports = {
   tournament_select,
   tournament_alltime,
   tournament_names,
-  tname,
+  getmatches,
   betting_favorite,
   betting_statistics,
   player_average_stats,
   match_results,
+  eligible_players,
+  simulate_match,
 };
