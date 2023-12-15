@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import {
-  Card,
-  CardContent,
   Typography,
-  Chip,
-  Button,
-  Container,
-  Link,
   Table,
   TableContainer,
   TableHead,
@@ -16,6 +10,7 @@ import {
   TableCell,
   TableBody,
   Paper,
+  Link
 } from "@mui/material";
 //emojis
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
@@ -92,6 +87,7 @@ export default function TournamentPage() {
         <div style={{ textAlign: "center" }}>
           <Typography
             variant="h3"
+            mt={5}
             sx={{
               fontWeight: 300,
               letterSpacing: ".2rem",
@@ -127,20 +123,21 @@ export default function TournamentPage() {
             <Typography variant="h5" style={{ color: "#FFD700" }}>
               <EmojiEventsIcon/> Winner:
             </Typography>
-            <Typography variant="h6">
-            <Link href={`/player/${winnerID}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
-                {winner}
-              </Link>
-            </Typography>
+            <Link 
+              href={`/player/${winnerID}`} 
+              variant="h6"
+              underline="none"
+              rel="noopener"
+              color={'white'}
+              sx={{
+                ":hover": {
+                  color: "success.main",
+                  transition: "250ms",
+                },
+              }}
+            >
+              {winner}
+            </Link>
             </div>
             </Grid>
           </Grid>
@@ -150,20 +147,21 @@ export default function TournamentPage() {
             <Typography variant="h6">
               Record Holder (Last Decade):
             </Typography>
-            <Typography variant="subtitle1">
-            <Link href={`/player/${winningestID}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
-                {winningest}
-              </Link>
-            </Typography>
+            <Link 
+              href={`/player/${winningestID}`} 
+              variant="subtitle1"
+              underline="none"
+              rel="noopener"
+              color={'white'}
+              sx={{
+                ":hover": {
+                  color: "success.main",
+                  transition: "250ms",
+                },
+              }}
+            >
+              {winningest}
+            </Link>
             <Typography variant="subtitle2">
             with
             </Typography>
@@ -179,20 +177,21 @@ export default function TournamentPage() {
               G.O.A.T.:
             </Typography>
             </Tooltip>
-            <Typography variant="subtitle1">
-            <Link href={`/player/${winningestID_alltime}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
-                {winningest_alltime}
-              </Link>
-            </Typography>
+            <Link 
+              href={`/player/${winningestID_alltime}`} 
+              variant="subtitle1"
+              underline="none"
+              rel="noopener"
+              color={'white'}
+              sx={{
+                ":hover": {
+                  color: "success.main",
+                  transition: "250ms",
+                },
+              }}
+            >
+              {winningest_alltime}
+            </Link>
             <Typography variant="subtitle2">
             with
             </Typography>
