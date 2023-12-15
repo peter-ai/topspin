@@ -2,19 +2,7 @@ import { useEffect, useState } from "react";
 import Carousel from "react-material-ui-carousel";
 import {
   Grid,
-  Popover,
   Tooltip,
-  IconButton,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Paper,
-  TableContainer,
-  Button,
-  Stack,
-  Pagination,
   Box,
   Link,
   Skeleton
@@ -34,9 +22,7 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function TournamentHomePage() {
   const [tournaments, setTournaments] = useState([]); // variable for list of tournaments
-  const [imagesLoaded, setImagesLoaded] = useState(false);
-
-  const images = [img1, img2, img3, img4, img5];
+  const images = [img1, img2, img3, img4, img5]; // array of images for carousel
 
   // use effect
   useEffect(() => {
@@ -47,22 +33,12 @@ export default function TournamentHomePage() {
 
   }, []); // [] empty listener, so only run effect on load of page
 
-  // Simulate image loading
-  useEffect(() => {
-    const imageLoader = setTimeout(() => {
-      setImagesLoaded(true);
-    }, 2000);
-
-    return () => clearTimeout(imageLoader);
-  }, [])
-
   // generate tournament link function
   const generateTournamentLink = (params) => {
     //const date = (params.row.start_date).date
     const path = `/tournament/${params.row.name}/${params.row.league}/${params.row.date}`
 
     return (
-      
       <Link
         href={path}
         underline="none"
@@ -83,7 +59,7 @@ export default function TournamentHomePage() {
   const rows = tournaments.map((tournament) => ({
     id: tournament.id,
     name:tournament.name,
-    date: tournament.start_date.substring(0,10),
+    date: tournament.start_date,
     league: tournament.league,
     surface: tournament.surface,
     level: tournament.level,
@@ -108,8 +84,6 @@ export default function TournamentHomePage() {
   },
   ];
 
-   
-
   return (
     <Grid container justifyContent="flex-end" spacing={4} p={4}>
       <Grid item xs={4}>
@@ -120,7 +94,6 @@ export default function TournamentHomePage() {
             (
               <Carousel 
                 height={300}  
-              // containerStyle = {{width: "100px", height: 200, margin: "0 auto"}}
               >
                 <img src={ images[0] } alt="Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5}} />
                 <img src={ images[1] } alt="Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5}}/>
