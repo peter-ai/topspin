@@ -15,12 +15,18 @@ import {
   Button,
   Stack,
   Pagination,
+  Box,
+  Link,
   Skeleton
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import InfoIcon from "@mui/icons-material/Info";
-import { Link } from "react-router-dom";
-import {getDate} from "../utils";
+import { getDate, generateTableHeader } from "../utils";
+import img1 from "../assets/imgs/th-gauff.jpg";
+import img2 from "../assets/imgs/th-federervsdjok.jpg";
+import img3 from "../assets/imgs/th-usopen.jpeg";
+import img4 from "../assets/imgs/th-sillhouette.jpeg";
+import img5 from "../assets/imgs/th-bjkvsriggs.jpg";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -29,6 +35,8 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 export default function TournamentHomePage() {
   const [tournaments, setTournaments] = useState([]); // variable for list of tournaments
   const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  const images = [img1, img2, img3, img4, img5];
 
   // use effect
   useEffect(() => {
@@ -56,17 +64,16 @@ export default function TournamentHomePage() {
     return (
       
       <Link
-      to={path}
-      underline="none"
-      style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#66bb6a";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
+        href={path}
+        underline="none"
+        sx={{
+          ":hover": {
+            color: "success.main",
+            transition: "250ms",
+          },
+        }}
+        rel="noopener"
+      >
           {params.row.name}
       </Link>
     );
@@ -84,10 +91,10 @@ export default function TournamentHomePage() {
 
   //create columns for all data
   const columns = [
-    { field: 'name', headerName: 'Tournament Name', width: 250 , renderCell: (params) => generateTournamentLink(params) },
-    { field: 'league', headerName: 'League', width: 100 },
-    { field: 'date', headerName: 'Date', width: 150 },
-    { field: 'surface', headerName: 'Surface', width: 150 },
+    { field: 'name', headerName: 'Tournament Name', flex:2.5, renderHeader: (params) => generateTableHeader(params), renderCell: (params) => generateTournamentLink(params) },
+    { field: 'league', headerName: 'League', flex: 1.5, renderHeader: (params) => generateTableHeader(params), renderCell: (params) => params.value.toUpperCase()},
+    { field: 'date', headerName: 'Date', type:'date', flex: 1.5,renderHeader: (params) => generateTableHeader(params), valueGetter: (params) => getDate(params.row.date, "tournament") },
+    { field: 'surface', headerName: 'Surface', flex: 1.5, renderHeader: (params) => generateTableHeader(params),  },
     { field: 'level', headerName: (
       <Tooltip title=" Levels refer to the type of tournament, including prize money or format. For more information, see our sidebar.
       " arrow>
@@ -96,7 +103,8 @@ export default function TournamentHomePage() {
         </div>
       </Tooltip>
     ),
-    width: 200,
+    flex: 2,
+    renderHeader: (params) => generateTableHeader(params), 
   },
   ];
 
@@ -105,32 +113,36 @@ export default function TournamentHomePage() {
   return (
     <Grid container justifyContent="flex-end" spacing={4} p={4}>
       <Grid item xs={4}>
-        {/* Component on Top */}
-        <div style={{ height: 200, width: '100%', backgroundColor: 'black' }}>
-          {imagesLoaded ? (
-        <Carousel 
-        containerStyle = {{width: "100px",height: "70px", margin: "0 auto"}}
-        >
-          {/* Add your images here */}
-          <img src="/src/assets/imgs/th-federervsdjok.jpg" alt="Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
-          <img src="/src/assets/imgs/th-usopen.jpeg" alt="Image 3" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
-          <img src="/src/assets/imgs/th-sillhouette.jpeg" alt="Image 4"  style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
-          <img src="/src/assets/imgs/th-bjkvsriggs.jpg" alt="Image 5" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <img src="/src/assets/imgs/th-gauff.jpg" alt="Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </Carousel>
-        ): (<Skeleton variant="rounded" width="100%" height={200} />
-        )}
-        </div>
+        <Box  height={ 300 } width={ '100%' } style={{ backgroundColor: 'black' }}>
+          {
+            tournaments.length & images.length === 5
+            ? 
+            (
+              <Carousel 
+                height={300}  
+              // containerStyle = {{width: "100px", height: 200, margin: "0 auto"}}
+              >
+                <img src={ images[0] } alt="Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5}} />
+                <img src={ images[1] } alt="Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5}}/>
+                <img src={ images[2] } alt="Image 3" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }}/>
+                <img src={ images[3] } alt="Image 4"  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }}/>
+                <img src={ images[4] } alt="Image 5" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }} /> 
+              </Carousel>
+            )
+            : 
+            (<Skeleton variant="rounded" width="100%" height={300} />)
+            }
+        </Box>
       </Grid>
       <Grid item xs={8}>
-        <div style={{ height: 500, width: '100%' }}>
+        <Box height={ 500 } width={ '100%' }>
           {tournaments.length ? (<DataGrid
             rows={rows}
             columns={columns}
             pageSize={10}
             rowsPerPageOptions={[10, 20, 50]}
-          />): (<Skeleton variant= 'rectangular' width = '100%' height = {500} />)}
-        </div>
+          />): (<Skeleton variant= 'rounded' width = '100%' height = {500} />)}
+        </Box>
       </Grid>
     </Grid>
   );
