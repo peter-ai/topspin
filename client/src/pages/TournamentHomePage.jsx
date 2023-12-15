@@ -28,7 +28,7 @@ const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
 export default function TournamentHomePage() {
   const [tournaments, setTournaments] = useState([]); // variable for list of tournaments
-  const [uniqueTouramentNames, setTournamentNames] = useState([]);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   // use effect
   useEffect(() => {
@@ -38,6 +38,15 @@ export default function TournamentHomePage() {
       .catch((err) => console.log(err)); // catch and log errors
 
   }, []); // [] empty listener, so only run effect on load of page
+
+  // Simulate image loading
+  useEffect(() => {
+    const imageLoader = setTimeout(() => {
+      setImagesLoaded(true);
+    }, 2000);
+
+    return () => clearTimeout(imageLoader);
+  }, [])
 
   // generate tournament link function
   const generateTournamentLink = (params) => {
@@ -51,7 +60,7 @@ export default function TournamentHomePage() {
       underline="none"
       style={{ color: "inherit", textDecoration: "none" }}
               onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
+                          e.target.style.color = "#66bb6a";
                           e.target.style.textDecoration = "none";
                         }}
                         onMouseOut={(e) => {
@@ -97,27 +106,30 @@ export default function TournamentHomePage() {
     <Grid container justifyContent="flex-end" spacing={4} p={4}>
       <Grid item xs={4}>
         {/* Component on Top */}
-        <div style={{ height: 200, width: '100%', backgroundColor: 'lightblue' }}>
+        <div style={{ height: 200, width: '100%', backgroundColor: 'black' }}>
+          {imagesLoaded ? (
         <Carousel 
         containerStyle = {{width: "100px",height: "70px", margin: "0 auto"}}
         >
           {/* Add your images here */}
-          <img src="/src/assets/imgs/th-gauff.jpg" alt="Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           <img src="/src/assets/imgs/th-federervsdjok.jpg" alt="Image 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
           <img src="/src/assets/imgs/th-usopen.jpeg" alt="Image 3" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
           <img src="/src/assets/imgs/th-sillhouette.jpeg" alt="Image 4"  style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
           <img src="/src/assets/imgs/th-bjkvsriggs.jpg" alt="Image 5" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/src/assets/imgs/th-gauff.jpg" alt="Image 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </Carousel>
+        ): (<Skeleton variant="rounded" width="100%" height={200} />
+        )}
         </div>
       </Grid>
       <Grid item xs={8}>
         <div style={{ height: 500, width: '100%' }}>
-          <DataGrid
+          {tournaments.length ? (<DataGrid
             rows={rows}
             columns={columns}
             pageSize={10}
             rowsPerPageOptions={[10, 20, 50]}
-          />
+          />): (<Skeleton variant= 'rectangular' width = '100%' height = {500} />)}
         </div>
       </Grid>
     </Grid>
