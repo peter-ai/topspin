@@ -1,0 +1,365 @@
+NOTE: The `?` in relevant queries is used as a placeholder for user input that is provided as a parameter to the query.
+DATABASE CONNECTION DETAILS (TEAM, ONLY ADD TO OFFLINE VERSION!):
+- [HOST]
+- [PORT]
+- [USERNAME]
+- [PASSWORD]
+- [DATABASE]
+
+[Query 1: Simple]
+[Description: Retrieve all players to display on a player overview page.]
+SELECT id, name, ioc, league 
+FROM player;
+
+[Query 2: Simple]
+[Description: Retrieve the basic demographic details of player the user has selected for the player profile page.]
+SELECT * 
+FROM player
+WHERE id=?;
+
+[Query 3: Complex]
+[Description: For a given player, aggregates the number of matches won and number of matches lost for each court surface, combines the result through an outer join, computes win/loss percentages for each surface type, and returns their best and worst performing surface types.]
+WITH surface_perf AS (
+    WITH win_surface AS (
+                      SELECT surface, COUNT(G.winner_id) AS wins
+                      FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+                      WHERE G.winner_id=?
+                      GROUP BY surface
+    ),
+    loss_surface AS (
+                      SELECT surface, COUNT(G.loser_id) AS losses
+                      FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
+                      WHERE G.loser_id=?
+                      GROUP BY surface
+    )
+    SELECT w_surface AS surface, IFNULL(wins, 0) AS wins, IFNULL(losses, 0) AS losses,
+           IFNULL(wins,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS win_percentage,
+           IFNULL(losses,0)/(IFNULL(wins,0)+IFNULL(losses,0)) AS loss_percentage
+    FROM ((SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+           FROM win_surface W LEFT JOIN loss_surface L on W.surface=L.surface)
+           UNION
+           (SELECT W.surface AS w_surface, wins, losses, L.surface AS L_surface
+           FROM win_surface W RIGHT JOIN loss_surface L on W.surface=L.surface)) WL
+)
+SELECT *
+FROM surface_perf
+WHERE win_percentage=(SELECT MAX(win_percentage) FROM surface_perf) 
+   OR loss_percentage=(SELECT MAX(loss_percentage) FROM surface_perf)
+ORDER BY win_percentage DESC;
+
+
+[Query 4: Complex]
+[Description: Compute and save a materialized view of historical match stats for players (MySQL lacks support for materialized views so persist a table instead). Then, retrieve the stats of a specific player selected by the user.]
+CREATE TABLE player_stats (PRIMARY KEY (player_id))
+    WITH wins_losses AS (
+        -- wins and losses table
+        SELECT player_id, wins, losses, (wins+losses) AS total_games,
+               wins/(wins+losses) AS win_percentage, losses/(wins+losses) AS loss_percentage
+        FROM (
+            WITH win_count AS (SELECT winner_id AS player_id, COUNT(winner_id) AS wins
+                               FROM game
+                               GROUP BY player_id
+                               ORDER BY wins DESC),
+            loss_count AS (SELECT loser_id AS player_id, COUNT(loser_id) AS losses
+                           FROM game
+                           GROUP BY player_id
+                           ORDER BY losses ASC)
+            (SELECT *
+            FROM (SELECT win_count.player_id AS player_id, wins, IFNULL(losses, 0) AS losses
+                  FROM win_count LEFT JOIN loss_count ON win_count.player_id=loss_count.player_id) w_join)
+            UNION
+            (SELECT *
+            FROM (SELECT loss_count.player_id AS player_id, IFNULL(wins, 0) AS wins, losses
+                  FROM win_count RIGHT JOIN loss_count ON win_count.player_id=loss_count.player_id) l_join)
+        ) w_l_table
+    ),
+    win_stats AS (
+        -- winner stats
+        SELECT winner_id AS player_id, AVG(winner_age) AS avg_w_age,
+               AVG(minutes) AS avg_w_minutes, SUM(minutes) AS ttl_w_minutes, AVG(w_ace) AS avg_w_ace,
+               AVG(w_df) AS avg_w_df, AVG(w_svpt) AS avg_w_svpt, AVG(w_1stIn) AS avg_w_1stIn,
+               AVG(w_1stWon) AS avg_w_1stWon, AVG(w_2ndWon) AS avg_w_2ndWon, AVG(w_SvGms) AS avg_w_SvGms,
+               AVG(w_bpSaved) AS avg_w_bpSaved, AVG(w_bpFaced) AS avg_w_bpFaced, SUM(w_ace) AS ttl_w_ace,
+               SUM(w_df) AS ttl_w_df, SUM(w_svpt) AS ttl_w_svpt, SUM(w_1stIn) AS ttl_w_1stIn,
+               SUM(w_1stWon) AS ttl_w_1stWon, SUM(w_2ndWon) AS ttl_w_2ndWon, SUM(w_SvGms) AS ttl_w_SvGms,
+               SUM(w_bpSaved) AS ttl_w_bpSaved, SUM(w_bpFaced)  AS ttl_w_bpFaced
+        FROM game
+        GROUP BY player_id
+    ),
+    loss_stats AS (
+        -- loser stats
+        SELECT loser_id AS player_id, AVG(loser_age) AS avg_l_age, AVG(minutes) AS avg_l_minutes,
+               SUM(minutes) AS ttl_l_minutes, AVG(l_ace) AS avg_l_ace, AVG(l_df) AS avg_l_df,
+               AVG(l_svpt) AS avg_l_svpt, AVG(l_1stIn) AS avg_l_1stIn, AVG(l_1stWon) AS avg_l_1stWon,
+               AVG(l_2ndWon) AS avg_l_2ndWon, AVG(l_SvGms) AS avg_l_SvGms, AVG(l_bpSaved) AS avg_l_bpSaved,
+               AVG(l_bpFaced) AS avg_l_bpFaced, SUM(l_ace) AS ttl_l_ace, SUM(l_df) AS ttl_l_df,
+               SUM(l_svpt) AS ttl_l_svpt, SUM(l_1stIn) AS ttl_l_1stIn, SUM(l_1stWon) AS ttl_l_1stWon,
+               SUM(l_2ndWon) AS ttl_l_2ndWon, SUM(l_SvGms) AS ttl_l_SvGms,
+               SUM(l_bpSaved) AS ttl_l_bpSaved, SUM(l_bpFaced)  AS ttl_l_bpFaced
+        FROM game
+        GROUP BY player_id
+    ),
+    overall_stats AS (
+        -- overall stats
+        WITH all_games AS (
+            (SELECT winner_id AS player_id, winner_age AS ovr_age, minutes AS ovr_minutes,
+                    w_ace AS ovr_ace, w_df AS ovr_df, w_svpt AS ovr_svpt,
+                    w_1stIn AS ovr_1stIn, w_1stWon AS ovr_1stWon,
+                    w_2ndWon AS ovr_2ndWon, w_SvGms AS ovr_SvGms,
+                    w_bpSaved AS ovr_bpSaved, w_bpFaced  AS ovr_bpFaced
+            FROM game)
+            UNION
+            (SELECT loser_id AS player_id, loser_age AS ovr_age, minutes AS ovr_minutes,
+                    l_ace AS ovr_ace, l_df AS ovr_df, l_svpt AS ovr_svpt,
+                    l_1stIn AS ovr_1stIn, l_1stWon AS ovr_1stWon,
+                    l_2ndWon AS ovr_2ndWon, l_SvGms AS ovr_SvGms,
+                    l_bpSaved AS ovr_bpSaved, l_bpFaced  AS ovr_bpFaced
+            FROM game)
+        )
+        SELECT player_id, AVG(ovr_age) AS avg_ovr_age, AVG(ovr_minutes) AS avg_ovr_minutes,
+               SUM(ovr_minutes) AS ttl_ovr_minutes, AVG(ovr_ace) AS avg_ovr_ace,
+               AVG(ovr_df) AS avg_ovr_df, AVG(ovr_svpt) AS avg_ovr_svpt,
+               AVG(ovr_1stIn) AS avg_ovr_1stIn, AVG(ovr_1stWon) AS avg_ovr_1stWon,
+               AVG(ovr_2ndWon) AS avg_ovr_2ndWon, AVG(ovr_SvGms) AS avg_ovr_SvGms,
+               AVG(ovr_bpSaved) AS avg_ovr_bpSaved, AVG(ovr_bpFaced) AS avg_ovr_bpFaced,
+               SUM(ovr_ace) AS ttl_ovr_ace, SUM(ovr_df) AS ttl_ovr_df, SUM(ovr_svpt) AS ttl_ovr_svpt,
+               SUM(ovr_1stIn) AS ttl_ovr_1stIn, SUM(ovr_1stWon) AS ttl_ovr_1stWon,
+               SUM(ovr_2ndWon) AS ttl_ovr_2ndWon, SUM(ovr_SvGms) AS ttl_ovr_SvGms,
+               SUM(ovr_bpSaved) AS ttl_ovr_bpSaved, SUM(ovr_bpFaced) AS ttl_ovr_bpFaced
+        FROM all_games
+        GROUP BY player_id
+    )
+    SELECT WL.player_id AS player_id, wins, win_percentage, losses, loss_percentage, total_games,
+           avg_l_1stIn, avg_l_1stWon, avg_l_2ndWon, avg_l_ace, avg_l_age, avg_l_bpFaced,
+           avg_l_bpSaved, avg_l_df, avg_l_minutes, avg_l_SvGms, avg_l_svpt, avg_ovr_1stIn,
+           avg_ovr_1stWon, avg_ovr_2ndWon, avg_ovr_ace, avg_ovr_age, avg_ovr_bpFaced,
+           avg_ovr_bpSaved, avg_ovr_df, avg_ovr_minutes, avg_ovr_SvGms, avg_ovr_svpt,
+           avg_w_1stIn, avg_w_1stWon, avg_w_2ndWon, avg_w_ace, avg_w_age, avg_w_bpFaced,
+           avg_w_bpSaved, avg_w_df, avg_w_minutes, avg_w_SvGms, avg_w_svpt, ttl_l_1stIn,
+           ttl_l_1stWon, ttl_l_2ndWon, ttl_l_ace, ttl_l_bpFaced, ttl_l_bpSaved, ttl_l_df,
+           ttl_l_minutes, ttl_l_SvGms, ttl_l_svpt, ttl_ovr_1stIn, ttl_ovr_1stWon, ttl_ovr_2ndWon,
+           ttl_ovr_ace, ttl_ovr_bpFaced, ttl_ovr_bpSaved, ttl_ovr_df, ttl_ovr_minutes,
+           ttl_ovr_SvGms, ttl_ovr_svpt, ttl_w_1stIn, ttl_w_1stWon, ttl_w_2ndWon, ttl_w_ace,
+           ttl_w_bpFaced, ttl_w_bpSaved, ttl_w_df, ttl_w_minutes, ttl_w_SvGms, ttl_w_svpt
+    FROM wins_losses WL
+        LEFT JOIN overall_stats OS ON WL.player_id=OS.player_id
+        LEFT JOIN win_stats WS ON WL.player_id=WS.player_id
+        LEFT JOIN loss_stats LS ON WL.player_id=LS.player_id
+    ORDER BY WL.player_id;
+
+SELECT *
+FROM player_stats 
+WHERE player_id=?;
+
+
+[Query 5: Complex]
+[Description: Retrieve all matches that the user selected player has played in (won or lost), to display on player profile page.]
+SELECT tourney_id, name AS tourney_name, start_date,
+    surface, draw_size, tourney_level, winner_name,
+    loser_name, score, max_sets
+FROM tournament T INNER JOIN (
+              SELECT tourney_id, P1.name AS winner_name, 
+                      P2.name AS loser_name, score, max_sets
+              FROM game G INNER JOIN
+                  player P1 ON G.winner_id=P1.id INNER JOIN
+                  player P2 ON G.loser_id=P2.id
+              WHERE winner_id=? OR loser_id=?) M
+      ON T.id=M.tourney_id
+ORDER BY start_date DESC;
+
+[Query 6: Simple]
+[Description: Retrieve a single match played in a tournament by joining a match with the tournament it was played in and the participating players, to be displayed in a match overview page]
+SELECT G.tourney_id, G.match_num,
+    T.name, T.surface,
+    G.round, G.minutes, G.score,
+    W.name AS winner_name, W.ioc AS winner_country,
+    L.name AS loser_name, L.ioc AS loser_country
+FROM game G 
+    JOIN tournament T ON G.tourney_id=T.id
+    JOIN player W ON G.winner_id = W.id
+    JOIN player L ON G.loser_id = L.id
+WHERE G.tourney_id=? AND G.match_num=?
+
+
+[Query 7: Simple]
+[Description: Retrieves stats for two players by joining player stats on player data, to be displayed in the player compare page]
+SELECT P.name, P.league, P.hand, P.height, S.*
+FROM player_stats S
+    JOIN player P ON S.player_id = P.id
+WHERE S.player_id IN (?, ?)
+
+[Query 8: Complex]
+[Description: Accumulates the total statistics of a player's performance in all matches played within a given year, and inserts into a table with a primary key of (id, year)]
+CREATE TABLE player_stats_yearly (PRIMARY KEY (id, year)) AS (
+    WITH winner AS (
+        SELECT DISTINCT
+            player.id,
+            game.tourney_id
+        FROM player
+        JOIN game on player.id = game.winner_id
+    ), # players who have won a match in a tournament
+    loser AS (
+        SELECT DISTINCT
+            player.id,
+            game.tourney_id
+        FROM player
+        JOIN game on player.id = game.loser_id
+    ), # players who have lost a match in a tournament
+    player_yearly AS (
+        SELECT DISTINCT
+            WL.id,
+            YEAR(T.start_date) as year
+        FROM (SELECT * FROM winner UNION SELECT * FROM loser) as WL
+        JOIN tournament as T ON WL.tourney_id = T.id
+    ), # all players who have played in a match in a given year
+    winning_stats AS (
+        SELECT
+            player_yearly.id,
+            player_yearly.year,
+            winner_age as age, # age of the player
+            minutes,  # minutes played
+            w_ace as ace, # aces
+            w_df as df, # doubles faults
+            w_svpt as svpt, # serve points
+            w_1stIn as 1stIn, # first serves made
+            w_1stWon as 1stWon, # first serve points won
+            w_2ndWon as 2ndWon, # second-serve points won
+            w_SvGms as SvGms, # serve games
+            w_bpSaved as bpSaved, # break points saved
+            w_bpFaced as bpFaced # break points faced
+        FROM player_yearly
+        JOIN tournament ON YEAR(tournament.start_date) = player_yearly.year # all tournaments the player played in this year
+        JOIN game ON tournament.id = game.tourney_id AND game.winner_id = player_yearly.id # all matches the player won in this year
+    ), # stats from all matches where the player won
+    losing_stats AS (
+        SELECT
+            player_yearly.id,
+            player_yearly.year,
+            loser_age as age, # age of the player
+            minutes,  # minutes played
+            l_ace as ace, # aces
+            l_df as df, # doubles faults
+            l_svpt as svpt, # serve points
+            l_1stIn as 1stIn, # first serves made
+            l_1stWon as 1stWon, # first serve points won
+            l_2ndWon as 2ndWon, # second-serve points won
+            l_SvGms as SvGms, # serve games
+            l_bpSaved as bpSaved, # break points saved
+            l_bpFaced as bpFaced # break points faced
+        FROM player_yearly
+        JOIN tournament ON YEAR(tournament.start_date) = player_yearly.year # all tournaments the player played in this year
+        JOIN game ON tournament.id = game.tourney_id AND game.loser_id = player_yearly.id # all matches the player won in this year
+    ) # stats from all matches where the player lost
+    SELECT
+        id,
+        year,
+	COUNT(*) as matches,
+        MAX(age) as age,
+        SUM(minutes) as minutes,
+        SUM(ace) as ace,
+        SUM(df) as df,
+        SUM(svpt) as svpt,
+        SUM(1stIn) as 1stIn,
+        SUM(1stWon) as 1stWon,
+        SUM(2ndWon) as 2ndWon,
+        SUM(SvGms) as SvGms,
+        SUM(bpSaved) as bpSaved,
+        SUM(bpFaced) as bpFaced
+    FROM (SELECT * FROM winning_stats UNION SELECT * FROM losing_stats) AS player_game_stats
+    GROUP BY id, year
+);
+
+[Query 9: Simple]
+[Description: Calculates the return on investment when betting on only the favorites for every match in a given year]
+WITH odds_year AS (
+    SELECT AvgW, AvgL
+    FROM odds
+    JOIN tournament ON odds.tourney_id = tournament.id
+    WHERE YEAR(tournament.start_date) = 2015 # user input -- year to simulate over
+) # betting odds of all matches in a given year
+SELECT
+    SUM(AvgW)/(SELECT COUNT(*) FROM odds_year) as ROI,
+    1*(SELECT COUNT(*) FROM odds_year) as MONEY_BET, # user input -- $ per bet
+    SUM(1*AvgW) as MONEY_WON # user input -- $ per bet
+FROM odds_year
+WHERE AvgW < AvgL; # matches where the favorite won
+
+
+[Query 10: Complex]
+[Description: Calculates the return on investment when deploying a betting strategy which compares the statistics between the 2 players in a match when deciding who to bet on.]
+WITH historical_player_stats AS (
+    SELECT
+        id,
+        SUM(minutes)/SUM(nmatches) as avg_minutes,
+        SUM(ace)/SUM(nmatches) as avg_ace,
+        SUM(df)/SUM(nmatches) as avg_df,
+        SUM(svpt)/SUM(nmatches) as avg_svpt,
+        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+    FROM player_stats_yearly as player
+    WHERE player.year < 2013 # user input -- year to simulate over
+    GROUP BY player.id
+),
+odds_year AS (
+    SELECT
+        AvgW,
+        AvgL,
+        winner_id,
+        loser_id
+    FROM odds
+    JOIN game on odds.tourney_id = game.tourney_id and odds.match_num = game.match_num
+    JOIN tournament ON game.tourney_id = tournament.id
+    WHERE YEAR(tournament.start_date) = 2013 # user input -- year to simulate over
+) # betting odds of all matches in a given year
+
+SELECT
+    COUNT(*) as NumCorrect,
+    (SELECT COUNT(*) FROM odds_year) as NumMatches,
+    SUM(AvgW)/(SELECT COUNT(*) FROM odds_year) as ROI,
+    1*(SELECT COUNT(*) FROM odds_year) as MONEY_BET, # user input -- $ per bet
+    SUM(1*AvgW) as MONEY_WON # user input -- $ per bet
+FROM odds_year
+JOIN historical_player_stats AS W ON odds_year.winner_id = W.id
+JOIN historical_player_stats AS L ON odds_year.loser_id = L.id
+WHERE W.avg_ace > L.avg_ace; # deploy the betting strategy, bet whichever player averages more aces
+
+
+[Query 11: Simple]
+[Description: Shows all matches for a given tournament]
+SELECT * 
+FROM tournament t INNER JOIN game g ON t.id=g.tourney_id
+WHERE tourney_id=?
+ORDER BY g.match_num ASC;
+
+[Query 12: Simple]
+[Description: Shows all tournaments]
+SELECT name, league, start_date, surface, id
+FROM tournament
+ORDER BY name ASC;
+
+[Query 13: Complex]
+[Decription: Loads stats of a given tournament for any given decade - specifically for player who has won most, 
+and player who has come second most]
+(SELECT 'Most Tournament Wins' as `role`, g.winner_id as `Player ID`, p1.name as `Record Holder`, COUNT(*) as Victories
+FROM tournament t
+INNER JOIN game g ON t.id = g.tourney_id
+INNER JOIN player p1 ON g.winner_id = p1.id
+WHERE t.name=? AND g.round = 'F' AND YEAR(t.start_date) BETWEEN ? AND ?
+GROUP BY g.winner_id, p1.name
+ORDER BY Victories DESC
+LIMIT 1)
+
+UNION 
+
+(SELECT 'Most Losses at Final' as `role`, g.loser_id as `Player ID`, p2.name as `Record Holder`, COUNT(*) as Losses
+FROM tournament t2
+INNER JOIN game g ON t2.id = g.tourney_id
+INNER JOIN player p2 ON g.loser_id = p2.id
+WHERE t2.name=? AND g.round = 'F' AND YEAR(t2.start_date) BETWEEN ? AND ?
+GROUP BY g.loser_id, p2.name
+ORDER BY Losses DESC
+LIMIT 1)
