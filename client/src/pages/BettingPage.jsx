@@ -209,7 +209,7 @@ export default function BettingPage() {
       }
     }
     const amountBet = bettingAmount * numMatches;
-    const ROI = amountWon / amountBet;
+    const ROI = (amountWon - amountBet) / amountBet;
 
     setResults({
       NumMatches: numMatches,
