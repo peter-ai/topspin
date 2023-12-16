@@ -18,7 +18,7 @@ Top Spin is a web application that allows both tennis fanatics and casual fans t
 
 ### Project Installation and Setup
 
-#### Downloading dependencies
+#### Downloading node.js dependencies
 
 To install server packages (from project root)
 
@@ -32,16 +32,29 @@ To install client packages (from project root)
 
 This will install all necessary dependencies to run the project.
 
+#### Setting up Flask server
+
+Ensure python version >3.8x is installed. To install python packages, dependencies, and setup Flask server:
+```
+cd src/ml
+pip install -r ./requirements.txt
+```
+
 #### Running the project
 
-Note that a .env file placed at the project root containing the values specified in `server/config.js` is required to run this project and access the database. For security reasons, this file is not available in our GitHub repository.
+Note that a .env file placed at the project root containing the values specified in `server/config.js` is required to run this project and access the database. For security reasons, this file is not available in our GitHub repository (please locate and use local copy from Gradescope submission).
 
-Running the server (port 8080)
+Running the Flask server (port 5002):
+
+    cd src/ml
+    sh run_flask.sh
+
+Running the node server (port 8080):
 
     cd server
     npm run start
 
-Running the frontend
+Running the client:
 
     cd client
     npm run dev
