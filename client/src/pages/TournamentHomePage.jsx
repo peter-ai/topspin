@@ -113,6 +113,8 @@ export default function TournamentHomePage() {
             columns={columns}
             pageSize={10}
             rowsPerPageOptions={[10, 20, 50]}
+            density='compact'
+            
           />): (<Skeleton variant= 'rounded' width = '100%' height = {500} />)}
         </Box>
       </Grid>
