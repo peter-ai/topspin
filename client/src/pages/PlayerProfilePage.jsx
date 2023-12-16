@@ -23,7 +23,7 @@ import atp_logo_1 from "../assets/imgs/atp-silhouette-1.png";
 import atp_logo_2 from "../assets/imgs/atp-silhouette-2.png";
 import wta_logo_1 from "../assets/imgs/wta-silhouette-1.png";
 import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
-import { getPlayerFlag, getDate, getPlayerHand } from "../utils";
+import { getPlayerFlag, getDate, getPlayerHand, generateTableHeader, formatStatsNumber } from "../utils";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -42,6 +42,8 @@ export default function PlayerProfilePage() {
   const [playerSurfaces, setPlayerSurfaces] = useState([]); // variable for player's best and worst match surfaces historically
   const [playerStats, setPlayerStats] = useState({}); // variable for player stats
   const [playerMatches, setPlayerMatches] = useState([]); // track changes to matches
+
+  console.log(playerMatches);
 
   // use effect
   useEffect(() => {
@@ -376,11 +378,6 @@ export default function PlayerProfilePage() {
     }
   };
 
-  // function to assist in the formatting of player statistics
-  const formatNumber = (num) => {
-    return Math.round((num + Number.EPSILON) * 100) / 100;
-  };
-
   // function to format sport analytics/statistics cards for a given player
   const getSportAnalytics = () => {
     if (playerStats && Object.keys(playerStats).length) {
@@ -483,7 +480,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_ace !== null
-                      ? formatNumber(playerStats.avg_w_ace)
+                      ? formatStatsNumber(playerStats.avg_w_ace)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -493,7 +490,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_df !== null
-                      ? formatNumber(playerStats.avg_w_df)
+                      ? formatStatsNumber(playerStats.avg_w_df)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -503,7 +500,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_svpt !== null
-                      ? formatNumber(playerStats.avg_w_svpt)
+                      ? formatStatsNumber(playerStats.avg_w_svpt)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -513,7 +510,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_1stIn !== null
-                      ? formatNumber(playerStats.avg_w_1stIn)
+                      ? formatStatsNumber(playerStats.avg_w_1stIn)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -523,7 +520,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_1stWon !== null
-                      ? formatNumber(playerStats.avg_w_1stWon)
+                      ? formatStatsNumber(playerStats.avg_w_1stWon)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -533,7 +530,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_2ndWon !== null
-                      ? formatNumber(playerStats.avg_w_2ndWon)
+                      ? formatStatsNumber(playerStats.avg_w_2ndWon)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -543,7 +540,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_SvGms !== null
-                      ? formatNumber(playerStats.avg_w_SvGms)
+                      ? formatStatsNumber(playerStats.avg_w_SvGms)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -553,7 +550,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_bpSaved !== null
-                      ? formatNumber(playerStats.avg_w_bpSaved)
+                      ? formatStatsNumber(playerStats.avg_w_bpSaved)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -563,7 +560,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_w_bpFaced !== null
-                      ? formatNumber(playerStats.avg_w_bpFaced)
+                      ? formatStatsNumber(playerStats.avg_w_bpFaced)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -667,7 +664,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_ace !== null
-                      ? formatNumber(playerStats.avg_l_ace)
+                      ? formatStatsNumber(playerStats.avg_l_ace)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -677,7 +674,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_df !== null
-                      ? formatNumber(playerStats.avg_l_df)
+                      ? formatStatsNumber(playerStats.avg_l_df)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -687,7 +684,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_svpt !== null
-                      ? formatNumber(playerStats.avg_l_svpt)
+                      ? formatStatsNumber(playerStats.avg_l_svpt)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -697,7 +694,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_1stIn !== null
-                      ? formatNumber(playerStats.avg_l_1stIn)
+                      ? formatStatsNumber(playerStats.avg_l_1stIn)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -707,7 +704,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_1stWon !== null
-                      ? formatNumber(playerStats.avg_l_1stWon)
+                      ? formatStatsNumber(playerStats.avg_l_1stWon)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -717,7 +714,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_2ndWon !== null
-                      ? formatNumber(playerStats.avg_l_2ndWon)
+                      ? formatStatsNumber(playerStats.avg_l_2ndWon)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -727,7 +724,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_SvGms !== null
-                      ? formatNumber(playerStats.avg_l_SvGms)
+                      ? formatStatsNumber(playerStats.avg_l_SvGms)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -737,7 +734,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_bpSaved !== null
-                      ? formatNumber(playerStats.avg_l_bpSaved)
+                      ? formatStatsNumber(playerStats.avg_l_bpSaved)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -747,7 +744,7 @@ export default function PlayerProfilePage() {
                   </Typography>
                   <Typography variant="h6" display={"inline"}>
                     {playerStats.avg_l_bpFaced !== null
-                      ? formatNumber(playerStats.avg_l_bpFaced)
+                      ? formatStatsNumber(playerStats.avg_l_bpFaced)
                       : "N/A"}
                   </Typography>
                 </Box>
@@ -806,7 +803,7 @@ export default function PlayerProfilePage() {
     const loc = params.id - 1;
     return (
       <Link
-        href={"/tournament/" + playerMatches[loc].tourney_id}
+        href={"/tournament/" + playerMatches[loc].tourney_name + '/' + playerInfo.league + '/' + playerMatches[loc].start_date.slice(0,10)}
         underline="none"
         target="_blank"
         rel="noopener"
@@ -822,11 +819,6 @@ export default function PlayerProfilePage() {
     );
   };
 
-  // function to format headers in match table
-  const generateHeader = (params) => {
-    return <strong>{params.colDef.headerName}</strong>;
-  };
-
   // function to format matches as a data table
   const getMatches = () => {
     if (playerMatches && playerMatches.length) {
@@ -835,7 +827,7 @@ export default function PlayerProfilePage() {
           field: "tourney_name",
           headerName: "Tournament",
           flex: 1.5,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
           renderCell: (params) => generateTournamentLink(params),
           description: "CH indicates Challenger circuit",
         },
@@ -844,41 +836,41 @@ export default function PlayerProfilePage() {
           headerName: "Start Date",
           flex: 1,
           type: "date",
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
           valueGetter: (params) => getDate(params.row.start_date, "tournament"),
         },
         {
           field: "surface",
           headerName: "Surface",
           flex: 1,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
         },
         {
           field: "winner_name",
           headerName: "Winner",
           flex: 1.5,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
           renderCell: (params) => generatePlayerLink(params, "winner"),
         },
         {
           field: "loser_name",
           headerName: "Loser",
           flex: 1.5,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
           renderCell: (params) => generatePlayerLink(params, "loser"),
         },
         {
           field: "max_sets",
           headerName: "Sets",
           flex: 0.75,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
           description: "Maximum sets played",
         },
         {
           field: "score",
           headerName: "Score",
           flex: 2,
-          renderHeader: (params) => generateHeader(params),
+          renderHeader: (params) => generateTableHeader(params),
         },
       ];
 

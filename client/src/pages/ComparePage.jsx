@@ -447,7 +447,7 @@ export default function ComparePage() {
         sx={{ marginTop: 0 }}
       >
         {/* Page title and tagline */}
-        <Grid item xs={5}>
+        <Grid item xs={4}>
           <Typography
             variant="h3"
             textAlign="left"
@@ -460,7 +460,7 @@ export default function ComparePage() {
             Compare Players
           </Typography>
         </Grid>
-        <Grid item xs={7}>
+        <Grid item xs={8}>
           <Typography
             variant="h5"
             textAlign="right"

@@ -97,6 +97,7 @@ export function getPlayerFlag(player_ioc) {
 export function getDate(dateStr, date_type) {
   if (dateStr) {
     const utc_date = new Date(new Date(dateStr).toUTCString());
+    
     if (date_type === "player") {
       return utc_date.toLocaleString("en-US", {
         timeZone: "UTC",
@@ -129,6 +130,16 @@ export function getPlayerHand(hand) {
   } else {
     return "Unknown";
   }
+}
+
+// function to format headers in match table
+export function generateTableHeader(params) {
+return <strong>{params.colDef.headerName}</strong>;
+}
+
+// function to assist in the formatting of player statistics
+export function formatStatsNumber(num) {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 
 // constant array of popular tennis players by wins

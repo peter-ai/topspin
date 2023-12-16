@@ -282,7 +282,7 @@ const tournament_home = async (req, res) => {
     `
     SELECT name, league, start_date, surface, id, tourney_level as level
     FROM tournament
-    ORDER BY name ASC;
+    ORDER BY name ASC, start_date DESC, league DESC;
     `,
     (err, data) => handleResponse(err, data, req.path, res)
   );
@@ -318,7 +318,7 @@ const tournament_select = async (req, res) => {
 //temp route for decade.. need to build out optional decade param. ? in route not working.
 const tournament_alltime = async (req, res) => {
   const tournament_name = req.params.name;
-  const decade_start = req.params.decade !== 'all' ? parseInt(req.params.decade) : -1;
+  const decade_start = req.params.decade !== 'all' ? Math.round(parseInt(req.params.decade/10))*10 : -1;
   const decade_end = decade_start ? decade_start + 9 : null;
   const league = req.params.league !== 'both'? req.params.league : '%'
   let query;
@@ -683,15 +683,6 @@ const eligible_players = async (req, res) => {
     (err, data) => handleResponse(err, data, req.path, res)
   );
 };
-
-// SELECT name AS label, IDs.id AS id
-// FROM player P INNER JOIN (
-//     SELECT DISTINCT id
-//     FROM player_stats_yearly
-//     WHERE year < ?
-// ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
-// WHERE league IN (?)
-// ORDER BY PS.wins DESC;
 
 const simulate_match = async (req, res) => {
   const player1_id = parseInt(req.params.player1_id);

@@ -134,7 +134,7 @@ export default function MatchPage() {
           LOADING
         </Typography>
       ) : (
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{mb: 5}}>
           {/* displays tournament name */}
           <Typography
             sx={{
