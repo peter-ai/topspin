@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import {
-  Card,
-  CardContent,
   Typography,
-  Chip,
-  Button,
-  Container,
-  Link,
   Table,
   TableContainer,
   TableHead,
@@ -16,10 +10,12 @@ import {
   TableCell,
   TableBody,
   Paper,
+  Link,
+  Skeleton
 } from "@mui/material";
 //emojis
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import StarRoundedIcon from '@mui/icons-material/StarRounded';
+
 // utils for surface and defining round
 import { setMatchSurfacePath, defineRound } from "../utils";
 import Tooltip from "@mui/material/Tooltip";
@@ -34,6 +30,7 @@ export default function TournamentPage() {
   const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
   const [decade_stats, setTournamentDecadeStats] = useState([]); //all matches for a given tournament id
   const [alltime_state, setTournamentStats] = useState([]); //all matches for a given tournament id
+  console.log(parseInt(date.slice(0,4)));
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
@@ -55,7 +52,7 @@ export default function TournamentPage() {
   }, []); // run on initial render
 
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/2014/${league}`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/${parseInt(date.slice(0,4))}/${league}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentDecadeStats(resJson);
@@ -74,7 +71,6 @@ export default function TournamentPage() {
   const year = new Date(date).getFullYear();
 
   // tournament surface
-  //const tournament_surface = tournament ? tournament.surface : "Loading...";
   const tournament_surface = matches.length > 0 ? matches[0].surface : "Loading...";
   const id = matches.length >0 ? matches[0].id : 0;
   const winner = matches.length >0 ? matches[0].winner : 'Loading...';
@@ -92,6 +88,7 @@ export default function TournamentPage() {
         <div style={{ textAlign: "center" }}>
           <Typography
             variant="h3"
+            mt={5}
             sx={{
               fontWeight: 300,
               letterSpacing: ".2rem",
@@ -100,13 +97,24 @@ export default function TournamentPage() {
           >
             {name + " " + year + ": " + league.toUpperCase()}
           </Typography>
-          <Tooltip title={`Surface: ${tournament_surface}`}>
-            <img
-              src={setMatchSurfacePath(tournament_surface)}
-              alt={`Surface: ${tournament_surface}`}
-              style={{ maxWidth: "20%", borderRadius: "10px" }}
+          {
+            tournament_surface !== 'Loading...'
+            ?
+            <Tooltip title={`Surface: ${tournament_surface}`}>
+              <img
+                src={setMatchSurfacePath(tournament_surface)}
+                alt={`Surface: ${tournament_surface}`}
+                style={{ maxWidth: "20%", borderRadius: "10px" }}
+              />
+            </Tooltip>
+            :
+            <Skeleton
+              variant="rounded" 
+              width={'20%'} 
+              height={160.77} 
+              sx={{margin: 'auto', marginBottom: 1, borderRadius: 3}}
             />
-          </Tooltip>
+          }
 
         </div>
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -120,89 +128,95 @@ export default function TournamentPage() {
             Stats
           </Typography>
         </div>
+        
+        
         <div>
           <Grid container justifyContent="center" alignItems="center">
-          <Grid item xs={6} md={3}>
-            <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center', marginBottom: '10px'}}>
-            <Typography variant="h5" style={{ color: "#FFD700" }}>
-              <EmojiEventsIcon/> Winner:
-            </Typography>
-            <Typography variant="h6">
-            <Link href={`/player/${winnerID}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
-                {winner}
-              </Link>
-            </Typography>
-            </div>
+            <Grid item xs={6} md={3}>
+              <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center', marginBottom: '10px'}}>
+                <Typography variant="h5" style={{ color: "#FFD700" }}>
+                  <EmojiEventsIcon/> Winner:
+                </Typography>
+                <Link 
+                  href={`/player/${winnerID}`} 
+                  variant="h6"
+                  underline="none"
+                  rel="noopener"
+                  color={'white'}
+                  sx={{
+                    ":hover": {
+                      color: "success.main",
+                      transition: "250ms",
+                    },
+                  }}
+                >
+                  {winner}
+                </Link>
+              </div>
             </Grid>
           </Grid>
           <Grid container spacing={2} justifyContent="center" alignItems="center">
-          <Grid item xs={6} md={3}>
-            <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center' }}>
-            <Typography variant="h6">
-              Record Holder (Last Decade):
-            </Typography>
-            <Typography variant="subtitle1">
-            <Link href={`/player/${winningestID}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
+            <Grid item xs={6} md={3}>
+              <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center' }}>
+              <Typography variant="h6">
+                Record Holder (Last Decade):
+              </Typography>
+              <Link 
+                href={`/player/${winningestID}`} 
+                variant="subtitle1"
+                underline="none"
+                rel="noopener"
+                color={'white'}
+                sx={{
+                  ":hover": {
+                    color: "success.main",
+                    transition: "250ms",
+                  },
+                }}
+              >
                 {winningest}
               </Link>
-            </Typography>
-            <Typography variant="subtitle2">
-            with
-            </Typography>
-            <Typography variant="subtitle1">
-            {winningestRecord} win(s)
-            </Typography>
-            </div>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center' }}>
-            <Tooltip title={`Across League and Gender`}>
-            <Typography variant="h6">
-              G.O.A.T.:
-            </Typography>
-            </Tooltip>
-            <Typography variant="subtitle1">
-            <Link href={`/player/${winningestID_alltime}`} 
-              style={{ color: "inherit", textDecoration: "none" }}
-              onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
-                        }}>
+              <Typography variant="subtitle2">
+              with
+              </Typography>
+              <Typography variant="subtitle1">
+              {winningestRecord} win(s)
+              </Typography>
+              </div>
+            </Grid>
+            <Grid item xs={6} md={3}>
+              <div style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "10px", textAlign: 'center' }}>
+              <Tooltip title={`Across League and Gender`}>
+              <Typography variant="h6">
+                G.O.A.T.:
+              </Typography>
+              </Tooltip>
+              <Link 
+                href={`/player/${winningestID_alltime}`} 
+                variant="subtitle1"
+                underline="none"
+                rel="noopener"
+                color={'white'}
+                sx={{
+                  ":hover": {
+                    color: "success.main",
+                    transition: "250ms",
+                  },
+                }}
+              >
                 {winningest_alltime}
               </Link>
-            </Typography>
-            <Typography variant="subtitle2">
-            with
-            </Typography>
-            <Typography variant="subtitle1">
-            {winningestRecord_alltime} win(s)
-            </Typography>
-            </div>
+              <Typography variant="subtitle2">
+              with
+              </Typography>
+              <Typography variant="subtitle1">
+              {winningestRecord_alltime} win(s)
+              </Typography>
+              </div>
+            </Grid>
           </Grid>
-        </Grid>
         </div>
+        
         <div style = {{ textAlign: "center", marginTop: "20px", marginBottom: "10px" }}>
           <Typography
             variant="h5"

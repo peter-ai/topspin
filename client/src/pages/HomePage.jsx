@@ -34,24 +34,25 @@ export default function HomePage() {
       .catch((err) => console.log(err));
 
     // bing image search the randomly selected player
-    // TODO: Uncomment code below
-    // fetch(`https://api.bing.microsoft.com/v7.0/images/search?` + 
-    // `q=${encodeURI(player_name + ' playing tennis')}&` +
-    // `mkt=en-us&` + 
-    // `safeSearch=moderate&`+
-    // `count=1&` + 
-    // `offset=0&` + 
-    // `aspect=Square&` +
-    // `imageType=Photo&`, {
-    //   method: 'GET',
-    //   headers: {
-    //     'Ocp-Apim-Subscription-Key' : API_KEY
-    //   } 
-    // })
-    //   .then(res => res.json())
-    //   .then(resJson => resJson.value[0])
-    //   .then(resVal => setImageURL(resVal.thumbnailUrl))
-    //   .catch(err => console.log(err));
+    fetch(`https://api.bing.microsoft.com/v7.0/images/search?` + 
+      `q=${encodeURI(player_name + ' playing tennis')}&` +
+      `mkt=en-us&` + 
+      `safeSearch=moderate&`+
+      `count=1&` + 
+      `offset=0&` + 
+      `aspect=Square&` +
+      `imageType=Photo&`, 
+      {
+        method: 'GET',
+        headers: {
+          'Ocp-Apim-Subscription-Key' : API_KEY
+        } 
+      }
+    )
+      .then(res => res.json())
+      .then(resJson => resJson.value[0])
+      .then(resVal => setImageURL(resVal.thumbnailUrl))
+      .catch(err => console.log(err));
   }, []);
 
   

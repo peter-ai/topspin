@@ -15,8 +15,7 @@ app.use(morgan("tiny")); // logger
 
 // routes
 /**
- * TODO api routes should be prepended with api (I didn't make the change on other
- * TODO routes so as not to break any existing frontend components that call the server)
+ *  API routes should be prepended with api
  */
 app.get("/", routes.home);
 app.get("/api/player", routes.player);
