@@ -35,7 +35,6 @@ export default function TournamentHomePage() {
 
   // generate tournament link function
   const generateTournamentLink = (params) => {
-    //const date = (params.row.start_date).date
     const path = `/tournament/${params.row.name}/${params.row.league}/${params.row.date.slice(0,10)}`
 
     return (
