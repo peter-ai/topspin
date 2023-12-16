@@ -34,6 +34,8 @@ This will install all necessary dependencies to run the project.
 
 #### Running the project
 
+Note that a .env file placed at the project root containing the values specified in `server/config.js` is required to run this project and access the database. For security reasons, this file is not available in our GitHub repository.
+
 Running the server (port 8080)
 
     cd server
