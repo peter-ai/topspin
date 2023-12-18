@@ -5,8 +5,6 @@ from flask_cors import CORS, cross_origin
 import pickle
 import numpy as np
 
-import struct
-
 MODEL_DIMENSION = 18
 with open('model_v1.pkl', 'rb') as f:
     clf = pickle.load(f)
