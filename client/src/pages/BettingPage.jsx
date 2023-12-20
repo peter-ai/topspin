@@ -42,7 +42,7 @@ export default function BettingPage() {
   const [bettingAmount, setBettingAmount] = useState(1.0);
   const [startDate, setStartDate] = useState(dayjs('2015-01-01'));
   const [endDate, setEndDate] = useState(dayjs('2015-02-01'));
-  const [useAce, setUseAce] = useState(false);
+  const [useAce, setUseAce] = useState(true);
   const [useDf, setUseDf] = useState(false);
   const [useSvpt, setUseSvpt] = useState(false);
   const [use1stIn, setUse1stIn] = useState(false);
@@ -269,8 +269,9 @@ export default function BettingPage() {
               <Stack direction={'row'} spacing={1}>
                 <Stack>
                   <FormControlLabel
-                    value="top"
-                    control={<Switch 
+                    value='left'
+                    control={<Switch
+                      defaultChecked
                       color="success" 
                       onChange={(event) => {setUseAce(event.target.checked)}}
                       />}
