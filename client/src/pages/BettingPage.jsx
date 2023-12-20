@@ -54,7 +54,7 @@ export default function BettingPage() {
 
   const [simulating, setSimulating] = useState(false);
   const [open, setOpen] = useState(false);
-  const [matchResultsJson, setMatchResults] = useState({});
+  const [matchResults, setMatchResults] = useState({});
   const sec_per_query = 0.03;
 
   const handleSimulateClick = async () => {
@@ -68,8 +68,8 @@ export default function BettingPage() {
 
   const handleCloseAndRun = () => {
     setOpen(false);
-    simulateBettingWithModel();
     setSimulating(true);
+    simulateBettingWithModel();
   };
 
   const simulateBettingWithFavorites = () => {
@@ -105,93 +105,83 @@ export default function BettingPage() {
   };
 
   const potentiallySimulateBettingWithModel = async () => {
-
     // get all the matches within the date range
-    const matchResults = await fetch(
+    fetch(
       `http://${SERVER_HOST}:${SERVER_PORT}/api/match/results?` + 
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
       `end_date=${endDate.format('YYYY-MM-DD')}`
-    );
-    setMatchResults(await matchResults.json());
+    )
+    .then((res) => res.json())
+    .then((resJson) => setMatchResults(resJson));
   };
 
   const simulateBettingWithModel = async () => {
+    console.log(matchResults);
 
     // deploy the model over each match
-    const simulationResultsData = await matchResultsJson.map(async match => {
+    const matchups = await matchResults.map(async match => {
 
       // get the data from both players, Promise.all ensures we have both before continuing
-      const playerDataJson = (await Promise.all([
+      const playerData = await Promise.all([
         fetch(
           `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.winner_id}/${match.year}`
-        ),
+        ).then(res => res.json()).then(resJson => Object.values(resJson).slice(1)),
         fetch(
           `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.loser_id}/${match.year}`
-        ),
-      ])).map(data => (data.json()))
-      const p1 = await playerDataJson[0];
-      const p2 = await playerDataJson[1];
-
-      // call the flask api to get the model prediction for these 2 players
-      const matchPrediction = await fetch(
-        `http://${SERVER_HOST}:${FLASK_PORT}/predict/` +
-        `${p1.avg_ace},` +
-        `${p1.avg_df},` +
-        `${p1.avg_svpt},` +
-        `${p1.avg_1stIn},` +
-        `${p1.avg_1stWon},` +
-        `${p1.avg_2ndWon},` +
-        `${p1.avg_SvGms},` +
-        `${p1.avg_bpSaved},` + 
-        `${p1.avg_bpFaced},` +
-        `${p2.avg_ace},` +
-        `${p2.avg_df},` +
-        `${p2.avg_svpt},` +
-        `${p2.avg_1stIn},` +
-        `${p2.avg_1stWon},` +
-        `${p2.avg_2ndWon},` +
-        `${p2.avg_SvGms},` +
-        `${p2.avg_bpSaved},` +
-        `${p2.avg_bpFaced}`
-      );
-      const matchPredictionJson = await matchPrediction.json();
-
-      return {
-        "correct": matchPredictionJson.prediction == 0,
-        "avgW": match.AvgW // including AvgW to calculate payout based on correct prediction
-      }
+        ).then(res => res.json()).then(resJson => Object.values(resJson).slice(1)),
+      ]);
+      
+      return playerData.flat(1);
     });
 
-    // waiting until all matches are simultated
-    const simulationResults = await Promise.all(simulationResultsData);
+    Promise.all(matchups)
+    .then((matchup_arr) => {
+      if (matchup_arr.length !== 0) {
+        fetch(
+          `http://${SERVER_HOST}:${FLASK_PORT}/betting/`,
+          {
+            method: 'POST',
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(matchup_arr)
+          }
+        )
+        .then(res => res.json())
+        .then(resJson => {
+          const numMatches = resJson.length; // number of matches is equal to length of correct
+          const numCorrect = resJson.reduce((a1, a2) => a1 + a2, 0); // sum correct array (resJson)
+          const amountBet = bettingAmount * numMatches; // set bet amount
+          
+          // compute total winnings
+          const amountWon = matchResults
+            .map(result => result.AvgW)
+            .reduce((a1,a2,idx) => a1 + a2 * resJson[idx], 0); 
 
-    // analyze the results
-    var numMatches = 0;
-    var numCorrect = 0;
-    var amountWon = 0;
-    for (const i in simulationResults) {
+          // compute ROI
+          const ROI = (amountWon - amountBet) / amountBet; 
 
-      // only count non-null predictions
-      if (!(typeof simulationResults[i].correct === "undefined")) {
-        numMatches += 1;
-        if (simulationResults[i].correct) {
-          numCorrect += 1;
-          amountWon += bettingAmount * simulationResults[i].avgW;
-        }
+          setResults({
+            NumMatches: numMatches,
+            NumCorrect: numCorrect,
+            AmountBet: amountBet,
+            AmountWon: amountWon,
+            ROI: ROI
+          });
+        });
+      } else {
+        setResults({
+          NumMatches: 0,
+          NumCorrect: 0,
+          AmountBet: 0,
+          AmountWon: 0,
+          ROI: 0
+        });
       }
-    }
-    const amountBet = bettingAmount * numMatches;
-    const ROI = (amountWon - amountBet) / amountBet;
 
-    setResults({
-      NumMatches: numMatches,
-      NumCorrect: numCorrect,
-      AmountBet: amountBet,
-      AmountWon: amountWon,
-      ROI: ROI
-    });
-
-    setSimulating(false);
+      setSimulating(false);
+    })
+    .catch(err => (console.log(err)));
   };
 
   return (
@@ -207,7 +197,7 @@ export default function BettingPage() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This simulation may take a long time. There are {matchResultsJson.length} matches in the date range you selected. This simulation is estimated to take {(matchResultsJson.length*sec_per_query/60).toFixed(1)} minutes.
+            This simulation may take a long time. There are {matchResults.length} matches in the date range you selected. This simulation is estimated to take {(matchResults.length*sec_per_query/60).toFixed(1)} minutes.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -253,6 +243,8 @@ export default function BettingPage() {
                 />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker 
+                    minDate={dayjs('1878-01-01', 'YYYY-MM-DD')}
+                    maxDate={dayjs('2023-01-01', 'YYYY-MM-DD')} 
                     value={startDate} 
                     onChange={(newValue) => setStartDate(newValue)}
                     label="Start Date"
@@ -262,7 +254,9 @@ export default function BettingPage() {
                   />
                 </LocalizationProvider>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker 
+                  <DatePicker
+                    minDate={dayjs('1878-01-01', 'YYYY-MM-DD')}
+                    maxDate={dayjs('2023-01-01', 'YYYY-MM-DD')} 
                     value={endDate} 
                     onChange={(newValue) => setEndDate(newValue)}
                     slotProps={{ textField: { size: 'small', color: 'success' } }}
@@ -370,7 +364,7 @@ export default function BettingPage() {
           <Stack spacing={4}>
             <Stack direction={'row'} spacing={2} justifyContent={'space-around'}>
               <Button 
-                disabled={startDate >= endDate}
+                disabled={startDate >= endDate || simulating}
                 color='success'
                 variant="contained" 
                 onClick={() => {simulateBettingWithFavorites();}}
@@ -378,7 +372,7 @@ export default function BettingPage() {
                 Simulate with Favorite
               </Button>
               <Button 
-                disabled={startDate >= endDate}
+                disabled={startDate >= endDate || simulating}
                 color='success'
                 variant="contained" 
                 onClick={() => {simulateBettingWithStatistics();}}
