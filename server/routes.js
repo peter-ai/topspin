@@ -46,7 +46,7 @@ const player = async (req, res) => {
       WHERE name LIKE ? AND league IN (?)
       `,
       [name, league],
-      (err, data) => handleResponse(err, data[0] ?? data, req.path, res)
+      (err, data) => handleResponse(err, data, req.path, res, false)
     );
   } else {
     connection.query(
