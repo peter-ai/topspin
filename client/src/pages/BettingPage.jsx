@@ -6,44 +6,30 @@ import {
   Box, 
   Stack,
   Divider,
+  Button,
+  TextField,
+  InputAdornment,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import CircularProgressWithLabel from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-import Button from '@mui/material/Button';
-import LoadingButton from '@mui/lab/LoadingButton';
-
 import dayjs from 'dayjs';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 const FLASK_PORT = import.meta.env.VITE_FLASK_PORT;
 
-// TODO: better error handling
-// TODO: better input type checking
-// TODO: move query to params (i.e. most of these inputs are required not optional)
-// TODO: move amount/date range to left column, favorites+results to next column, statistics toggles+results to next, ML+results to next column
-// TODO: changing betting amount to only this page not queries
-// TODO: add spinning wheel (our progress bar) for ML
-// TODO: add cancel button for ML
-// TODO: add warning+time estimation for ML
-// TODO: fix date picker color in dark mode
-// TODO: optimize stats query time (i.e. get yearly stats+accumulate stats+simultate -> query player stats view+accumulate+simulate)
-// TODO: optimize query via indexing on winner_id and loser_id (GET BEFORE AND AFTER)
-// TODO: retrain model to inlude probality as output and remove SvGms from the model 18->16 features per match (PCA too?) (non-SVM?)
 export default function BettingPage() {
 
   const [results, setResults] = useState({
@@ -66,7 +52,6 @@ export default function BettingPage() {
   const [useBpSaved, setUseBpSaved] = useState(false);
   const [useBpFaced, setUseBpFaced] = useState(false);
 
-  var progress = 0;
   const [simulating, setSimulating] = useState(false);
   const [open, setOpen] = useState(false);
   const [matchResultsJson, setMatchResults] = useState({});
@@ -127,13 +112,10 @@ export default function BettingPage() {
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
       `end_date=${endDate.format('YYYY-MM-DD')}`
     );
-    console.log(matchResults);
     setMatchResults(await matchResults.json());
   };
 
   const simulateBettingWithModel = async () => {
-
-    progress = 0.0;
 
     // deploy the model over each match
     const simulationResultsData = await matchResultsJson.map(async match => {
@@ -149,12 +131,6 @@ export default function BettingPage() {
       ])).map(data => (data.json()))
       const p1 = await playerDataJson[0];
       const p2 = await playerDataJson[1];
-
-
-      // HOTFIX: for some reason this feature is spitting out null, so set to 0 for now
-      // TODO: fix model to not include this feature?
-      p1.avg_SvGms = 0;
-      p2.avg_SvGms = 0;
 
       // call the flask api to get the model prediction for these 2 players
       const matchPrediction = await fetch(
@@ -180,10 +156,6 @@ export default function BettingPage() {
       );
       const matchPredictionJson = await matchPrediction.json();
 
-      progress += 1/matchResultsJson.length;
-      console.log(progress);
-
-      // TODO: retrain model to also include probality not just prediction
       return {
         "correct": matchPredictionJson.prediction == 0,
         "avgW": match.AvgW // including AvgW to calculate payout based on correct prediction
@@ -398,6 +370,7 @@ export default function BettingPage() {
           <Stack spacing={4}>
             <Stack direction={'row'} spacing={2} justifyContent={'space-around'}>
               <Button 
+                disabled={startDate >= endDate}
                 color='success'
                 variant="contained" 
                 onClick={() => {simulateBettingWithFavorites();}}
@@ -405,6 +378,7 @@ export default function BettingPage() {
                 Simulate with Favorite
               </Button>
               <Button 
+                disabled={startDate >= endDate}
                 color='success'
                 variant="contained" 
                 onClick={() => {simulateBettingWithStatistics();}}
@@ -412,11 +386,12 @@ export default function BettingPage() {
                 Simulate with Stats
               </Button>
               <LoadingButton 
+                disabled={startDate >= endDate}
                 color='success'
                 variant="contained" 
                 onClick={() => {handleSimulateClick();}}
                 loading={simulating}
-                loadingIndicator={<CircularProgressWithLabel value={progress} />}
+                loadingIndicator={<CircularProgress color={'success'} variant='indeterminate'/>}
               >
                 Simulate with <br/>Predictive Model
               </LoadingButton>
@@ -444,7 +419,7 @@ export default function BettingPage() {
                 </Box>
                 <Box>
                   <Typography variant='h6'>
-                    ROI: {(100*results.ROI).toFixed(2)}%
+                    ROI: {results.ROI ? (100*results.ROI).toFixed(2) : 0}%
                   </Typography>
                 </Box>
               </Stack>
