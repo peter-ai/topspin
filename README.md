@@ -47,6 +47,10 @@ Note that a .env file placed at the project root containing the values specified
 Running the Flask server (port 5002):
 
     cd src/ml
+    waitress-serve --port=5002 --call topspin_ml:create_app
+OR (for Flask development server):
+
+    cd src/ml
     sh run_flask.sh
 
 Running the node server (port 8080):

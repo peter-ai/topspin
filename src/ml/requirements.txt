@@ -42,5 +42,6 @@ tornado==6.4
 tqdm==4.66.1
 traitlets==5.14.0
 tzdata==2023.3
+waitress==2.1.2
 wcwidth==0.2.12
 Werkzeug==3.0.1
