@@ -50,7 +50,6 @@ export default function ComparePage() {
   const [isSamePlayer, setIsSamePlayer] = useState(false);
 
   const fixOrderOfCompareData = (res) => {
-    console.log(res);
     const buildCompareData = [];
     if (res[0].player_id == player1.id) {
       buildCompareData.push(res[0]);

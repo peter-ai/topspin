@@ -179,7 +179,7 @@ export default function PlayerPage() {
         spacing={3}
         justifyContent={"center"}
         alignItems={"center"}
-        sx={{ marginTop: 0 }}
+        sx={{ marginTop: 0, marginBottom: 3 }}
       >
         <Grid item xs={6}>
           <Typography

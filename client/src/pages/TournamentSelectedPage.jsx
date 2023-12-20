@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Grid from "@mui/material/Grid";
 import {
   Typography,
   Table,
@@ -11,14 +10,15 @@ import {
   TableBody,
   Paper,
   Link,
-  Skeleton
+  Skeleton,
+  Tooltip,
+  Grid
 } from "@mui/material";
 //emojis
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
 // utils for surface and defining round
 import { setMatchSurfacePath, defineRound } from "../utils";
-import Tooltip from "@mui/material/Tooltip";
 
 // declare server port and host for requests
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
@@ -30,7 +30,6 @@ export default function TournamentPage() {
   const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
   const [decade_stats, setTournamentDecadeStats] = useState([]); //all matches for a given tournament id
   const [alltime_state, setTournamentStats] = useState([]); //all matches for a given tournament id
-  console.log(parseInt(date.slice(0,4)));
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
@@ -40,15 +39,6 @@ export default function TournamentPage() {
         setTournamentMatches(resJson);
       })
       .catch((err) => console.log(err));
-
-    /* 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/2013`)
-      .then((res) => res.json())
-      .then((resJson) => {
-        setTournamentDecadeStats(resJson);
-      })
-    .catch((err) => console.log(err));
-    */
   }, []); // run on initial render
 
   useEffect(() => {
@@ -263,14 +253,12 @@ export default function TournamentPage() {
                     <TableCell>
                       <Link
                         href={`/tournament/${id}/${match.match_num}`}
-                        style={{ color: "inherit", textDecoration: "none" }}
-                        onMouseOver={(e) => {
-                          e.target.style.color = "#008000";
-                          e.target.style.textDecoration = "none";
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.color = "inherit";
-                          e.target.style.textDecoration = "none";
+                        underline='none'
+                        sx={{
+                          ':hover': {
+                            color: "success.main",
+                            transition: "250ms",
+                          }
                         }}
                       >
                         {match.winner} vs {match.loser}
