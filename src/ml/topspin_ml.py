@@ -23,7 +23,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 def predict(features):
     try:
         # parse input vector from GET params
-        v = np.array([float(feature) if feature != 'None' else np.NaN for feature in features.split(',')])
+        v = np.array([float(feature) if feature != 'None' and feature != 'null' else np.NaN for feature in features.split(',')])
     except ValueError as e:
         v = None
 
