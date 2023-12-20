@@ -2,12 +2,12 @@
 import json
 from flask import Flask
 from flask_cors import CORS, cross_origin
-import pickle
+import joblib
 import numpy as np
 
 MODEL_DIMENSION = 18
-with open('model_v1.pkl', 'rb') as f:
-    clf = pickle.load(f)
+with open('GBM_classifier.joblib', 'rb') as f:
+    clf = joblib.load(f)
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -22,7 +22,8 @@ def home():
 @cross_origin()
 def predict(features):
     try:
-        v = np.array([float(x) for x in features.split(',')])
+        print(features)
+        v = np.array([float(feature) if feature != 'None' else np.NaN for feature in features.split(',') ])
     except ValueError as e:
         v = None
 
