@@ -116,22 +116,17 @@ export default function BettingPage() {
   };
 
   const simulateBettingWithModel = async () => {
-    console.log(matchResults);
-
     // deploy the model over each match
     const matchups = await matchResults.map(async match => {
-
       // get the data from both players, Promise.all ensures we have both before continuing
-      const playerData = await Promise.all([
-        fetch(
-          `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.winner_id}/${match.year}`
-        ).then(res => res.json()).then(resJson => Object.values(resJson).slice(1)),
-        fetch(
-          `http://${SERVER_HOST}:${SERVER_PORT}/api/player/${match.loser_id}/${match.year}`
-        ).then(res => res.json()).then(resJson => Object.values(resJson).slice(1)),
-      ]);
+      const playerData = await fetch(
+        `http://${SERVER_HOST}:${SERVER_PORT}/api/betting/ml/` + 
+        `${match.winner_id}/${match.loser_id}/${match.year}`
+      )
+      .then(res => res.json())
+      .then(resJson => Object.values(resJson));
       
-      return playerData.flat(1);
+      return playerData;
     });
 
     Promise.all(matchups)

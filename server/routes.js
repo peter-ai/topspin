@@ -102,13 +102,13 @@ const player_surface = async (req, res) => {
       WITH surface_perf AS (
           WITH win_surface AS (
                             SELECT surface, COUNT(G.winner_id) AS wins
-                            FROM game G USE INDEX (match_winner) INNER JOIN tournament T ON G.tourney_id=T.id
+                            FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
                             WHERE G.winner_id=? AND surface IS NOT NULL
                             GROUP BY surface
           ),
           loss_surface AS (
                             SELECT surface, COUNT(G.loser_id) AS losses
-                            FROM game G USE INDEX (match_loser) INNER JOIN tournament T ON G.tourney_id=T.id
+                            FROM game G INNER JOIN tournament T ON G.tourney_id=T.id
                             WHERE G.loser_id=? AND surface IS NOT NULL
                             GROUP BY surface
           )
@@ -221,6 +221,40 @@ const player_matches = async (req, res) => {
   }
 };
 
+// route that retrieves a specific player's historical match stats
+const player_average_stats = async (req, res) => {
+  const player_id = parseInt(req.params.id);
+  const year = parseInt(req.params.year);
+
+  // if player_id is not an integer, send empty json
+  if (isNaN(player_id)) {
+    res.json({});
+  } else if (isNaN(year)) {
+    res.json({});
+  } else {
+    connection.query(
+      `
+      SELECT
+        SUM(minutes)/SUM(nmatches) as avg_minutes,
+        SUM(ace)/SUM(nmatches) as avg_ace,
+        SUM(df)/SUM(nmatches) as avg_df,
+        SUM(svpt)/SUM(nmatches) as avg_svpt,
+        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
+        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
+        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
+        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
+        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
+        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
+      FROM player_stats_yearly
+      WHERE id=?
+      AND year < ?
+      `,
+      [player_id, year],
+      (err, data) => handleResponse(err, data, req.path, res, false)
+    );
+  }
+};
+
 const single_match = async (req, res) => {
   const tourney_id = req.params.tourney_id;
   const match_num = parseInt(req.params.match_num);
@@ -329,7 +363,7 @@ const tournament_alltime = async (req, res) => {
     if (decade_start !== -1) {
       query = `
       (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
-      FROM tournament t USE INDEX (tournament_name)
+      FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
       WHERE t.name=? AND g.round = 'F' AND YEAR(t.start_date) BETWEEN ? AND ? AND t.league = ?
@@ -340,7 +374,7 @@ const tournament_alltime = async (req, res) => {
       UNION 
       
       (SELECT 'Most Losses at Final' as role, g.loser_id as player_id, p2.name as record_holder, COUNT(*) as Record
-      FROM tournament t2 USE INDEX (tournament_name)
+      FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
       WHERE t2.name=? AND g.round = 'F' AND YEAR(t2.start_date) BETWEEN ? AND ? AND t2.league =?
@@ -362,7 +396,7 @@ const tournament_alltime = async (req, res) => {
       // else all time stats
       query = `
       (SELECT 'Most Tournament Wins' as role, g.winner_id as player_id, p1.name as record_holder, COUNT(*) as Record
-      FROM tournament t USE INDEX (tournament_name)
+      FROM tournament t
       INNER JOIN game g ON t.id = g.tourney_id
       INNER JOIN player p1 ON g.winner_id = p1.id
       WHERE t.name=? AND g.round = 'F'
@@ -373,7 +407,7 @@ const tournament_alltime = async (req, res) => {
       UNION 
       
       (SELECT 'Most Losses at Final' as role, g.loser_id as player_id, p2.name as record_holder, COUNT(*) as Record
-      FROM tournament t2 USE INDEX (tournament_name)
+      FROM tournament t2
       INNER JOIN game g ON t2.id = g.tourney_id
       INNER JOIN player p2 ON g.loser_id = p2.id
       WHERE t2.name=? AND g.round = 'F'
@@ -543,7 +577,7 @@ const betting_statistics = async (req, res) => {
           SUM(SvGms)/SUM(nmatches) as avg_SvGms,
           SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
           SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
-        FROM player_stats_yearly as player USE INDEX (pyear)
+        FROM player_stats_yearly as player
         WHERE player.year < YEAR(?) # only allowed to use stats from before the betting simulation
         GROUP BY player.id
       ),
@@ -596,7 +630,7 @@ const betting_statistics = async (req, res) => {
         COUNT(NULLIF(AvgW,0)) as NumCorrect,
         ? * COUNT(*) as AmountBet,
         ? * SUM(AvgW) as AmountWon,
-        ((? * SUM(AvgW)) - (? * (SELECT COUNT(*) FROM valid_odds)))/(? * (SELECT COUNT(*) FROM valid_odds)) as ROI
+        ((? * SUM(AvgW)) - (? * COUNT(*)))/(? * COUNT(*)) as ROI
       FROM (SELECT * FROM bet_won UNION ALL SELECT * FROM bet_lost) bet_matches
       `,
       [
@@ -632,35 +666,52 @@ const betting_statistics = async (req, res) => {
   }
 };
 
-// route that retrieves a specific player's historical match stats
-const player_average_stats = async (req, res) => {
-  const player_id = parseInt(req.params.id);
+// route that retrieve aggregate stats for ml model
+const betting_ml = async (req, res) => {
+  const winner_id = parseInt(req.params.w_id);
+  const loser_id = parseInt(req.params.l_id);
   const year = parseInt(req.params.year);
 
   // if player_id is not an integer, send empty json
-  if (isNaN(player_id)) {
-    res.json({});
-  } else if (isNaN(year)) {
+  if (isNaN(winner_id) || isNaN(loser_id) || isNaN(year)) {
     res.json({});
   } else {
     connection.query(
       `
-      SELECT
-        SUM(minutes)/SUM(nmatches) as avg_minutes,
-        SUM(ace)/SUM(nmatches) as avg_ace,
-        SUM(df)/SUM(nmatches) as avg_df,
-        SUM(svpt)/SUM(nmatches) as avg_svpt,
-        SUM(1stIn)/SUM(nmatches) as avg_1stIn,
-        SUM(1stWon)/SUM(nmatches) as avg_1stWon,
-        SUM(2ndWon)/SUM(nmatches) as avg_2ndWon,
-        SUM(SvGms)/SUM(nmatches) as avg_SvGms,
-        SUM(bpSaved)/SUM(nmatches) as avg_bpSaved,
-        SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
-      FROM player_stats_yearly USE INDEX (pyear)
-      WHERE id=?
-      AND year < ?
+      WITH winner_tbl AS (
+        SELECT
+          SUM(ace)/SUM(nmatches) as w_avg_ace,
+          SUM(df)/SUM(nmatches) as w_avg_df,
+          SUM(svpt)/SUM(nmatches) as w_avg_svpt,
+          SUM(1stIn)/SUM(nmatches) as w_avg_1stIn,
+          SUM(1stWon)/SUM(nmatches) as w_avg_1stWon,
+          SUM(2ndWon)/SUM(nmatches) as w_avg_2ndWon,
+          SUM(SvGms)/SUM(nmatches) as w_avg_SvGms,
+          SUM(bpSaved)/SUM(nmatches) as w_avg_bpSaved,
+          SUM(bpFaced)/SUM(nmatches) as w_avg_bpFaced
+        FROM player_stats_yearly
+        WHERE id=?
+        AND year < ?
+      ),
+      loser_tbl AS (
+        SELECT
+          SUM(ace)/SUM(nmatches) as l_avg_ace,
+          SUM(df)/SUM(nmatches) as l_avg_df,
+          SUM(svpt)/SUM(nmatches) as l_avg_svpt,
+          SUM(1stIn)/SUM(nmatches) as l_avg_1stIn,
+          SUM(1stWon)/SUM(nmatches) as l_avg_1stWon,
+          SUM(2ndWon)/SUM(nmatches) as l_avg_2ndWon,
+          SUM(SvGms)/SUM(nmatches) as l_avg_SvGms,
+          SUM(bpSaved)/SUM(nmatches) as l_avg_bpSaved,
+          SUM(bpFaced)/SUM(nmatches) as l_avg_bpFaced
+        FROM player_stats_yearly
+        WHERE id=?
+        AND year < ?
+      )
+      SELECT * 
+      FROM winner_tbl CROSS JOIN loser_tbl;
       `,
-      [player_id, year],
+      [winner_id, year, loser_id, year],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
   }
@@ -708,7 +759,7 @@ const eligible_players = async (req, res) => {
     SELECT name AS label, IDs.id AS id, league
     FROM player P INNER JOIN (
         SELECT DISTINCT id
-        FROM player_stats_yearly USE INDEX (pyear)
+        FROM player_stats_yearly
         WHERE year < ?
     ) IDs ON P.id=IDs.id INNER JOIN player_stats PS ON IDs.id=PS.player_id
     WHERE league IN (?)
@@ -738,7 +789,7 @@ const simulate_match = async (req, res) => {
       SUM(SvGms)/SUM(nmatches) as avg_SvGms_1,
       SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_1,
       SUM(bpFaced)/SUM(nmatches) as avg_bpFaced_1
-    FROM player_stats_yearly USE INDEX (pyear)
+    FROM player_stats_yearly
     WHERE id=? AND year < ?) P1 CROSS JOIN
     (SELECT
       SUM(ace)/SUM(nmatches) as avg_ace_2,
@@ -750,7 +801,7 @@ const simulate_match = async (req, res) => {
       SUM(SvGms)/SUM(nmatches) as avg_SvGms_2,
       SUM(bpSaved)/SUM(nmatches) as avg_bpSaved_2,
       SUM(bpFaced)/SUM(nmatches) as avg_bpFaced
-    FROM player_stats_yearly USE INDEX (pyear)
+    FROM player_stats_yearly
     WHERE id=? AND year < ?) P2;
     `,
     [player1_id, year, player2_id, year],
@@ -766,6 +817,7 @@ module.exports = {
   player_winloss,
   player_stats,
   player_matches,
+  player_average_stats,
   single_match,
   compare,
   tournament_home,
@@ -775,7 +827,7 @@ module.exports = {
   getmatches,
   betting_favorite,
   betting_statistics,
-  player_average_stats,
+  betting_ml,
   match_results,
   eligible_players,
   simulate_match,
