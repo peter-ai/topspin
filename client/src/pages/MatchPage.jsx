@@ -234,10 +234,9 @@ export default function MatchPage() {
                   xs={3}
                 >
                   {winnerResults.map((element, index) => (
-                    <Grid item>
+                    <Grid item key={'w-'+index.toString()}>
                       <Typography
                         display="inline"
-                        key={index}
                         variant="h6"
                         sx={{
                           color:
@@ -290,10 +289,9 @@ export default function MatchPage() {
                   xs={3}
                 >
                   {loserResults.map((element, index) => (
-                    <Grid item>
+                    <Grid item key={'l-'+index.toString()}>
                       <Typography
                         display="inline"
-                        key={index}
                         variant="h6"
                         sx={{
                           color:

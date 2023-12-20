@@ -24,6 +24,7 @@ app.get("/api/player/:id/winloss", routes.player_winloss);
 app.get("/api/player/:id/stats", routes.player_stats);
 app.get("/api/player/:id/surface", routes.player_surface);
 app.get("/api/player/:id/matches", routes.player_matches);
+app.get("/api/player/:id/:year", routes.player_average_stats);
 app.get("/api/tournament/:tourney_id/:match_num", routes.single_match);
 app.get("/api/compare/:player1/:player2", routes.compare);
 app.get("/api/tournament", routes.tournament_home);
@@ -35,7 +36,7 @@ app.get("/api/simulation/:year/:league", routes.eligible_players);
 app.get("/api/simulation/:player1_id/:player2_id/:year", routes.simulate_match);
 app.get("/api/betting/favorite", routes.betting_favorite);
 app.get("/api/betting/statistics", routes.betting_statistics);
-app.get("/api/player/:id/:year", routes.player_average_stats);
+app.get("/api/betting/ml/:w_id/:l_id/:year", routes.betting_ml);
 app.get("/api/match/results", routes.match_results);
 
 
