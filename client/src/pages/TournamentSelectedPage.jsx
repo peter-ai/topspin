@@ -30,7 +30,6 @@ export default function TournamentPage() {
   const [matches, setTournamentMatches] = useState([]); //all matches for a given tournament id
   const [decade_stats, setTournamentDecadeStats] = useState([]); //all matches for a given tournament id
   const [alltime_state, setTournamentStats] = useState([]); //all matches for a given tournament id
-  console.log(parseInt(date.slice(0,4)));
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
@@ -40,15 +39,6 @@ export default function TournamentPage() {
         setTournamentMatches(resJson);
       })
       .catch((err) => console.log(err));
-
-    /* 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/2013`)
-      .then((res) => res.json())
-      .then((resJson) => {
-        setTournamentDecadeStats(resJson);
-      })
-    .catch((err) => console.log(err));
-    */
   }, []); // run on initial render
 
   useEffect(() => {

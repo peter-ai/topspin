@@ -43,8 +43,6 @@ export default function PlayerProfilePage() {
   const [playerStats, setPlayerStats] = useState({}); // variable for player stats
   const [playerMatches, setPlayerMatches] = useState([]); // track changes to matches
 
-  console.log(playerMatches);
-
   // use effect
   useEffect(() => {
     fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}`) // send get request to /player/:id route on server
