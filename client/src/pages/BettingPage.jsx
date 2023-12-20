@@ -211,7 +211,7 @@ export default function BettingPage() {
             }}
             gutterBottom
           >
-            Betting Strategy Analysis
+            Betting Strategies
           </Typography>
         </Grid>
         
@@ -362,7 +362,8 @@ export default function BettingPage() {
                 disabled={startDate >= endDate || simulating}
                 color='success'
                 variant="contained" 
-                onClick={() => {simulateBettingWithFavorites();}}
+                onClick={() => {simulateBettingWithFavorites()}}
+                sx={{width: '35%'}}
               >
                 Simulate with Favorite
               </Button>
@@ -370,11 +371,12 @@ export default function BettingPage() {
                 disabled={startDate >= endDate || simulating}
                 color='success'
                 variant="contained" 
-                onClick={() => {simulateBettingWithStatistics();}}
+                onClick={() => {simulateBettingWithStatistics()}}
+                sx={{width: '35%'}}
               >
                 Simulate with Stats
               </Button>
-              <LoadingButton 
+              {/* <LoadingButton 
                 disabled={startDate >= endDate}
                 color='success'
                 variant="contained" 
@@ -383,7 +385,7 @@ export default function BettingPage() {
                 loadingIndicator={<CircularProgress color={'success'} variant='indeterminate'/>}
               >
                 Simulate with <br/>Predictive Model
-              </LoadingButton>
+              </LoadingButton> */}
             </Stack>
             <Stack spacing={1}>
               <Typography variant='h6' textAlign={'start'}>
@@ -395,7 +397,7 @@ export default function BettingPage() {
                     Total Matches Bet On: {results.NumMatches}
                   </Typography>
                   <Typography variant='h6'>
-                    Correctly Predicted: {results.NumCorrect}
+                    Correctly Bets: {results.NumCorrect}
                   </Typography>
                 </Box>
                 <Box>
