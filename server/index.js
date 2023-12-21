@@ -17,7 +17,7 @@ app.use(morgan("tiny")); // logger
 /**
  *  API routes should be prepended with api
  */
-app.get("/", routes.home);
+app.get("/api", routes.home);
 app.get("/api/player", routes.player);
 app.get("/api/player/:id", routes.player_info);
 app.get("/api/player/:id/winloss", routes.player_winloss);
