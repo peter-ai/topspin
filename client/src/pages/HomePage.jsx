@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Container, Grid, Skeleton, Typography } from "@mui/material";
 import { popular_players } from '../utils';
 import Typewriter from 'typewriter-effect';
+import homepage_gif from "../assets/imgs/homepage.gif";
 
 
 // declare server port and host for requests
@@ -86,7 +87,7 @@ export default function HomePage() {
               maxWidth: "sm",
               borderRadius: "50%",
             }}
-            src="/src/assets/imgs/homepage.gif"
+            src={homepage_gif}
             title="gif of tennis player serving a ball"
           />
         </Grid>
