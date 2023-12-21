@@ -29,7 +29,7 @@ export default function HomePage() {
 
 
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/`)
+    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api`)
       .then((res) => res.text())
       .then((resJson) => console.log(resJson))
       .catch((err) => console.log(err));
