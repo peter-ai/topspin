@@ -1,17 +1,21 @@
 import { lookup } from "country-data";
+import grass_court from "./assets/imgs/grass-tennis-court.png";
+import clay_court from "./assets/imgs/clay-tennis-court.png";
+import hard_court from "./assets/imgs/hard-tennis-court.png";
+import carpet_court from "./assets/imgs/carpet-tennis-court.png";
 
 export const setMatchSurfacePath = (surface) => {
   switch (surface) {
     case "Grass":
-      return "/src/assets/imgs/grass-tennis-court.png";
+      return grass_court;
     case "Clay":
-      return "/src/assets/imgs/clay-tennis-court.png";
+      return clay_court;
     case "Hard":
-      return "/src/assets/imgs/hard-tennis-court.png";
+      return hard_court;
     case "Carpet":
-      return "/src/assets/imgs/carpet-tennis-court.png";
+      return carpet_court;
     default:
-      return "/src/assets/imgs/carpet-tennis-court.png";
+      return carpet_court;
   }
 };
 
