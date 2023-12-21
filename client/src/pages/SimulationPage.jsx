@@ -119,7 +119,7 @@ export default function SimulationPage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup1[0]}/${matchup1[1]}/${year}`)
           .then((res) => res.json())
           .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
           .then((res) => res.json())
       );
     const match2 = new Promise(resolve => setTimeout(resolve, delay)) 
@@ -127,7 +127,7 @@ export default function SimulationPage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup2[0]}/${matchup2[1]}/${year}`)
           .then((res) => res.json())
           .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
           .then((res) => res.json())
       );
     const match3 = new Promise(resolve => setTimeout(resolve, delay)) 
@@ -135,7 +135,7 @@ export default function SimulationPage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup3[0]}/${matchup3[1]}/${year}`)
           .then((res) => res.json())
           .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
           .then((res) => res.json())
       );
     const match4 = new Promise(resolve => setTimeout(resolve, delay)) 
@@ -143,7 +143,7 @@ export default function SimulationPage() {
         fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${matchup4[0]}/${matchup4[1]}/${year}`)
           .then((res) => res.json())
           .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-          .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+          .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
           .then((res) => res.json())
       );
 
@@ -173,7 +173,7 @@ export default function SimulationPage() {
             fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup1[0]}/${semimatchup1[1]}/${year}`)
               .then((res) => res.json())
               .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-              .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+              .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
               .then((res) => res.json())
           );
         const semimatch2 = new Promise(resolve => setTimeout(resolve, delay)) 
@@ -181,7 +181,7 @@ export default function SimulationPage() {
             fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${semimatchup2[0]}/${semimatchup2[1]}/${year}`)
               .then((res) => res.json())
               .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-              .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+              .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
               .then((res) => res.json())
           );
 
@@ -205,7 +205,7 @@ export default function SimulationPage() {
                 fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${final[0]}/${final[1]}/${year}`)
                   .then((res) => res.json())
                   .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-                  .then((stat_vector) => fetch(`http://localhost:${FLASK_PORT}/predict/${stat_vector}`))
+                  .then((stat_vector) => fetch(`http://${SERVER_HOST}:${FLASK_PORT}/predict/${stat_vector}`))
                   .then((res) => res.json())
                   .then((resJson) => {
                     setWinner(finalists[resJson.prediction]);
