@@ -63,7 +63,7 @@ export default function SimulationPage() {
 
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
-    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${year}/${league}`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/simulation/${year}/${league}`)
       .then((res) => res.json())
       .then((resJson) => setPlayerList(resJson))
       .catch((err) => console.log(err));
@@ -71,7 +71,7 @@ export default function SimulationPage() {
 
   // retrives new list of players whenever the year of competition is changed
   useEffect(() => {
-    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/api/simulation/${year}/${league}`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/simulation/${year}/${league}`)
       .then((res) => res.json())
       .then((resJson) => {
         setPlayerList(resJson); // update with new player list
