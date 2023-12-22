@@ -17,6 +17,7 @@ import img4 from "../assets/imgs/th-sillhouette.jpeg";
 import img5 from "../assets/imgs/th-bjkvsriggs.jpg";
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -26,7 +27,7 @@ export default function TournamentHomePage() {
 
   // use effect
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament`) // send get request to /tournament route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/tournament`) // send get request to /tournament route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => setTournaments(resJson)) // set tournaments
       .catch((err) => console.log(err)); // catch and log errors

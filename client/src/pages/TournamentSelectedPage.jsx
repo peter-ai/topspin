@@ -21,6 +21,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import { setMatchSurfacePath, defineRound } from "../utils";
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -33,7 +34,7 @@ export default function TournamentPage() {
 
   // use effect to send GET req to /tournament/:id for tournament data, and decade stats
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${name}/${league}/${date}`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/tournament/${name}/${league}/${date}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentMatches(resJson);
@@ -42,14 +43,14 @@ export default function TournamentPage() {
   }, []); // run on initial render
 
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/${parseInt(date.slice(0,4))}/${league}`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/tournament/stats/${name}/${parseInt(date.slice(0,4))}/${league}`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentDecadeStats(resJson);
       })
     .catch((err) => console.log(err));
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/stats/${name}/all/both`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/tournament/stats/${name}/all/both`)
       .then((res) => res.json())
       .then((resJson) => {
         setTournamentStats(resJson);

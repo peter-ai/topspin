@@ -16,6 +16,7 @@ import { setMatchSurfacePath, defineRound } from "../utils";
 import { lookup } from "country-data";
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -111,7 +112,7 @@ export default function MatchPage() {
   // use effect to send GET req to /tournament/:tourney_id/:match_num for match data
   useEffect(() => {
     fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/tournament/${tourney_id}/${match_num}`
+      `${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/tournament/${tourney_id}/${match_num}`
     )
       .then((res) => res.json())
       .then((res) => {
