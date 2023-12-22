@@ -21,6 +21,7 @@ import wta_logo_1 from "../assets/imgs/wta-silhouette-1.png";
 import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -66,7 +67,7 @@ export default function ComparePage() {
     if (player1.id && player2.id) {
       if (player1.id != player2.id) {
         fetch(
-          `http://${SERVER_HOST}:${SERVER_PORT}/api/compare/${player1.id}/${player2.id}`
+          `${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/compare/${player1.id}/${player2.id}`
         )
           .then((res) => res.json())
           .then((res) => {
@@ -81,7 +82,7 @@ export default function ComparePage() {
 
   // retrieves new list of players whenever the league filter is toggled
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/simulation/2023/both`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/simulation/2023/both`)
       .then((res) => res.json())
       .then((resJson) => {
         setPlayer1List(resJson);

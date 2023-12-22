@@ -11,14 +11,12 @@ import {
   InputAdornment,
   Switch,
   FormControlLabel,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle
 } from '@mui/material';
-import LoadingButton from '@mui/lab/LoadingButton';
 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -26,6 +24,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 const FLASK_PORT = import.meta.env.VITE_FLASK_PORT;
@@ -73,7 +72,7 @@ export default function BettingPage() {
   };
 
   const simulateBettingWithFavorites = () => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/betting/favorite?` + 
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/betting/favorite?` + 
       `amount=${bettingAmount}&` + 
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
       `end_date=${endDate.format('YYYY-MM-DD')}`
@@ -85,7 +84,7 @@ export default function BettingPage() {
 
   // function handles change of page number
   const simulateBettingWithStatistics = () => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/betting/statistics?` + 
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/betting/statistics?` + 
       `amount=${bettingAmount}&` + 
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
       `end_date=${endDate.format('YYYY-MM-DD')}&` +
@@ -107,7 +106,7 @@ export default function BettingPage() {
   const potentiallySimulateBettingWithModel = async () => {
     // get all the matches within the date range
     fetch(
-      `http://${SERVER_HOST}:${SERVER_PORT}/api/match/results?` + 
+      `${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/match/results?` + 
       `start_date=${startDate.format('YYYY-MM-DD')}&` + 
       `end_date=${endDate.format('YYYY-MM-DD')}`
     )
@@ -120,7 +119,7 @@ export default function BettingPage() {
     const matchups = await matchResults.map(async match => {
       // get the data from both players, Promise.all ensures we have both before continuing
       const playerData = await fetch(
-        `http://${SERVER_HOST}:${SERVER_PORT}/api/betting/ml/` + 
+        `${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/betting/ml/` + 
         `${match.winner_id}/${match.loser_id}/${match.year}`
       )
       .then(res => res.json())

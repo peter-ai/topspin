@@ -26,6 +26,7 @@ import wta_logo_2 from "../assets/imgs/wta-silhouette-2.png";
 import { getPlayerFlag, getDate, getPlayerHand, generateTableHeader, formatStatsNumber } from "../utils";
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -45,12 +46,12 @@ export default function PlayerProfilePage() {
 
   // use effect
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}`) // send get request to /player/:id route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/player/${id}`) // send get request to /player/:id route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => setPlayerInfo(resJson)) // set player info
       .catch((err) => console.log(err)); // catch and log errors
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/winloss`) // send get request to /player/:id/surface route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/player/${id}/winloss`) // send get request to /player/:id/surface route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => {
         // if player has more than 3 years of matches fill in gaps in years with null
@@ -83,17 +84,17 @@ export default function PlayerProfilePage() {
       })
       .catch((err) => console.log(err)); // catch and log errors
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/surface`) // send get request to /player/:id/surface route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/player/${id}/surface`) // send get request to /player/:id/surface route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => setPlayerSurfaces(resJson)) // set player surface preferences
       .catch((err) => console.log(err)); // catch and log errors
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/stats`) // send get request to /player/:id/stats route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/player/${id}/stats`) // send get request to /player/:id/stats route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => setPlayerStats(resJson)) // set player historical match stats
       .catch((err) => console.log(err)); // catch and log errors
 
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api/player/${id}/matches`) // send get request to /player/:id/matches route on server
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/player/${id}/matches`) // send get request to /player/:id/matches route on server
       .then((res) => res.json()) // convert response to json
       .then((resJson) => setPlayerMatches(resJson)) // set player matches
       .catch((err) => console.log(err)); // catch and log errors

@@ -6,6 +6,7 @@ import homepage_gif from "../assets/imgs/homepage.gif";
 
 
 // declare server port and host for requests
+const SERVER_PROTOCOL = import.meta.env.VITE_SERVER_PROTOCOL;
 const SERVER_PORT = import.meta.env.VITE_SERVER_PORT;
 const SERVER_HOST = import.meta.env.VITE_SERVER_HOST;
 
@@ -29,7 +30,7 @@ export default function HomePage() {
 
 
   useEffect(() => {
-    fetch(`http://${SERVER_HOST}:${SERVER_PORT}/api`)
+    fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}` + (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api`)
       .then((res) => res.text())
       .then((resJson) => console.log(resJson))
       .catch((err) => console.log(err));
