@@ -120,7 +120,7 @@ export default function SimulationPage() {
         fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${SERVER_PORT}` : ``) + `/api/simulation/${matchup1[0]}/${matchup1[1]}/${year}`)
           .then((res) => res.json())
           .then((resJson) => Object.values(resJson).map((val => val ? val : 'None')).join(','))
-          .then((stat_vector) => fetch(`http://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${FLASK_PORT}` : ``) + `/ml/predict/${stat_vector}`))
+          .then((stat_vector) => fetch(`${SERVER_PROTOCOL}://${SERVER_HOST}`+ (SERVER_PROTOCOL === 'http' ? `:${FLASK_PORT}` : ``) + `/ml/predict/${stat_vector}`))
           .then((res) => res.json())
       );
     const match2 = new Promise(resolve => setTimeout(resolve, delay)) 
