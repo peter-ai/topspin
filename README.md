@@ -2,7 +2,7 @@
 
 ### Description
 
-Top Spin is a web application that allows both tennis fanatics and casual fans to gain insight into the most infamous question in any given sport - who is the greatest of all time (GOAT). It aggregates data about athletes, rankings, and matches dating back to late 1800s, and match odds from 2000 to 2019. The web app displays various dynamic summary views and more in-depth pages about tennis players and matches based on historical data.
+Top Spin is a web application that allows both tennis fanatics and casual fans to gain insight into the most infamous question in any given sport - who is the greatest of all time (GOAT). It aggregates data about athletes, rankings, and matches dating back to late 1800s, and match odds from 2000 to 2019. The web app displays various dynamic summary views and more in-depth pages about tennis players and matches based on historical data. See the live web app @ [topspin.peterai.me](https://topspin.peterai.me). 
 
 ### Dependencies
 
@@ -40,7 +40,7 @@ cd src/ml
 pip install -r ./requirements.txt
 ```
 
-#### Running the project
+#### Running the project (localhost)
 
 Note that a .env file placed at the project root containing the values specified in `server/config.js` is required to run this project and access the database. For security reasons, this file is not available in our GitHub repository (please locate and use local copy from Gradescope submission).
 
