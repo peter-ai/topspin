@@ -20,7 +20,7 @@ with open('GBM_classifier.joblib', 'rb') as f:
 
 
 # define route for predictions
-@app.route("/predict/<features>", methods=['GET'])
+@app.route("/ml/predict/<features>", methods=['GET'])
 @cross_origin()
 def predict(features):
     if request.method == 'GET':
@@ -48,7 +48,7 @@ def predict(features):
         
     
 
-@app.route("/betting/", methods=['POST'])
+@app.route("/ml/betting/", methods=['POST'])
 @cross_origin()
 def betting():
     if request.method == 'POST':
@@ -68,10 +68,10 @@ def betting():
     else:
         app.logger.info(f'[{datetime.utcnow()} REST API] Betting Logger: Incorrect Request Type GET')
         return json.dumps([])
+    
+def create_app():
+    return app
 
 # if __name__ == "__main__":
 #     from waitress import serve
 #     serve(app, host="0.0.0.0", port=5002)
-    
-def create_app():
-    return app
