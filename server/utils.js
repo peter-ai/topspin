@@ -1,3 +1,21 @@
+const mysql = require("mysql2");
+const config = require("./config");
+
+const getConnection = () => {
+  // Creates MySQL connection using database credential provided in config.json
+  const connection = mysql.createConnection({
+    host: config.HOST,
+    user: config.USERNAME,
+    password: config.PASSWORD,
+    port: config.PORT,
+    database: config.DATABASE,
+    keepAliveInitialDelay: 10000,
+    enableKeepAlive: true,
+  });
+  connection.connect((err) => err && console.log(err));
+  return connection;
+}
+
 const isValidTournament = (tourney_id) => {
   const tourney_year = parseInt(tourney_id.substring(0, 4));
   return tourney_year >= 1877 && tourney_year <= 2023;
@@ -30,6 +48,7 @@ const handleResponse = (err, data, path, res, res_array=true) => {
 };
 
 module.exports = {
+  getConnection,
   isValidTournament,
   handleResponse,
 };
