@@ -1,18 +1,4 @@
-const mysql = require("mysql2");
-const config = require("./config");
-const { isValidTournament, handleResponse } = require("./utils");
-
-// Creates MySQL connection using database credential provided in config.json
-const connection = mysql.createConnection({
-  host: config.HOST,
-  user: config.USERNAME,
-  password: config.PASSWORD,
-  port: config.PORT,
-  database: config.DATABASE,
-  keepAliveInitialDelay: 10000,
-  enableKeepAlive: true,
-});
-connection.connect((err) => err && console.log(err));
+const { getConnection, isValidTournament, handleResponse } = require("./utils");
 
 const home = async (req, res) => {
   res.send("Server homepage");
@@ -38,6 +24,7 @@ const player = async (req, res) => {
     league = [req.query.league];
   }
 
+  const connection = getConnection();
   if (getCount) {
     connection.query(
       `
@@ -63,6 +50,7 @@ const player = async (req, res) => {
       (err, data) => handleResponse(err, data, req.path, res)
     );
   }
+  connection.end();
 };
 
 // route that retrieves a specific player's demographic
@@ -75,6 +63,7 @@ const player_info = async (req, res) => {
 
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT * 
@@ -84,6 +73,7 @@ const player_info = async (req, res) => {
       [player_id],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
+    connection.end();
   }
 };
 
@@ -97,6 +87,7 @@ const player_surface = async (req, res) => {
 
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       WITH surface_perf AS (
@@ -132,10 +123,12 @@ const player_surface = async (req, res) => {
       [player_id, player_id],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
 const player_winloss = async (req, res) => {
+  // get player id
   const player_id = parseInt(req.params.id);
 
   // if player_id is not an integer, send empty json
@@ -144,6 +137,7 @@ const player_winloss = async (req, res) => {
 
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT YEAR(start_date) as year,
@@ -157,11 +151,13 @@ const player_winloss = async (req, res) => {
       [player_id, player_id, player_id, player_id],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
 // route that retrieves a specific player's historical match stats
 const player_stats = async (req, res) => {
+  // get player id
   const player_id = parseInt(req.params.id);
 
   // if player_id is not an integer, send empty json
@@ -170,6 +166,7 @@ const player_stats = async (req, res) => {
 
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT player_id, wins, win_percentage, losses, loss_percentage,
@@ -185,11 +182,13 @@ const player_stats = async (req, res) => {
       [player_id],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
+    connection.end();
   }
 };
 
 // route that retrieves a specific player's historical match information
 const player_matches = async (req, res) => {
+  // get player id
   const player_id = parseInt(req.params.id);
 
   // if player_id is not an integer, send empty json
@@ -198,6 +197,7 @@ const player_matches = async (req, res) => {
 
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT ROW_NUMBER() OVER(ORDER BY start_date DESC) AS id, name AS tourney_name, 
@@ -218,11 +218,13 @@ const player_matches = async (req, res) => {
       [player_id, player_id],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
 // route that retrieves a specific player's historical match stats
 const player_average_stats = async (req, res) => {
+  // get player id and year for stats
   const player_id = parseInt(req.params.id);
   const year = parseInt(req.params.year);
 
@@ -232,6 +234,7 @@ const player_average_stats = async (req, res) => {
   } else if (isNaN(year)) {
     res.json({});
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT
@@ -252,6 +255,7 @@ const player_average_stats = async (req, res) => {
       [player_id, year],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
+    connection.end();
   }
 };
 
@@ -265,6 +269,7 @@ const single_match = async (req, res) => {
     res.json([]);
     // execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT G.tourney_id, G.match_num,
@@ -281,6 +286,7 @@ const single_match = async (req, res) => {
       [tourney_id, match_num],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
@@ -294,6 +300,7 @@ const compare = async (req, res) => {
     res.json([]);
     // execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       SELECT P.name, S.player_id, S.wins, S.win_percentage, S.total_games,
@@ -307,11 +314,13 @@ const compare = async (req, res) => {
       [player1, player2],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
 // route that retrieves all tournament data
 const tournament_home = async (req, res) => {
+  const connection = getConnection();
   connection.query(
     `
     SELECT name, league, start_date, surface, id, tourney_level as level
@@ -320,6 +329,7 @@ const tournament_home = async (req, res) => {
     `,
     (err, data) => handleResponse(err, data, req.path, res)
   );
+  connection.end();
 };
 
 // route that finds the tournament id given alternate keys
@@ -334,7 +344,8 @@ const tournament_select = async (req, res) => {
     res.json([]);
     // otherwise try execute query
   } else {
-      connection.query(
+    const connection = getConnection();
+    connection.query(
       `
       SELECT id, surface
       FROM tournament
@@ -344,9 +355,9 @@ const tournament_select = async (req, res) => {
       [tournament_name,tournament_league, tournament_date],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
-
 
 const tournament_alltime = async (req, res) => {
   const tournament_name = req.params.name;
@@ -418,13 +429,16 @@ const tournament_alltime = async (req, res) => {
       params = [tournament_name, tournament_name];
     }
   }
+  const connection = getConnection();
   connection.query(query, params, (err, data) =>
     handleResponse(err, data, req.path, res)
   );
+  connection.end();
 };
 
 // route that retrieves all distinct tournament names, with league and year info
 const tournament_names = async (req, res) => {
+  const connection = getConnection();
   connection.query(
     `
     SELECT 
@@ -440,6 +454,7 @@ const tournament_names = async (req, res) => {
     `,
     (err, data) => handleResponse(err, data, req.path, res)
   );
+  connection.end();
 };
 
 // route that retrieves all distinct tournament names, with league and year info 
@@ -453,6 +468,7 @@ const getmatches = async (req, res) => {
     res.json([]);
     // otherwise try execute query
   } else {
+    const connection = getConnection();
     connection.query(
       `
       WITH TID As(
@@ -468,6 +484,7 @@ const getmatches = async (req, res) => {
       [tournament_name,tournament_league, tournament_date],
       (err, data) => handleResponse(err, data, req.path, res)
     );
+    connection.end();
   }
 };
 
@@ -480,6 +497,7 @@ const betting_favorite = async (req, res) => {
   if (isNaN(betting_amount)) {
     res.json([]);
   } else {
+    const connection = getConnection();
     connection.query(
       `
       WITH valid_odds AS (
@@ -509,6 +527,7 @@ const betting_favorite = async (req, res) => {
       ],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
+    connection.end();
   }
 };
 
@@ -562,6 +581,7 @@ const betting_statistics = async (req, res) => {
       ROI: 0.0
     });
   } else {
+    const connection = getConnection();
     connection.query(
       `
       WITH historical_player_stats AS (
@@ -663,6 +683,7 @@ const betting_statistics = async (req, res) => {
       ],
       (err, data) => handleResponse(err, data, req.path, res, false)
     );
+    connection.end();
   }
 };
 
@@ -720,6 +741,8 @@ const betting_ml = async (req, res) => {
 const match_results = async (req, res) => {
   const start_date = req.query.start_date;
   const end_date = req.query.end_date;
+
+  const connection = getConnection();
   connection.query(
     `
     SELECT
@@ -737,6 +760,7 @@ const match_results = async (req, res) => {
     [start_date, end_date],
     (err, data) => handleResponse(err, data, req.path, res, true)
   );
+  connection.end();
 };
 
 const eligible_players = async (req, res) => {
@@ -754,6 +778,7 @@ const eligible_players = async (req, res) => {
     league = [req.params.league];
   }
 
+  const connection = getConnection();
   connection.query(
     `
     SELECT name AS label, IDs.id AS id, league
@@ -768,6 +793,7 @@ const eligible_players = async (req, res) => {
     [year, league],
     (err, data) => handleResponse(err, data, req.path, res)
   );
+  connection.end();
 };
 
 const simulate_match = async (req, res) => {
@@ -775,6 +801,7 @@ const simulate_match = async (req, res) => {
   const player2_id = parseInt(req.params.player2_id);
   const year = parseInt(req.params.year);
 
+  const connection = getConnection();
   connection.query(
     `
     SELECT *
@@ -807,6 +834,7 @@ const simulate_match = async (req, res) => {
     [player1_id, year, player2_id, year],
     (err, data) => handleResponse(err, data, req.path, res, (res_array = false))
   );
+  connection.end();
 };
 
 module.exports = {
